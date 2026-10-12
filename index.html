@@ -1,0 +1,1497 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cockpit Buraliste, le copilote de gestion des buralistes</title>
+<meta name="description" content="Trésorerie, contrôle FDJ, stock Strator, boîte vocale, assistant WhatsApp : Cockpit Buraliste lit votre caisse, vos banques, la FDJ et Logista, et vous dit chaque soir où vous atterrirez lundi. Conçu par un buraliste, pour les buralistes.">
+<link rel="canonical" href="https://cockpit-buraliste.fr/">
+<meta name="theme-color" content="#0d1830">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preload" href="polices/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="polices/inter-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Cockpit Buraliste">
+<meta property="og:title" content="Cockpit Buraliste : est-ce que ça passe ?">
+<meta property="og:description" content="Chaque soir, la réponse en une phrase. Le copilote de gestion conçu par un buraliste, pour les buralistes.">
+<meta property="og:url" content="https://cockpit-buraliste.fr/">
+<meta property="og:image" content="https://cockpit-buraliste.fr/partage.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="La devanture d’un tabac la nuit, l’enseigne allumée, et la question : est-ce que ça passe ?">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<script>(function(){try{if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('anim')}}catch(e){}})();</script>
+<div class="fond" id="fond" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="progression" aria-hidden="true"><i id="progression"></i></div>
+<a class="evitement" href="#cockpit">Aller au contenu</a>
+
+<header class="tete">
+  <div class="pilule">
+    <a class="marque" href="#haut" aria-label="Cockpit Buraliste, retour en haut de page"><svg class="jauge" viewBox="0 0 40 40" aria-hidden="true"><path class="arc-fond" d="M8.5 26.5a11.5 11.5 0 0 1 23 0"/><path class="arc-vert" d="M8.5 26.5a11.5 11.5 0 0 1 7.4-10.75"/><path class="aiguille" d="M20 12.2l2.5 9.3-2.5 5-2.5-5z" transform="rotate(36 20 26.5)"/><circle class="moyeu" cx="20" cy="26.5" r="2.4"/></svg><span><b>Cockpit</b> Buraliste</span></a>
+    <span class="horloge" aria-hidden="true"><i></i><span class="horloge-h" id="horloge">21:00</span></span>
+    <nav class="nav" aria-label="Sections du site">
+      <a href="#cockpit">Le cockpit</a>
+      <a href="#plan-de-vol">Le plan de vol</a>
+      <a href="#irritants">Les irritants</a>
+      <a href="#formules">Les formules</a>
+    </nav>
+    <button class="son" id="son" type="button" aria-pressed="false" aria-label="Activer le son"><span class="hp" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5h3.5l4.5-4v13l-4.5-4H3.5z"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></svg></span><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="son-txt">Son</span></button>
+    <a class="bouton bouton-plein bouton-petit" href="#demo"><span class="cta-long">Demander une démo</span><span class="cta-court" aria-hidden="true">Démo</span></a>
+  </div>
+</header>
+
+<main id="contenu">
+  <h1 class="vh">Cockpit Buraliste, le copilote de gestion conçu par un buraliste, pour les buralistes</h1>
+
+  <!-- 21 h 00 : le rideau tombe -->
+  <section class="scene" id="haut" data-heure="21:00" data-ciel="nuit" aria-label="Vingt et une heures, le rideau tombe sur le bureau de tabac">
+    <div class="scene-cadre">
+      <svg class="decor" id="decor" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+<defs>
+<linearGradient id="g-ciel" gradientUnits="userSpaceOnUse" x1="0" y1="-1250" x2="0" y2="1080"><stop offset="0" stop-color="#070f22"/><stop offset=".56" stop-color="#1a2b52"/><stop offset="1" stop-color="#2f4270"/></linearGradient>
+<linearGradient id="g-vitrine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd690"/><stop offset="1" stop-color="#f29a2e"/></linearGradient>
+<radialGradient id="g-halo"><stop offset="0" stop-color="#ff3b30" stop-opacity=".85"/><stop offset=".42" stop-color="#e0312b" stop-opacity=".3"/><stop offset="1" stop-color="#e0312b" stop-opacity="0"/></radialGradient>
+<radialGradient id="g-lune"><stop offset="0" stop-color="#f3efe2" stop-opacity=".22"/><stop offset="1" stop-color="#f3efe2" stop-opacity="0"/></radialGradient>
+<linearGradient id="g-carotte" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5d51"/><stop offset=".5" stop-color="#e0312b"/><stop offset="1" stop-color="#a51f1a"/></linearGradient>
+<linearGradient id="g-facade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f2d4e"/><stop offset="1" stop-color="#172340"/></linearGradient>
+<pattern id="g-lames" width="40" height="14" patternUnits="userSpaceOnUse"><rect width="40" height="14" fill="#8a95a7"/><rect width="40" height="2" fill="#b0bac9"/><rect y="11" width="40" height="3" fill="#69738a"/></pattern>
+<linearGradient id="g-reflet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb547" stop-opacity=".5"/><stop offset="1" stop-color="#ffb547" stop-opacity="0"/></linearGradient>
+<clipPath id="clip-baie"><rect x="880" y="664" width="960" height="246"/></clipPath>
+<mask id="m-lune"><circle r="34" fill="#fff"/><circle cx="14" cy="-8" r="30" fill="#000"/></mask>
+</defs>
+<g id="cam">
+<rect x="-600" y="-1250" width="3120" height="2600" fill="url(#g-ciel)"/>
+<g class="etoiles" fill="#fff"><circle class="scintille" cx="410" cy="-912" r="1.31" style="animation-delay:-1.71s"/><circle cx="541" cy="-1058" r="1.11" opacity="0.27"/><circle cx="753" cy="-1040" r="0.53" opacity="0.46"/><circle cx="1980" cy="-954" r="0.71" opacity="0.56"/><circle cx="2357" cy="-238" r="0.96" opacity="0.74"/><circle cx="-455" cy="206" r="0.81" opacity="0.32"/><circle class="scintille" cx="-232" cy="-663" r="1.54" style="animation-delay:-1.86s"/><circle cx="1393" cy="-562" r="1.17" opacity="0.28"/><circle cx="-414" cy="-825" r="1.35" opacity="0.46"/><circle cx="380" cy="-225" r="1.03" opacity="0.40"/><circle cx="1878" cy="-46" r="0.74" opacity="0.54"/><circle class="scintille" cx="1676" cy="-695" r="1.77" style="animation-delay:-1.34s"/><circle cx="1762" cy="-910" r="1.08" opacity="0.27"/><circle cx="379" cy="-51" r="1.23" opacity="0.54"/><circle class="scintille" cx="2347" cy="-401" r="1.33" style="animation-delay:-2.24s"/><circle cx="1964" cy="-700" r="0.94" opacity="0.58"/><circle cx="-530" cy="-421" r="0.64" opacity="0.31"/><circle cx="-416" cy="64" r="0.58" opacity="0.37"/><circle cx="620" cy="227" r="0.51" opacity="0.47"/><circle cx="1956" cy="215" r="0.79" opacity="0.46"/><circle cx="519" cy="247" r="1.74" opacity="0.33"/><circle cx="-50" cy="-784" r="0.73" opacity="0.49"/><circle cx="1238" cy="-735" r="0.41" opacity="0.46"/><circle cx="552" cy="-255" r="1.73" opacity="0.60"/><circle class="scintille" cx="1008" cy="-174" r="1.35" style="animation-delay:-2.88s"/><circle cx="1889" cy="-530" r="0.96" opacity="0.30"/><circle cx="1379" cy="-1052" r="0.49" opacity="0.35"/><circle cx="-94" cy="-613" r="0.47" opacity="0.25"/><circle cx="-128" cy="-990" r="0.91" opacity="0.26"/><circle class="scintille" cx="2128" cy="-180" r="0.61" style="animation-delay:-1.11s"/><circle cx="536" cy="-956" r="1.59" opacity="0.75"/><circle cx="854" cy="-386" r="0.52" opacity="0.30"/><circle cx="469" cy="-732" r="1.56" opacity="0.33"/><circle cx="1048" cy="-918" r="1.16" opacity="0.26"/><circle cx="2094" cy="-50" r="0.77" opacity="0.43"/><circle cx="-79" cy="70" r="1.15" opacity="0.64"/><circle cx="429" cy="-798" r="1.54" opacity="0.74"/><circle cx="2060" cy="124" r="1.55" opacity="0.62"/><circle cx="107" cy="-332" r="0.90" opacity="0.26"/><circle class="scintille" cx="-513" cy="-709" r="0.76" style="animation-delay:-3.06s"/><circle cx="538" cy="-802" r="0.72" opacity="0.35"/><circle cx="38" cy="-164" r="1.66" opacity="0.67"/><circle cx="896" cy="-118" r="1.52" opacity="0.29"/><circle cx="891" cy="-868" r="1.50" opacity="0.42"/><circle cx="635" cy="-516" r="1.73" opacity="0.61"/><circle cx="-70" cy="-949" r="0.61" opacity="0.70"/><circle class="scintille" cx="1916" cy="-919" r="1.56" style="animation-delay:-2.10s"/><circle cx="493" cy="-283" r="0.58" opacity="0.26"/><circle cx="2429" cy="-124" r="1.14" opacity="0.72"/><circle cx="753" cy="227" r="1.56" opacity="0.36"/><circle cx="186" cy="-687" r="0.74" opacity="0.54"/><circle cx="209" cy="-488" r="0.58" opacity="0.71"/><circle class="scintille" cx="504" cy="-426" r="1.22" style="animation-delay:-1.35s"/><circle cx="2263" cy="-357" r="1.14" opacity="0.51"/><circle cx="-542" cy="-455" r="0.66" opacity="0.25"/><circle cx="1893" cy="-878" r="1.06" opacity="0.61"/><circle cx="1136" cy="-635" r="1.13" opacity="0.53"/><circle cx="1847" cy="-982" r="1.18" opacity="0.37"/><circle class="scintille" cx="264" cy="70" r="1.11" style="animation-delay:-2.43s"/><circle cx="2247" cy="-450" r="1.26" opacity="0.50"/><circle cx="998" cy="-55" r="1.03" opacity="0.52"/><circle cx="2340" cy="-740" r="1.18" opacity="0.72"/><circle class="scintille" cx="2021" cy="-933" r="0.57" style="animation-delay:-0.23s"/><circle cx="151" cy="-1034" r="1.34" opacity="0.64"/><circle cx="2199" cy="-906" r="1.40" opacity="0.58"/><circle cx="-154" cy="245" r="1.75" opacity="0.36"/><circle cx="2372" cy="-521" r="1.08" opacity="0.74"/><circle cx="1997" cy="-895" r="1.00" opacity="0.51"/><circle class="scintille" cx="458" cy="-841" r="0.85" style="animation-delay:-0.06s"/><circle cx="1129" cy="-454" r="0.43" opacity="0.42"/><circle cx="1347" cy="-341" r="0.49" opacity="0.74"/><circle cx="-273" cy="-730" r="0.46" opacity="0.64"/><circle cx="244" cy="-945" r="0.99" opacity="0.71"/><circle class="scintille" cx="1955" cy="-741" r="0.61" style="animation-delay:-1.83s"/><circle cx="1585" cy="-1009" r="0.48" opacity="0.59"/><circle cx="727" cy="-1036" r="1.71" opacity="0.57"/><circle cx="1901" cy="-1018" r="1.60" opacity="0.28"/><circle cx="2092" cy="-433" r="0.87" opacity="0.53"/><circle cx="2291" cy="-727" r="0.58" opacity="0.51"/><circle class="scintille" cx="144" cy="-977" r="0.63" style="animation-delay:-0.65s"/><circle cx="373" cy="-668" r="1.46" opacity="0.39"/><circle cx="960" cy="-869" r="0.89" opacity="0.26"/><circle cx="181" cy="-1126" r="1.43" opacity="0.53"/><circle cx="-9" cy="-400" r="1.71" opacity="0.30"/><circle cx="1955" cy="-467" r="1.09" opacity="0.67"/><circle class="scintille" cx="626" cy="-349" r="1.36" style="animation-delay:-1.10s"/><circle cx="1997" cy="-33" r="1.29" opacity="0.45"/><circle cx="484" cy="-1064" r="0.58" opacity="0.29"/><circle cx="1712" cy="-746" r="0.63" opacity="0.29"/><circle cx="2025" cy="225" r="1.34" opacity="0.39"/><circle cx="156" cy="-687" r="1.04" opacity="0.33"/><circle class="scintille" cx="791" cy="-734" r="1.75" style="animation-delay:-1.75s"/><circle cx="163" cy="376" r="0.83" opacity="0.43"/><circle cx="-597" cy="-547" r="1.06" opacity="0.50"/><circle cx="27" cy="-353" r="0.41" opacity="0.38"/><circle cx="-320" cy="-519" r="0.46" opacity="0.26"/><circle cx="349" cy="-782" r="1.22" opacity="0.51"/><circle class="scintille" cx="1742" cy="-111" r="1.40" style="animation-delay:-1.25s"/><circle cx="418" cy="406" r="0.61" opacity="0.61"/><circle cx="1407" cy="-1081" r="1.57" opacity="0.70"/><circle cx="1357" cy="9" r="1.54" opacity="0.32"/><circle cx="1034" cy="-353" r="1.57" opacity="0.65"/><circle cx="1978" cy="-227" r="1.65" opacity="0.59"/><circle class="scintille" cx="1563" cy="-787" r="0.44" style="animation-delay:-1.15s"/><circle cx="-273" cy="171" r="1.18" opacity="0.56"/><circle cx="1354" cy="-75" r="1.09" opacity="0.25"/><circle cx="969" cy="-304" r="1.32" opacity="0.28"/><circle cx="1699" cy="-752" r="0.50" opacity="0.38"/><circle class="scintille" cx="1676" cy="-826" r="1.44" style="animation-delay:-1.58s"/><circle cx="594" cy="-393" r="1.36" opacity="0.63"/><circle cx="1325" cy="-134" r="0.51" opacity="0.32"/><circle cx="192" cy="24" r="0.83" opacity="0.53"/><circle cx="-561" cy="-1054" r="0.78" opacity="0.59"/><circle cx="1560" cy="-82" r="0.81" opacity="0.51"/><circle class="scintille" cx="850" cy="-413" r="0.57" style="animation-delay:-0.64s"/><circle cx="-545" cy="-425" r="1.55" opacity="0.73"/><circle cx="802" cy="-726" r="0.69" opacity="0.72"/><circle cx="57" cy="-231" r="0.60" opacity="0.51"/><circle cx="2373" cy="-940" r="1.55" opacity="0.50"/><circle class="scintille" cx="2167" cy="-39" r="0.72" style="animation-delay:-1.56s"/><circle cx="-523" cy="-1144" r="1.09" opacity="0.48"/><circle cx="342" cy="-928" r="0.88" opacity="0.41"/><circle cx="2022" cy="-1147" r="1.45" opacity="0.67"/><circle cx="-225" cy="314" r="1.40" opacity="0.70"/><circle cx="304" cy="-562" r="0.95" opacity="0.75"/><circle class="scintille" cx="1238" cy="-580" r="1.00" style="animation-delay:-0.15s"/><circle cx="-283" cy="169" r="0.80" opacity="0.72"/><circle cx="178" cy="-730" r="1.12" opacity="0.34"/><circle cx="565" cy="361" r="1.64" opacity="0.66"/><circle cx="2335" cy="-282" r="1.41" opacity="0.27"/><circle class="scintille" cx="1685" cy="-438" r="1.45" style="animation-delay:-0.92s"/><circle cx="-447" cy="314" r="0.58" opacity="0.49"/><circle cx="472" cy="-680" r="1.43" opacity="0.74"/><circle cx="212" cy="-114" r="0.82" opacity="0.53"/><circle cx="630" cy="-886" r="0.63" opacity="0.35"/><circle cx="2227" cy="-365" r="0.71" opacity="0.70"/><circle class="scintille" cx="2509" cy="-439" r="0.60" style="animation-delay:-0.29s"/><circle cx="467" cy="-1006" r="0.73" opacity="0.38"/><circle cx="1739" cy="-498" r="0.98" opacity="0.51"/><circle cx="576" cy="-616" r="0.49" opacity="0.39"/><circle cx="2419" cy="-951" r="1.10" opacity="0.56"/><circle class="scintille" cx="2092" cy="-809" r="0.78" style="animation-delay:-1.28s"/><circle cx="2048" cy="229" r="0.43" opacity="0.27"/><circle cx="877" cy="-222" r="0.40" opacity="0.45"/><circle cx="2292" cy="154" r="1.60" opacity="0.74"/><circle class="scintille" cx="175" cy="-978" r="0.62" style="animation-delay:-2.18s"/><circle cx="2337" cy="-10" r="1.31" opacity="0.63"/><circle cx="827" cy="-279" r="0.46" opacity="0.64"/><circle cx="126" cy="303" r="1.30" opacity="0.40"/><circle cx="-201" cy="-752" r="1.29" opacity="0.60"/><circle cx="-250" cy="-1039" r="1.13" opacity="0.54"/><circle class="scintille" cx="611" cy="-797" r="1.24" style="animation-delay:-0.96s"/><circle cx="883" cy="-779" r="0.75" opacity="0.73"/><circle cx="1599" cy="-664" r="0.43" opacity="0.50"/><circle cx="1504" cy="-486" r="0.76" opacity="0.58"/><circle class="scintille" cx="2287" cy="-792" r="0.45" style="animation-delay:-1.35s"/><circle cx="1530" cy="-837" r="1.52" opacity="0.62"/><circle cx="975" cy="-826" r="1.76" opacity="0.41"/><circle cx="1958" cy="-785" r="0.71" opacity="0.63"/><circle cx="320" cy="354" r="1.09" opacity="0.34"/><circle cx="97" cy="-491" r="1.33" opacity="0.72"/><circle class="scintille" cx="-143" cy="-528" r="0.70" style="animation-delay:-0.45s"/><circle cx="-438" cy="-1055" r="0.95" opacity="0.70"/><circle cx="2157" cy="8" r="1.80" opacity="0.72"/><circle cx="427" cy="-857" r="1.71" opacity="0.62"/><circle cx="-500" cy="-100" r="0.93" opacity="0.44"/><circle cx="435" cy="-883" r="0.40" opacity="0.39"/><circle class="scintille" cx="497" cy="360" r="0.57" style="animation-delay:-0.66s"/><circle cx="513" cy="148" r="1.55" opacity="0.47"/><circle cx="-446" cy="-402" r="0.92" opacity="0.71"/><circle cx="2" cy="-574" r="1.66" opacity="0.27"/><circle cx="682" cy="133" r="1.47" opacity="0.27"/><circle cx="-491" cy="-1051" r="1.69" opacity="0.38"/><circle cx="458" cy="-720" r="1.74" opacity="0.56"/><circle cx="218" cy="-18" r="0.84" opacity="0.39"/><circle cx="-588" cy="44" r="1.68" opacity="0.57"/><circle cx="2343" cy="-1112" r="0.73" opacity="0.49"/><circle class="scintille" cx="606" cy="-753" r="1.00" style="animation-delay:-2.97s"/><circle cx="-29" cy="118" r="1.43" opacity="0.66"/><circle cx="1811" cy="-191" r="0.86" opacity="0.41"/><circle cx="529" cy="86" r="0.51" opacity="0.35"/><circle cx="1749" cy="-759" r="0.49" opacity="0.27"/><circle cx="1124" cy="-635" r="1.77" opacity="0.69"/></g>
+<g id="lune" transform="translate(560 128)"><circle r="90" fill="url(#g-lune)"/><circle r="34" fill="#f3efe2" mask="url(#m-lune)"/></g>
+<rect x="-600" y="440" width="190" height="470" fill="#0f1a31"/><rect class="imm-lum" x="-490" y="470" width="16" height="24" fill="#ffcf7a" opacity="0.28"/><rect class="imm-lum" x="-534" y="632" width="16" height="24" fill="#ffcf7a" opacity="0.54"/><rect class="imm-lum" x="-534" y="740" width="16" height="24" fill="#ffcf7a" opacity="0.56"/><rect class="imm-lum" x="-446" y="848" width="16" height="24" fill="#ffcf7a" opacity="0.42"/><rect x="-420" y="350" width="160" height="560" fill="#0f1a31"/><rect class="imm-lum" x="-398" y="434" width="16" height="24" fill="#ffcf7a" opacity="0.35"/><rect class="imm-lum" x="-354" y="434" width="16" height="24" fill="#ffcf7a" opacity="0.32"/><rect class="imm-lum" x="-310" y="596" width="16" height="24" fill="#ffcf7a" opacity="0.46"/><rect class="imm-lum" x="-398" y="704" width="16" height="24" fill="#ffcf7a" opacity="0.32"/><rect class="imm-lum" x="-310" y="758" width="16" height="24" fill="#ffcf7a" opacity="0.36"/><rect x="-270" y="490" width="190" height="420" fill="#0f1a31"/><rect class="imm-lum" x="-116" y="520" width="16" height="24" fill="#ffcf7a" opacity="0.29"/><rect class="imm-lum" x="-116" y="574" width="16" height="24" fill="#ffcf7a" opacity="0.31"/><rect class="imm-lum" x="-116" y="790" width="16" height="24" fill="#ffcf7a" opacity="0.57"/><rect x="-90" y="410" width="110" height="500" fill="#0f1a31"/><rect class="imm-lum" x="-68" y="494" width="16" height="24" fill="#ffcf7a" opacity="0.44"/><rect class="imm-lum" x="-24" y="548" width="16" height="24" fill="#ffcf7a" opacity="0.47"/><rect class="imm-lum" x="-68" y="656" width="16" height="24" fill="#ffcf7a" opacity="0.35"/><rect class="imm-lum" x="-24" y="710" width="16" height="24" fill="#ffcf7a" opacity="0.42"/><rect class="imm-lum" x="-24" y="818" width="16" height="24" fill="#ffcf7a" opacity="0.58"/><rect x="0" y="390" width="200" height="520" fill="#0f1a31"/><rect class="imm-lum" x="22" y="798" width="16" height="24" fill="#ffcf7a" opacity="0.46"/><rect x="190" y="480" width="150" height="430" fill="#0f1a31"/><rect class="imm-lum" x="256" y="834" width="16" height="24" fill="#ffcf7a" opacity="0.51"/><rect x="330" y="350" width="180" height="560" fill="#0f1a31"/><rect class="imm-lum" x="396" y="812" width="16" height="24" fill="#ffcf7a" opacity="0.43"/><rect x="500" y="440" width="170" height="470" fill="#0f1a31"/><rect x="660" y="530" width="150" height="380" fill="#0f1a31"/><rect class="imm-lum" x="770" y="830" width="16" height="24" fill="#ffcf7a" opacity="0.26"/><rect x="1920" y="310" width="260" height="600" fill="#0f1a31"/><rect class="imm-lum" x="1942" y="340" width="16" height="24" fill="#ffcf7a" opacity="0.47"/><rect class="imm-lum" x="2118" y="340" width="16" height="24" fill="#ffcf7a" opacity="0.33"/><rect class="imm-lum" x="1986" y="394" width="16" height="24" fill="#ffcf7a" opacity="0.25"/><rect class="imm-lum" x="2074" y="394" width="16" height="24" fill="#ffcf7a" opacity="0.38"/><rect class="imm-lum" x="1942" y="502" width="16" height="24" fill="#ffcf7a" opacity="0.58"/><rect class="imm-lum" x="2030" y="502" width="16" height="24" fill="#ffcf7a" opacity="0.28"/><rect class="imm-lum" x="2074" y="556" width="16" height="24" fill="#ffcf7a" opacity="0.48"/><rect class="imm-lum" x="2030" y="664" width="16" height="24" fill="#ffcf7a" opacity="0.44"/><rect class="imm-lum" x="1942" y="718" width="16" height="24" fill="#ffcf7a" opacity="0.52"/><rect class="imm-lum" x="1986" y="718" width="16" height="24" fill="#ffcf7a" opacity="0.44"/><rect class="imm-lum" x="2074" y="718" width="16" height="24" fill="#ffcf7a" opacity="0.32"/><rect class="imm-lum" x="1986" y="826" width="16" height="24" fill="#ffcf7a" opacity="0.56"/><rect class="imm-lum" x="2118" y="826" width="16" height="24" fill="#ffcf7a" opacity="0.55"/><rect x="2170" y="390" width="350" height="520" fill="#0f1a31"/><rect class="imm-lum" x="2412" y="420" width="16" height="24" fill="#ffcf7a" opacity="0.33"/><rect class="imm-lum" x="2456" y="420" width="16" height="24" fill="#ffcf7a" opacity="0.37"/><rect class="imm-lum" x="2192" y="582" width="16" height="24" fill="#ffcf7a" opacity="0.34"/><rect class="imm-lum" x="2324" y="744" width="16" height="24" fill="#ffcf7a" opacity="0.57"/><rect class="imm-lum" x="2368" y="744" width="16" height="24" fill="#ffcf7a" opacity="0.26"/><rect class="imm-lum" x="2412" y="744" width="16" height="24" fill="#ffcf7a" opacity="0.58"/><rect class="imm-lum" x="2192" y="798" width="16" height="24" fill="#ffcf7a" opacity="0.26"/><rect class="imm-lum" x="2236" y="798" width="16" height="24" fill="#ffcf7a" opacity="0.49"/><rect class="imm-lum" x="2412" y="798" width="16" height="24" fill="#ffcf7a" opacity="0.46"/><rect class="imm-lum" x="2324" y="852" width="16" height="24" fill="#ffcf7a" opacity="0.55"/><rect class="imm-lum" x="2456" y="852" width="16" height="24" fill="#ffcf7a" opacity="0.32"/>
+<rect x="800" y="40" width="1120" height="870" fill="url(#g-facade)"/>
+<rect x="800" y="40" width="1120" height="10" fill="#2a3a63"/>
+<rect x="880" y="110" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="888" y="118" width="114" height="164" fill="#0f1830"/><rect x="943" y="118" width="4" height="164" fill="#2c3c63"/><rect x="874" y="290" width="142" height="8" fill="#26355a"/><rect x="1100" y="110" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1108" y="118" width="114" height="164" fill="#0f1830"/><g class="fen-lum"><rect x="1108" y="118" width="114" height="164" fill="#f5c06a" opacity=".85"/><path d="M1108 118h40c-6 50-4 110 6 164h-46z" fill="#c9893a" opacity=".5"/></g><rect x="1163" y="118" width="4" height="164" fill="#2c3c63"/><rect x="1094" y="290" width="142" height="8" fill="#26355a"/><rect x="1320" y="110" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1328" y="118" width="114" height="164" fill="#0f1830"/><rect x="1383" y="118" width="4" height="164" fill="#2c3c63"/><rect x="1314" y="290" width="142" height="8" fill="#26355a"/><rect x="1540" y="110" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1548" y="118" width="114" height="164" fill="#0f1830"/><g class="fen-lum"><rect x="1548" y="118" width="114" height="164" fill="#f5c06a" opacity=".85"/><path d="M1548 118h40c-6 50-4 110 6 164h-46z" fill="#c9893a" opacity=".5"/></g><rect x="1603" y="118" width="4" height="164" fill="#2c3c63"/><rect x="1534" y="290" width="142" height="8" fill="#26355a"/><rect x="1760" y="110" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1768" y="118" width="114" height="164" fill="#0f1830"/><rect x="1823" y="118" width="4" height="164" fill="#2c3c63"/><rect x="1754" y="290" width="142" height="8" fill="#26355a"/><rect x="880" y="330" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="888" y="338" width="114" height="164" fill="#0f1830"/><g class="fen-lum"><rect x="888" y="338" width="114" height="164" fill="#f5c06a" opacity=".85"/><path d="M888 338h40c-6 50-4 110 6 164h-46z" fill="#c9893a" opacity=".5"/></g><rect x="943" y="338" width="4" height="164" fill="#2c3c63"/><rect x="874" y="510" width="142" height="8" fill="#26355a"/><rect x="1100" y="330" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1108" y="338" width="114" height="164" fill="#0f1830"/><rect x="1163" y="338" width="4" height="164" fill="#2c3c63"/><rect x="1094" y="510" width="142" height="8" fill="#26355a"/><rect x="1320" y="330" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1328" y="338" width="114" height="164" fill="#0f1830"/><g class="fen-lum"><rect x="1328" y="338" width="114" height="164" fill="#f5c06a" opacity=".85"/><path d="M1328 338h40c-6 50-4 110 6 164h-46z" fill="#c9893a" opacity=".5"/></g><rect x="1383" y="338" width="4" height="164" fill="#2c3c63"/><rect x="1314" y="510" width="142" height="8" fill="#26355a"/><rect x="1540" y="330" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1548" y="338" width="114" height="164" fill="#0f1830"/><rect x="1603" y="338" width="4" height="164" fill="#2c3c63"/><rect x="1534" y="510" width="142" height="8" fill="#26355a"/><rect x="1760" y="330" width="130" height="180" rx="4" fill="#2c3c63"/><rect x="1768" y="338" width="114" height="164" fill="#0f1830"/><g class="fen-lum"><rect x="1768" y="338" width="114" height="164" fill="#f5c06a" opacity=".85"/><path d="M1768 338h40c-6 50-4 110 6 164h-46z" fill="#c9893a" opacity=".5"/></g><rect x="1823" y="338" width="4" height="164" fill="#2c3c63"/><rect x="1754" y="510" width="142" height="8" fill="#26355a"/>
+<rect x="800" y="540" width="1120" height="14" fill="#2a3a63"/>
+<rect x="830" y="566" width="1060" height="78" rx="6" fill="#2b1218"/>
+<rect x="836" y="572" width="1048" height="66" rx="4" fill="none" stroke="#5a2a2f" stroke-width="2"/>
+<text x="1360" y="619" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="40" letter-spacing="13" fill="#f6e7d3">TABAC <tspan fill="#e0312b">◆</tspan> PRESSE <tspan fill="#e0312b">◆</tspan> JEUX</text>
+<rect x="866" y="648" width="988" height="18" rx="3" fill="#2c3854"/>
+<g id="vitrine">
+<rect x="880" y="664" width="720" height="246" fill="url(#g-vitrine)"/>
+<rect x="900" y="700" width="20" height="30" rx="2" fill="#1f3b73"/><rect x="926" y="700" width="20" height="30" rx="2" fill="#c8102e"/><rect x="952" y="700" width="20" height="30" rx="2" fill="#c8102e"/><rect x="978" y="700" width="20" height="30" rx="2" fill="#1f3b73"/><rect x="1004" y="700" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="1030" y="700" width="20" height="30" rx="2" fill="#e0e0e0"/><rect x="1056" y="700" width="20" height="30" rx="2" fill="#1f3b73"/><rect x="1082" y="700" width="20" height="30" rx="2" fill="#ece6da"/><rect x="1108" y="700" width="20" height="30" rx="2" fill="#1f3b73"/><rect x="1134" y="700" width="20" height="30" rx="2" fill="#d4a017"/><rect x="1160" y="700" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="1186" y="700" width="20" height="30" rx="2" fill="#5b2a86"/><rect x="1212" y="700" width="20" height="30" rx="2" fill="#5b2a86"/><rect x="900" y="746" width="20" height="30" rx="2" fill="#16181d"/><rect x="926" y="746" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="952" y="746" width="20" height="30" rx="2" fill="#c8102e"/><rect x="978" y="746" width="20" height="30" rx="2" fill="#5b2a86"/><rect x="1004" y="746" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="1030" y="746" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="1056" y="746" width="20" height="30" rx="2" fill="#c8102e"/><rect x="1082" y="746" width="20" height="30" rx="2" fill="#5b2a86"/><rect x="1108" y="746" width="20" height="30" rx="2" fill="#5b2a86"/><rect x="1134" y="746" width="20" height="30" rx="2" fill="#b5651d"/><rect x="1160" y="746" width="20" height="30" rx="2" fill="#e0e0e0"/><rect x="1186" y="746" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="1212" y="746" width="20" height="30" rx="2" fill="#c8102e"/><rect x="900" y="792" width="20" height="30" rx="2" fill="#16181d"/><rect x="926" y="792" width="20" height="30" rx="2" fill="#c8102e"/><rect x="952" y="792" width="20" height="30" rx="2" fill="#16181d"/><rect x="978" y="792" width="20" height="30" rx="2" fill="#b5651d"/><rect x="1004" y="792" width="20" height="30" rx="2" fill="#1f3b73"/><rect x="1030" y="792" width="20" height="30" rx="2" fill="#5b2a86"/><rect x="1056" y="792" width="20" height="30" rx="2" fill="#e0e0e0"/><rect x="1082" y="792" width="20" height="30" rx="2" fill="#c8102e"/><rect x="1108" y="792" width="20" height="30" rx="2" fill="#b5651d"/><rect x="1134" y="792" width="20" height="30" rx="2" fill="#d4a017"/><rect x="1160" y="792" width="20" height="30" rx="2" fill="#1f3b73"/><rect x="1186" y="792" width="20" height="30" rx="2" fill="#2e7d32"/><rect x="1212" y="792" width="20" height="30" rx="2" fill="#ece6da"/>
+<rect x="890" y="730" width="340" height="4" fill="#6b3d1a"/><rect x="890" y="776" width="340" height="4" fill="#6b3d1a"/><rect x="890" y="822" width="340" height="4" fill="#6b3d1a"/>
+<rect x="1466" y="696" width="25" height="30" rx="2" fill="#f6c445"/><rect x="1496" y="696" width="25" height="30" rx="2" fill="#3aa0e8"/><rect x="1526" y="696" width="25" height="30" rx="2" fill="#e8505b"/><rect x="1556" y="696" width="25" height="30" rx="2" fill="#5cc36a"/><rect x="1466" y="730" width="25" height="30" rx="2" fill="#3aa0e8"/><rect x="1496" y="730" width="25" height="30" rx="2" fill="#e8505b"/><rect x="1526" y="730" width="25" height="30" rx="2" fill="#5cc36a"/><rect x="1556" y="730" width="25" height="30" rx="2" fill="#f6c445"/><rect x="1466" y="764" width="25" height="30" rx="2" fill="#e8505b"/><rect x="1496" y="764" width="25" height="30" rx="2" fill="#5cc36a"/><rect x="1526" y="764" width="25" height="30" rx="2" fill="#f6c445"/><rect x="1556" y="764" width="25" height="30" rx="2" fill="#3aa0e8"/><rect x="1466" y="798" width="25" height="30" rx="2" fill="#5cc36a"/><rect x="1496" y="798" width="25" height="30" rx="2" fill="#f6c445"/><rect x="1526" y="798" width="25" height="30" rx="2" fill="#3aa0e8"/><rect x="1556" y="798" width="25" height="30" rx="2" fill="#e8505b"/>
+<g fill="#3a2414" opacity=".85"><circle cx="1330" cy="768" r="24"/><path d="M1288 836c0-30 18-46 42-46s42 16 42 46z"/></g>
+<rect x="880" y="836" width="720" height="74" fill="#4a2c18"/><rect x="880" y="836" width="720" height="5" fill="#7a4a26"/>
+</g>
+<rect x="880" y="664" width="720" height="246" fill="none" stroke="#0f1830" stroke-width="8"/>
+<rect x="1120" y="664" width="6" height="246" fill="#0f1830"/><rect x="1360" y="664" width="6" height="246" fill="#0f1830"/>
+<path d="M940 664h120l-160 246h-40z" fill="#fff" opacity=".07"/>
+<rect id="porte-lumiere" x="1620" y="664" width="220" height="246" fill="#f7b552" opacity=".55"/>
+<rect x="1620" y="664" width="220" height="246" fill="none" stroke="#0f1830" stroke-width="8"/>
+<rect x="1806" y="772" width="8" height="46" rx="3" fill="#0f1830"/>
+<rect x="1660" y="700" width="140" height="44" rx="8" fill="#fff"/>
+<text id="pancarte" x="1730" y="730" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="22">OUVERT</text>
+<g clip-path="url(#clip-baie)"><g id="rideau"><rect x="880" y="418" width="960" height="246" fill="url(#g-lames)"/><rect x="880" y="656" width="960" height="9" fill="#58627a"/></g></g>
+<rect x="-600" y="910" width="3120" height="390" fill="#0e1729"/>
+<path id="reflet" d="M880 910H1840L1900 1012H820Z" fill="url(#g-reflet)"/>
+<rect x="-600" y="1010" width="3120" height="8" fill="#1c2740"/>
+<rect x="-600" y="1018" width="3120" height="290" fill="#0a1120"/>
+<path d="M800 226H850V258" fill="none" stroke="#0f1830" stroke-width="7"/>
+<g id="halo"><ellipse id="halo-neon" cx="850" cy="365" rx="190" ry="240" fill="url(#g-halo)"/></g>
+<g id="carotte"><path d="M850 258L888 365L850 472L812 365Z" fill="url(#g-carotte)"/><text x="850" y="322" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="21" fill="#fff">T</text><text x="850" y="346" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="21" fill="#fff">A</text><text x="850" y="370" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="21" fill="#fff">B</text><text x="850" y="394" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="21" fill="#fff">A</text><text x="850" y="418" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="21" fill="#fff">C</text></g>
+</g>
+</svg>
+      <div class="scene-voile" id="scene-voile"></div>
+      <div class="scene-texte" id="scene-texte">
+        <p class="l l1"><span>Vingt et une heures.</span></p>
+        <p class="l l2"><span>Le rideau tombe<br>sur le bureau de tabac.</span></p>
+        <p class="l l3"><span>Et comme chaque soir, la même question…</span></p>
+        <p class="l l4"><span>est-ce que ça passe&#8239;?</span></p>
+      </div>
+      <div class="scene-pied" id="scene-pied">
+        <div class="scene-pied-in">
+          <p class="pitch">Cockpit Buraliste lit votre caisse, vos banques, la FDJ et Logista. Chaque soir, il vous dit où vous atterrirez lundi, après la facture tabac.</p>
+          <div class="actions">
+            <button class="bouton bouton-plein" type="button" data-film><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2a1 1 0 0 0 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z" fill="currentColor" stroke="none"/></svg>Voir le film<span class="duree">2&nbsp;min</span></button>
+            <a class="bouton bouton-verre" href="#demo">Demander une démo</a>
+          </div>
+          <p class="defiler" aria-hidden="true"><i></i>Faites défiler</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 21 h 04 : le cockpit répond -->
+  <section class="reponse" id="cockpit" data-heure="21:04" data-ciel="nuit" aria-labelledby="t-reponse-b">
+    <div class="reponse-cadre">
+      <div class="etage etage-b" id="etage-b" data-w="1200" data-h="740">
+        <div class="r-titre">
+          <h2 id="t-reponse-b">Le cockpit lit tout.<em>Et vous répond en une phrase.</em></h2>
+        </div>
+        <svg class="fils" viewBox="0 0 1200 740" aria-hidden="true">
+          <path class="fil-donnee" d="M296 377C366 377 380 330 438 330"/>
+          <path class="fil-donnee" d="M296 517C366 517 380 450 438 450"/>
+          <path class="fil-donnee" d="M904 377C834 377 820 330 762 330"/>
+          <path class="fil-donnee" d="M904 517C834 517 820 450 762 450"/>
+          <circle class="point-donnee" r="6"/><circle class="point-donnee" r="6"/><circle class="point-donnee" r="6"/><circle class="point-donnee" r="6"/>
+        </svg>
+        <div class="source" data-cote="g" style="left:36px;top:338px"><span class="pic" style="--c:var(--ambre)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="9" rx="2"/><path d="M6 11V5h9v6"/><path d="M8.5 8h4"/><path d="M7 15.5h2M11 15.5h2M15 15.5h2"/></svg></span><span>Votre caisse<small>Strator</small></span></div>
+        <div class="source" data-cote="g" style="left:36px;top:478px"><span class="pic" style="--c:var(--bleu-clair)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5"/><path d="M5.5 9.5v7.5M10 9.5v7.5M14 9.5v7.5M18.5 9.5v7.5"/><path d="M3 20h18"/></svg></span><span>Vos banques<small>tous vos comptes</small></span></div>
+        <div class="source" data-cote="d" style="left:904px;top:338px"><span class="pic" style="--c:var(--orange-2)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg></span><span>La FDJ<small>Profession Jeux</small></span></div>
+        <div class="source" data-cote="d" style="left:904px;top:478px"><span class="pic" style="--c:var(--rouge-clair)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4l3 3.2V16h-7z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="16.8" cy="18" r="1.8"/></svg></span><span>Logista<small>factures et relevés</small></span></div>
+        <div class="tel-place" style="left:430px;top:20px"><div class="tel">
+  <div class="tel-ecran">
+    <div class="tel-ilot"></div>
+    <div class="tel-barre"><span>21:04</span><span class="tel-etat"><i></i><i></i><i></i><b></b></span></div>
+    <div class="app">
+      <p class="app-salut">Bonsoir Julien,</p>
+      <span class="app-meteo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>Ciel dégagé</span>
+      <div class="app-hero">
+        <span class="kick">Lundi à 21&nbsp;h, après la facture tabac</span>
+        <span class="gros" data-compte="gros">47&#8239;380&nbsp;€</span>
+        <span class="sous">dont <b data-compte="net">37&#8239;520&nbsp;€</b> vraiment à vous</span>
+        <div class="split"><i style="--g:35640;--c:var(--vert)"></i><i style="--g:9830;--c:var(--orange-2)"></i><i style="--g:1470;--c:var(--bleu)"></i><i style="--g:440;--c:var(--violet)"></i></div>
+      </div>
+      <div class="app-carte">
+        <span class="t">À faire cette semaine</span>
+        <div class="app-ligne"><i style="--c:var(--carotte)"></i>Virer vers la Banque Populaire<em>32&#8239;400&nbsp;€</em></div>
+        <div class="app-ligne"><i style="--c:var(--orange-2)"></i>Alimenter le compte FDJ<em>5&#8239;540&nbsp;€</em></div>
+        <div class="app-ligne"><i style="--c:var(--vert)"></i>Déposer les espèces<em>5&#8239;020&nbsp;€</em></div>
+      </div>
+      <div class="app-carte app-vol">
+        <div class="t"><span>Dans six mois</span><b>66&#8239;680&nbsp;€</b></div>
+        <svg viewBox="0 0 300 40" preserveAspectRatio="none"><path d="M0.0,31.4L23.1,25.8L46.2,21.0L69.2,16.8L92.3,15.2L115.4,21.7L138.5,20.5L161.5,16.4L184.6,15.2L207.7,11.1L230.8,9.9L253.8,8.3L276.9,7.1L300.0,3.0"/></svg>
+      </div>
+    </div>
+    <nav class="app-nav" aria-hidden="true"><span class="on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>Cockpit</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4l3 3.2V16h-7z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="16.8" cy="18" r="1.8"/></svg>Livraison</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Plan de vol</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg>Jeux</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="9" rx="2"/><path d="M6 11V5h9v6"/><path d="M8.5 8h4"/><path d="M7 15.5h2M11 15.5h2M15 15.5h2"/></svg>Caisse</span></nav>
+    <div class="tel-noir"></div>
+  </div>
+</div></div>
+        <div class="legende" style="left:860px;top:250px;--c:var(--vert)"><b>35&#8239;640&nbsp;€</b><span>à vous, sur vos comptes</span></div>
+        <div class="legende" style="left:860px;top:358px;--c:var(--orange-2)"><b>9&#8239;830&nbsp;€</b><span>à reverser à la FDJ</span></div>
+        <div class="legende" style="left:860px;top:466px;--c:var(--bleu)"><b>1&#8239;470&nbsp;€</b><span>à Logista, pour les recharges</span></div>
+        <div class="legende" style="left:860px;top:574px;--c:var(--violet)"><b>440&nbsp;€</b><span>à l’État, pour les timbres</span></div>
+        <div class="forte" style="left:36px;top:388px"><span>Vraiment à vous</span><b data-compte="forte">37&#8239;520&nbsp;€</b><span>avec le tabac en stock déjà payé</span></div>
+      </div>
+
+      <div class="etage etage-m" id="etage-m" data-w="390" data-h="870">
+        <div class="r-titre">
+          <h2>Le cockpit lit tout.<em>Et vous répond en une phrase.</em></h2>
+        </div>
+        <svg class="fils" viewBox="0 0 390 870" aria-hidden="true">
+          <path class="fil-donnee" d="M51 214C51 254 150 252 150 294"/>
+          <path class="fil-donnee" d="M147 214C147 254 180 252 180 294"/>
+          <path class="fil-donnee" d="M243 214C243 254 210 252 210 294"/>
+          <path class="fil-donnee" d="M339 214C339 254 240 252 240 294"/>
+          <circle class="point-donnee" r="5"/><circle class="point-donnee" r="5"/><circle class="point-donnee" r="5"/><circle class="point-donnee" r="5"/>
+        </svg>
+        <div class="source source-m" data-cote="h" style="left:8px;top:140px"><span class="pic" style="--c:var(--ambre)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="9" rx="2"/><path d="M6 11V5h9v6"/><path d="M8.5 8h4"/><path d="M7 15.5h2M11 15.5h2M15 15.5h2"/></svg></span><span>Caisse</span></div>
+        <div class="source source-m" data-cote="h" style="left:104px;top:140px"><span class="pic" style="--c:var(--bleu-clair)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5"/><path d="M5.5 9.5v7.5M10 9.5v7.5M14 9.5v7.5M18.5 9.5v7.5"/><path d="M3 20h18"/></svg></span><span>Banques</span></div>
+        <div class="source source-m" data-cote="h" style="left:200px;top:140px"><span class="pic" style="--c:var(--orange-2)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg></span><span>FDJ</span></div>
+        <div class="source source-m" data-cote="h" style="left:296px;top:140px"><span class="pic" style="--c:var(--rouge-clair)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4l3 3.2V16h-7z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="16.8" cy="18" r="1.8"/></svg></span><span>Logista</span></div>
+        <div class="tel-place tel-place-m" style="left:76px;top:292px"><div class="tel">
+  <div class="tel-ecran">
+    <div class="tel-ilot"></div>
+    <div class="tel-barre"><span>21:04</span><span class="tel-etat"><i></i><i></i><i></i><b></b></span></div>
+    <div class="app">
+      <p class="app-salut">Bonsoir Julien,</p>
+      <span class="app-meteo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>Ciel dégagé</span>
+      <div class="app-hero">
+        <span class="kick">Lundi à 21&nbsp;h, après la facture tabac</span>
+        <span class="gros" data-compte="gros">47&#8239;380&nbsp;€</span>
+        <span class="sous">dont <b data-compte="net">37&#8239;520&nbsp;€</b> vraiment à vous</span>
+        <div class="split"><i style="--g:35640;--c:var(--vert)"></i><i style="--g:9830;--c:var(--orange-2)"></i><i style="--g:1470;--c:var(--bleu)"></i><i style="--g:440;--c:var(--violet)"></i></div>
+      </div>
+      <div class="app-carte">
+        <span class="t">À faire cette semaine</span>
+        <div class="app-ligne"><i style="--c:var(--carotte)"></i>Virer vers la Banque Populaire<em>32&#8239;400&nbsp;€</em></div>
+        <div class="app-ligne"><i style="--c:var(--orange-2)"></i>Alimenter le compte FDJ<em>5&#8239;540&nbsp;€</em></div>
+        <div class="app-ligne"><i style="--c:var(--vert)"></i>Déposer les espèces<em>5&#8239;020&nbsp;€</em></div>
+      </div>
+      <div class="app-carte app-vol">
+        <div class="t"><span>Dans six mois</span><b>66&#8239;680&nbsp;€</b></div>
+        <svg viewBox="0 0 300 40" preserveAspectRatio="none"><path d="M0.0,31.4L23.1,25.8L46.2,21.0L69.2,16.8L92.3,15.2L115.4,21.7L138.5,20.5L161.5,16.4L184.6,15.2L207.7,11.1L230.8,9.9L253.8,8.3L276.9,7.1L300.0,3.0"/></svg>
+      </div>
+    </div>
+    <nav class="app-nav" aria-hidden="true"><span class="on"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>Cockpit</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4l3 3.2V16h-7z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="16.8" cy="18" r="1.8"/></svg>Livraison</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Plan de vol</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg>Jeux</span><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="9" rx="2"/><path d="M6 11V5h9v6"/><path d="M8.5 8h4"/><path d="M7 15.5h2M11 15.5h2M15 15.5h2"/></svg>Caisse</span></nav>
+    <div class="tel-noir"></div>
+  </div>
+</div></div>
+        <div class="forte forte-m" style="left:0;top:796px"><span>Vraiment à vous</span><b data-compte="forte">37&#8239;520&nbsp;€</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 h 30 : le lendemain matin -->
+  <section class="bloc semaine" id="semaine" data-heure="07:30" data-ciel="aube" aria-labelledby="t-semaine">
+    <div class="cadre">
+      <div class="intro">
+        <h2 id="t-semaine">Chaque matin, vous savez quoi faire.</h2>
+        <p>Votre semaine, soir après soir, jusqu’à l’atterrissage de lundi. Chaque prélèvement est placé, chaque virement est prévu avant qu’il ne manque quelque chose.</p>
+      </div>
+      <article class="carte sem-carte" aria-labelledby="t-sem-carte">
+        <div class="carte-tete"><h3 class="carte-titre" id="t-sem-carte">Votre semaine, soir après soir</h3><span class="carte-sous">Exemple, sur vos comptes à 21&nbsp;h</span></div>
+        <div class="sem-graphe" id="sem-graphe">
+          <div class="sem-barres" role="img" aria-label="Trésorerie du dimanche 11 au lundi 19 : départ à 49 120 euros, sommet à 71 620 euros dimanche 18, atterrissage à 47 380 euros lundi 19 après la facture Logista de 29 330 euros.">
+            <div class="sem-col depart" style="--h:68.58%"><span class="sem-barre"></span><span class="sem-val">49&#8239;120&nbsp;€</span></div>
+<div class="sem-col" style="--h:72.40%"><span class="sem-barre"></span><span class="sem-val">51&#8239;850&nbsp;€</span></div>
+<div class="sem-col" style="--h:79.50%"><span class="sem-barre"></span><span class="sem-val">56&#8239;940&nbsp;€</span></div>
+<div class="sem-col" style="--h:78.37%"><span class="sem-barre"></span><span class="sem-val">56&#8239;130&nbsp;€</span></div>
+<div class="sem-col" style="--h:80.63%"><span class="sem-barre"></span><span class="sem-val">57&#8239;750&nbsp;€</span></div>
+<div class="sem-col" style="--h:85.79%"><span class="sem-barre"></span><span class="sem-val">61&#8239;440&nbsp;€</span></div>
+<div class="sem-col" style="--h:92.89%"><span class="sem-barre"></span><span class="sem-val">66&#8239;530&nbsp;€</span></div>
+<div class="sem-col" style="--h:100.00%"><span class="sem-barre"></span><span class="sem-val">71&#8239;620&nbsp;€</span></div>
+<div class="sem-col arrivee" style="--h:66.15%"><span class="sem-barre"></span><span class="sem-val">47&#8239;380&nbsp;€</span></div>
+            <svg class="sem-courbe" aria-hidden="true"><path id="sem-pointille"/><path id="sem-trace"/><g id="sem-avion"><path d="M21.6 12c0-.8-1-1.4-2-1.4H14L9.6 3.4H7.5l2.4 7.2H5.6L3.9 8H2.6l1 4-1 4h1.3l1.7-2.6h4.3l-2.4 7.2h2.1l4.4-7.2h5.6c1 0 2-.6 2-1.4z" transform="translate(-21.6,-21.6) scale(1.8)"/></g></svg>
+            <span class="sem-fin" id="sem-fin">Atterrissage&nbsp;: 47&#8239;380&nbsp;€</span>
+          </div>
+          <div class="sem-jours" aria-hidden="true"><div class="sem-jour depart"><span><b><i class="pre">Départ, </i>dim.</b> 11</span></div>
+<div class="sem-jour"><span><b>lun.</b> 12</span><em class="sortie" title="Timbres"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20.5h14"/><path d="M6.5 17h11l-1.2-4.5H7.7z"/><path d="M10 12.5V9a2 2 0 1 1 4 0v3.5"/></svg>−2&#8239;360&nbsp;€</em></div>
+<div class="sem-jour"><span><b>mar.</b> 13</span></div>
+<div class="sem-jour"><span><b>mer.</b> 14</span><em class="sortie" title="FDJ"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg>−5&#8239;900&nbsp;€</em></div>
+<div class="sem-jour"><span><b>jeu.</b> 15</span><em class="sortie" title="Recharges"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.2h2"/></svg>−3&#8239;470&nbsp;€</em></div>
+<div class="sem-jour"><span><b>ven.</b> 16</span><em class="sortie" title="URSSAF"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><circle cx="17.2" cy="9" r="2.4"/><path d="M15.8 14.2a4.5 4.5 0 0 1 5.2 4.5"/></svg>−1&#8239;400&nbsp;€</em></div>
+<div class="sem-jour"><span><b>sam.</b> 17</span></div>
+<div class="sem-jour"><span><b>dim.</b> 18</span></div>
+<div class="sem-jour arrivee"><span><b><i class="pre">Atterrissage, </i>lun.</b> 19</span><em class="sortie" title="Logista"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4l3 3.2V16h-7z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="16.8" cy="18" r="1.8"/></svg>−29&#8239;330&nbsp;€</em></div></div>
+          <ul class="sem-liste"><li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20.5h14"/><path d="M6.5 17h11l-1.2-4.5H7.7z"/><path d="M10 12.5V9a2 2 0 1 1 4 0v3.5"/></svg><span>Timbres, lun. 12</span><b>−2&#8239;360&nbsp;€</b></li>
+<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg><span>FDJ, mer. 14</span><b>−5&#8239;900&nbsp;€</b></li>
+<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.2h2"/></svg><span>Recharges, jeu. 15</span><b>−3&#8239;470&nbsp;€</b></li>
+<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><circle cx="17.2" cy="9" r="2.4"/><path d="M15.8 14.2a4.5 4.5 0 0 1 5.2 4.5"/></svg><span>URSSAF, ven. 16</span><b>−1&#8239;400&nbsp;€</b></li>
+<li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6.5h11v9.5h-11z"/><path d="M13.5 9.5h4l3 3.2V16h-7z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="16.8" cy="18" r="1.8"/></svg><span>Logista, lun. 19</span><b>−29&#8239;330&nbsp;€</b></li></ul>
+        </div>
+      </article>
+      <div class="actions-semaine">
+        <article class="action" style="--c:var(--carotte)"><span class="pic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-5 9 5"/><path d="M5.5 9.5v7.5M10 9.5v7.5M14 9.5v7.5M18.5 9.5v7.5"/><path d="M3 20h18"/></svg></span><h3>Virer de la BNP vers la Banque Populaire</h3><b>32&#8239;400&nbsp;€</b><span class="quand">avant jeudi</span></article>
+        <article class="action" style="--c:var(--orange)"><span class="pic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7h17v3a2 2 0 0 0 0 4v3h-17v-3a2 2 0 0 0 0-4z"/><path d="M14.5 7.5v2M14.5 11v2M14.5 14.5v2"/></svg></span><h3>Alimenter le compte FDJ</h3><b>5&#8239;540&nbsp;€</b><span class="quand">mercredi</span></article>
+        <article class="action" style="--c:var(--vert)"><span class="pic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></svg></span><h3>Déposer les espèces de la caisse</h3><b>5&#8239;020&nbsp;€</b><span class="quand">dès que possible</span></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 h : le plan de vol, à vous de jouer -->
+  <section class="bloc simu" id="plan-de-vol" data-heure="10:00" data-ciel="jour" aria-labelledby="t-simu">
+    <div class="cadre">
+      <div class="intro">
+        <h2 id="t-simu">Chaque décision se voit avant d’être prise.</h2>
+        <p>Touchez les commandes. Le cockpit recalcule les six prochains mois, quinzaine par quinzaine, et vous dit si le ciel reste dégagé.</p>
+      </div>
+      <div class="simu-grille">
+        <div class="commandes" role="group" aria-label="Décisions à simuler">
+          <div class="cmd">
+            <button class="bascule" type="button" role="switch" aria-checked="true" id="c-embauche" data-cle="embauche" aria-labelledby="l-embauche"><i></i></button>
+            <span class="cmd-txt" id="l-embauche">Embaucher pour fermer à 23&nbsp;h<small>Dès novembre</small></span>
+          </div>
+          <div class="cmd">
+            <button class="bascule" type="button" role="switch" aria-checked="true" id="c-credit" data-cle="credit" aria-labelledby="l-credit"><i></i></button>
+            <span class="cmd-txt" id="l-credit">Solder le crédit restant<small>7&#8239;200&nbsp;€, fin décembre</small></span>
+          </div>
+          <div class="cmd cmd-curseur">
+            <label class="cmd-txt" for="c-salaire">Votre salaire de gérant<small>Dès janvier</small></label>
+            <output id="o-salaire" for="c-salaire">2&#8239;000&nbsp;€ par mois</output>
+            <input type="range" id="c-salaire" min="0" max="4000" step="100" value="2000" style="--p:50%">
+          </div>
+          <div class="cmd">
+            <button class="bascule" type="button" role="switch" aria-checked="false" id="c-cbd" data-cle="cbd" aria-labelledby="l-cbd"><i></i></button>
+            <span class="cmd-txt" id="l-cbd">Lancer le rayon CBD<small>6&#8239;000&nbsp;€ de stock en novembre</small></span>
+          </div>
+          <div class="cmd">
+            <button class="bascule" type="button" role="switch" aria-checked="false" id="c-agencement" data-cle="agencement" aria-labelledby="l-agencement"><i></i></button>
+            <span class="cmd-txt" id="l-agencement">Refaire l’agencement<small>40&#8239;000&nbsp;€, en février</small></span>
+          </div>
+          <button class="rejouer" type="button" id="simu-zero"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4"/><path d="M4 4.5v4h4"/></svg>Revenir au plan du film</button>
+        </div>
+
+        <article class="carte simu-carte" aria-labelledby="t-plan">
+          <div class="simu-tete">
+            <div class="simu-titre">
+              <h3 class="carte-titre" id="t-plan">Votre plan de vol, sur six mois</h3>
+              <span class="etat-ciel ok" id="etat-ciel"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg><span id="etat-ciel-txt">Ciel dégagé jusqu’en avril</span></span>
+            </div>
+            <dl class="simu-chiffres">
+              <div><dt>Fin avril</dt><dd id="v-fin">66&#8239;680&nbsp;€</dd></div>
+              <div><dt>Point bas</dt><dd id="v-bas">47&#8239;380&nbsp;€</dd><dd class="quand" id="v-bas-quand">mi-octobre</dd></div>
+            </dl>
+          </div>
+          <div class="graphe" id="simu-graphe" role="img" aria-label="Trésorerie prévue de mi-octobre à fin avril">
+            <svg viewBox="0 0 600 260" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="g-aire" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--bleu);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--bleu);stop-opacity:0"/></linearGradient></defs>
+              <line class="grille" x1="0" x2="600" y1="0" y2="0"/><line class="grille" x1="0" x2="600" y1="65" y2="65"/><line class="grille" x1="0" x2="600" y1="130" y2="130"/><line class="grille" x1="0" x2="600" y1="195" y2="195"/><line class="grille" x1="0" x2="600" y1="260" y2="260"/>
+              <line class="seuil" x1="0" x2="600" y1="183.7" y2="183.7"/>
+              <path class="aire" id="simu-aire"/>
+              <path class="ligne" id="simu-ligne"/>
+            </svg>
+            <span class="ax ax-y" style="top:0%">100&nbsp;k€</span><span class="ax ax-y" style="top:25%">75&nbsp;k€</span><span class="ax ax-y" style="top:50%">50&nbsp;k€</span><span class="ax ax-y" style="top:75%">25&nbsp;k€</span><span class="ax ax-y" style="top:100%">0</span>
+            <span class="ax ax-x debut" style="left:0%">oct.</span><span class="ax ax-x" style="left:15.38%">nov.</span><span class="ax ax-x" style="left:30.77%">déc.</span><span class="ax ax-x" style="left:46.15%">janv.</span><span class="ax ax-x" style="left:61.54%">févr.</span><span class="ax ax-x" style="left:76.92%">mars</span><span class="ax ax-x" style="left:92.31%">avr.</span>
+            <span class="seuil-txt" style="top:70.67%">Une facture Logista d’avance, 29&#8239;330&nbsp;€</span>
+            <span class="repere" data-ev="embauche" title="Embauche"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>
+            <span class="repere" data-ev="cbd" title="Rayon CBD"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19.5C5 11 11 5 20 5c0 9-6 14.5-14.5 14.5"/><path d="M5 19.5l7-7.5"/></svg></span>
+            <span class="repere" data-ev="credit" title="Crédit soldé"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span>
+            <span class="repere" data-ev="salaire" title="Salaire du gérant"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></svg></span>
+            <span class="repere" data-ev="agencement" title="Agencement"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5l1.6-5h13.8l1.6 5"/><path d="M3.5 9.5h17v2a2.8 2.8 0 0 1-5.7 0 2.8 2.8 0 0 1-5.6 0 2.8 2.8 0 0 1-5.7 0z"/><path d="M5 13.5v7h14v-7"/><path d="M10 20.5v-4h4v4"/></svg></span>
+            <span class="bout" id="simu-bout"></span>
+          </div>
+          <p class="simu-phrase" id="simu-phrase" aria-live="polite">Toujours au moins une facture Logista d’avance.</p>
+        </article>
+      </div>
+      <p class="note">Simulation d’exemple, à partir des chiffres du film.</p>
+    </div>
+  </section>
+
+  <!-- 14 h 31, 18 h 42, 23 h 14 : les irritants -->
+  <section class="bloc irritants" id="irritants" data-ciel="jour" aria-labelledby="t-irritants">
+    <div class="cadre">
+      <h2 class="titre-geant" id="t-irritants">Les irritants du métier&#8239;? <em>On les règle.</em></h2>
+
+      <div class="irr" id="fdj" data-heure="14:31" data-ciel="jour">
+        <div class="irr-texte">
+          <p class="irr-heure"><span>Jeudi</span>14:31</p>
+          <h3>Contrôle FDJ</h3>
+          <p><strong>Un écart entre le prélèvement FDJ et la caisse&#8239;?</strong> Le cockpit croise les rapports Profession Jeux avec votre caisse Strator, jour par jour, pour vérifier qu’il n’y a aucune différence.</p>
+          <p>En cas de besoin, avec la collaboration de la FDJ, un export détaillé opération par opération permet de retrouver l’heure exacte de l’écart.</p>
+          <button class="rejouer" type="button" data-rejouer="fdj"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4"/><path d="M4 4.5v4h4"/></svg>Rejouer</button>
+        </div>
+        <article class="carte fdj-carte" id="fdj-carte" aria-labelledby="t-fdj">
+          <h4 class="carte-titre" id="t-fdj">Contrôle FDJ</h4>
+          <p class="carte-sous">Semaine du 6 octobre&nbsp;: les jeux vendus, jour par jour, face à la caisse</p>
+          <div class="defile">
+            <table>
+              <caption class="vh">Ventes de jeux de la semaine du 6 octobre, selon Profession Jeux et selon Strator</caption>
+              <thead><tr><th scope="col">Jour</th><th scope="col"><span class="src">Profession Jeux</span></th><th scope="col"><span class="src">Strator</span></th><th scope="col">Écart</th></tr></thead>
+              <tbody>
+                <tr><td>lun. 6</td><td>3&#8239;412,50&nbsp;€</td><td>3&#8239;412,50&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
+                <tr><td>mar. 7</td><td>4&#8239;105,00&nbsp;€</td><td>4&#8239;105,00&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
+                <tr><td>mer. 8</td><td>3&#8239;870,20&nbsp;€</td><td>3&#8239;870,20&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
+                <tr class="ko rouge"><td>jeu. 9</td><td>4&#8239;262,40&nbsp;€</td><td>4&#8239;217,40&nbsp;€</td><td><span class="etat etat-ko">−45,00&nbsp;€</span></td></tr>
+                <tr><td>ven. 10</td><td>5&#8239;018,60&nbsp;€</td><td>5&#8239;018,60&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
+              </tbody>
+              <tfoot><tr><td>Semaine</td><td>20&#8239;668,70&nbsp;€</td><td>20&#8239;623,70&nbsp;€</td><td><span class="etat etat-ko">−45,00&nbsp;€</span></td></tr></tfoot>
+            </table>
+          </div>
+          <div class="export">
+            <p class="exp-tete">Export détaillé FDJ<b>Jeudi 9 octobre, de 14&nbsp;h&nbsp;25 à 14&nbsp;h&nbsp;40</b></p>
+            <div class="ops" role="list">
+              <span class="scanner" aria-hidden="true"></span>
+              <div class="op" role="listitem"><span>14:27:52</span><span>Loto</span><span class="m">2,20&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:29:10</span><span>Grattage</span><span class="m">5,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op ko rouge" role="listitem"><span>14:31:08</span><span>Grattage ×3</span><span class="m">45,00&nbsp;€</span><span class="v" aria-label="absent de la caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:33:45</span><span>Paris sportifs</span><span class="m">10,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:36:20</span><span>Loto</span><span class="m">4,40&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+            </div>
+            <p class="trouve"><b>Jeudi, 14&nbsp;h&nbsp;31&nbsp;min&nbsp;08&nbsp;s</b>3 tickets à gratter passés au terminal, absents de la caisse.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="irr" id="vocale" data-heure="18:42" data-ciel="soir">
+        <div class="irr-texte">
+          <p class="irr-heure"><span>Jeudi</span>18:42</p>
+          <h3>Boîte vocale</h3>
+          <p><strong>Le téléphone sonne en plein rush&#8239;?</strong> La boîte vocale de l’établissement prend le message, vous le résume en une ligne et l’envoie à la bonne personne.</p>
+          <button class="rejouer" type="button" data-rejouer="vocale"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4"/><path d="M4 4.5v4h4"/></svg>Rejouer</button>
+        </div>
+        <article class="carte vocal" id="vocal-carte" aria-labelledby="t-vocal">
+          <h4 class="carte-titre" id="t-vocal">Boîte vocale du tabac</h4>
+          <p class="carte-sous">Jeudi 9 octobre, 18&nbsp;h&nbsp;42&nbsp;: la file est longue, le téléphone sonne</p>
+          <div class="appel">
+            <span class="rond"><i class="anneau"></i><i class="anneau"></i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.2h2"/></svg></span>
+            <span class="appel-txt"><b id="appel-etat">Message pris</b><small>06 •• •• •• 48</small></span>
+            <span class="spectre" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+          <p class="transcription" aria-label="Transcription du message"><span class="mot">Bonjour,</span> <span class="mot">c’est</span> <span class="mot">Madame</span> <span class="mot">Lefèvre.</span> <span class="mot">Est-ce</span> <span class="mot">que</span> <span class="mot">vous</span> <span class="mot">pouvez</span> <span class="mot">me</span> <span class="mot">garder</span> <span class="mot">mon</span> <span class="mot">journal</span> <span class="mot">et</span> <span class="mot">un</span> <span class="mot">carnet</span> <span class="mot">de</span> <span class="mot">timbres</span> <span class="mot">pour</span> <span class="mot">demain</span> <span class="mot">matin,</span> <span class="mot">vers</span> <span class="mot">9</span> <span class="mot">heures&#8239;?</span> <span class="mot">Merci,</span> <span class="mot">bonne</span> <span class="mot">soirée&#8239;!</span></p>
+          <div class="resume">
+            <span class="k"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Résumé du message</span>
+            <p>Mme Lefèvre&nbsp;: son journal et un carnet de timbres à garder pour demain, 9&nbsp;h.</p>
+          </div>
+          <span class="envoye"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Envoyé à Julien, 18&nbsp;h&nbsp;43</span>
+        </article>
+      </div>
+
+      <div class="irr" id="whatsapp" data-heure="23:14" data-ciel="nuit">
+        <div class="irr-texte">
+          <p class="irr-heure"><span>Jeudi</span>23:14</p>
+          <h3>Assistant WhatsApp</h3>
+          <p><strong>Une question, à n’importe quelle heure&#8239;?</strong> Posez-la sur WhatsApp. Dès que l’information est dans vos données, le cockpit vous répond, avec vos chiffres.</p>
+          <p class="essai">Essayez, touchez une question.</p>
+        </div>
+        <div class="wa">
+          <div class="wa-tel">
+            <div class="wa-ecran">
+              <div class="wa-entete"><span class="av"><svg class="jauge" viewBox="0 0 40 40" aria-hidden="true"><path class="arc-fond" d="M8.5 26.5a11.5 11.5 0 0 1 23 0"/><path class="arc-vert" d="M8.5 26.5a11.5 11.5 0 0 1 7.4-10.75"/><path class="aiguille" d="M20 12.2l2.5 9.3-2.5 5-2.5-5z" transform="rotate(36 20 26.5)"/><circle class="moyeu" cx="20" cy="26.5" r="2.4"/></svg></span><span><b>Cockpit Buraliste</b><small id="wa-statut">en ligne</small></span></div>
+              <div class="wa-fil" id="wa-fil" aria-live="polite">
+                <span class="jour-chat">Jeudi</span>
+              </div>
+              <div class="wa-saisie" aria-hidden="true"><span>Message</span><i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-7-6 16-3-6.5z"/><path d="M11 14.5L20 5"/></svg></i></div>
+            </div>
+          </div>
+          <div class="wa-questions" id="wa-questions" role="group" aria-label="Questions à poser au cockpit"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- le quotidien -->
+  <section class="bloc quotidien" id="quotidien" data-ciel="nuit" aria-labelledby="t-quotidien">
+    <div class="cadre">
+      <div class="intro">
+        <h2 id="t-quotidien">Le quotidien, rangé tout seul.</h2>
+        <p>Factures, stock, références et ventes sont suivis en continu. Vous ne regardez que ce qui demande une décision.</p>
+      </div>
+      <div class="bento">
+        <article class="tuile tuile-mails">
+          <h3>Vos factures, rangées toutes seules</h3>
+          <p class="carte-sous">Logista, FDJ, fournisseurs&nbsp;: chaque mail est lu, chaque facture classée. La gestion complète de votre boîte mail est proposée en option.</p>
+          <ul class="mails">
+            <li><span class="av" style="--c:#c4271f" aria-hidden="true">L</span><span class="de"><b>Logista</b><span>Facture livraison cadencée</span></span><span class="mt">29&#8239;180&nbsp;€</span><span class="statut"><em class="nv">Nouveau</em><em class="fait"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Rangée</em></span></li>
+            <li><span class="av" style="--c:#7a4fd6" aria-hidden="true">Li</span><span class="de"><b>Liquideo</b><span>Facture e-liquides</span></span><span class="mt">1&#8239;240&nbsp;€</span><span class="statut"><em class="nv">Nouveau</em><em class="fait"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Stock mis à jour</em></span></li>
+            <li><span class="av" style="--c:#1f6fd1" aria-hidden="true">F</span><span class="de"><b>FDJ</b><span>Relevé de la semaine</span></span><span class="mt">5&#8239;540&nbsp;€</span><span class="statut"><em class="nv">Nouveau</em><em class="fait"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Rangée</em></span></li>
+            <li><span class="av" style="--c:#0f8a7e" aria-hidden="true">U</span><span class="de"><b>URSSAF</b><span>Échéance d’octobre</span></span><span class="mt">1&#8239;400&nbsp;€</span><span class="statut"><em class="nv">Nouveau</em><em class="fait"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Rangée</em></span></li>
+          </ul>
+        </article>
+
+        <article class="tuile tuile-stock">
+          <h3>Votre stock, vérifié chaque soir</h3>
+          <p class="carte-sous">Ce que vous devriez avoir en rayon, face à la valeur du stock dans Strator.</p>
+          <div class="stock">
+            <div><span class="k">Stock théorique</span><b data-vers="41280">41&#8239;280&nbsp;€</b><span class="s">achats moins ventes, référence par référence</span><span class="jauge-s"><i style="--l:100%;--c:var(--bleu)"></i></span></div>
+            <div><span class="k">Valeur dans Strator</span><b data-vers="41105">41&#8239;105&nbsp;€</b><span class="s">valorisation de votre logiciel de caisse</span><span class="jauge-s"><i style="--l:99.58%;--c:var(--vert)"></i></span></div>
+          </div>
+          <p class="ecart"><span class="rond-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span><span><b>Écart&nbsp;: 175&nbsp;€, soit 0,4&nbsp;%</b><span>Rien ne manque en rayon.</span></span></p>
+        </article>
+
+        <article class="tuile t2 tuile-refs">
+          <h3>Chaque référence suivie</h3>
+          <p class="carte-sous">148 références de cigarette électronique, analysées chaque semaine.</p>
+          <ul class="refs">
+            <li style="--c:var(--vert);--ct:var(--vert-encre)"><span class="n"><b>Fraise glacée</b><small>e-liquide 10&nbsp;ml</small></span><svg viewBox="0 0 84 26" aria-hidden="true"><path d="M0,24L12,19.6L24,19.6L36,15.2L48,10.8L60,10.8L72,6.4L84,2"/></svg><span class="t"><b>+34&nbsp;%</b><span class="tag">À recommander</span></span></li>
+            <li style="--c:var(--orange);--ct:var(--ambre-encre)"><span class="n"><b>Classic blond</b><small>e-liquide 10&nbsp;ml</small></span><svg viewBox="0 0 84 26" aria-hidden="true"><path d="M0,2L12,2L24,13L36,13L48,13L60,24L72,24L84,24"/></svg><span class="t"><b>−18&nbsp;%</b><span class="tag">À réduire</span></span></li>
+            <li style="--c:var(--carotte);--ct:var(--carotte-fonce)"><span class="n"><b>Vanille caramel</b><small>e-liquide 50&nbsp;ml</small></span><svg viewBox="0 0 84 26" aria-hidden="true"><path d="M0,2L12,2L24,9.3L36,9.3L48,16.7L60,16.7L72,24L84,24"/></svg><span class="t"><b>−27&nbsp;%</b><span class="tag">À arrêter</span></span></li>
+          </ul>
+        </article>
+
+        <article class="tuile t2 tuile-ventes">
+          <h3>Vos ventes, rayon par rayon</h3>
+          <p class="carte-sous">En boutique et sur le web, la marge de chaque mois.</p>
+          <div class="cbd">
+            <div class="cbd-graphe">
+              <div class="mini-barres" role="img" aria-label="Rayon CBD, de janvier à octobre : environ 900 euros par mois jusqu’en avril, puis une hausse continue jusqu’à 5 400 euros en octobre.">
+                <i style="--h:16.3%"></i><i style="--h:16.7%"></i><i style="--h:17.6%"></i><i class="cle" style="--h:16.7%"></i><i style="--h:29.6%"></i><i style="--h:43.5%"></i><i style="--h:57.4%"></i><i style="--h:72.2%"></i><i style="--h:86.1%"></i><i class="cle" style="--h:100%"></i>
+              </div>
+              <div class="mini-mois" aria-hidden="true"><span>janv.</span><span></span><span></span><span>avr.</span><span></span><span></span><span>juil.</span><span></span><span></span><span>oct.</span></div>
+            </div>
+            <p class="fois"><span class="k">Rayon CBD, d’avril à octobre</span><b>×&nbsp;<span id="fois-n">6</span></b><span class="k">de 900&nbsp;€ à 5&#8239;400&nbsp;€ par mois</span></p>
+          </div>
+        </article>
+
+        <article class="tuile t2 tuile-etiq">
+          <h3>Votre CBD, étiqueté et suivi</h3>
+          <p class="carte-sous">Lot, date, traçabilité&nbsp;: chaque produit a sa fiche.</p>
+          <div class="etiq-scene">
+            <div class="etiq" id="etiq">
+              <div class="etiq-txt"><p class="etiq-marque">Comptoir CBD</p><p class="etiq-var">Fleur, Lemon Haze, 5&nbsp;g</p><p class="etiq-det">Lot 26-10-B<br>Conditionné le 12/10/2026<br>Fiche produit et traçabilité</p></div>
+              <svg class="qr" viewBox="0 0 130 130" aria-hidden="true"><g fill="#0e1726"><rect x="41.6" y="0.0" width="5.2" height="5.2"/><rect x="52.0" y="0.0" width="5.2" height="5.2"/><rect x="62.4" y="0.0" width="5.2" height="5.2"/><rect x="67.6" y="0.0" width="5.2" height="5.2"/><rect x="72.8" y="0.0" width="5.2" height="5.2"/><rect x="67.6" y="5.2" width="5.2" height="5.2"/><rect x="83.2" y="5.2" width="5.2" height="5.2"/><rect x="41.6" y="10.4" width="5.2" height="5.2"/><rect x="72.8" y="10.4" width="5.2" height="5.2"/><rect x="78.0" y="10.4" width="5.2" height="5.2"/><rect x="83.2" y="10.4" width="5.2" height="5.2"/><rect x="57.2" y="15.6" width="5.2" height="5.2"/><rect x="67.6" y="15.6" width="5.2" height="5.2"/><rect x="72.8" y="15.6" width="5.2" height="5.2"/><rect x="78.0" y="15.6" width="5.2" height="5.2"/><rect x="41.6" y="20.8" width="5.2" height="5.2"/><rect x="62.4" y="20.8" width="5.2" height="5.2"/><rect x="83.2" y="20.8" width="5.2" height="5.2"/><rect x="57.2" y="26.0" width="5.2" height="5.2"/><rect x="67.6" y="26.0" width="5.2" height="5.2"/><rect x="72.8" y="26.0" width="5.2" height="5.2"/><rect x="83.2" y="26.0" width="5.2" height="5.2"/><rect x="41.6" y="31.2" width="5.2" height="5.2"/><rect x="46.8" y="31.2" width="5.2" height="5.2"/><rect x="67.6" y="31.2" width="5.2" height="5.2"/><rect x="62.4" y="36.4" width="5.2" height="5.2"/><rect x="67.6" y="36.4" width="5.2" height="5.2"/><rect x="78.0" y="36.4" width="5.2" height="5.2"/><rect x="5.2" y="41.6" width="5.2" height="5.2"/><rect x="15.6" y="41.6" width="5.2" height="5.2"/><rect x="20.8" y="41.6" width="5.2" height="5.2"/><rect x="26.0" y="41.6" width="5.2" height="5.2"/><rect x="31.2" y="41.6" width="5.2" height="5.2"/><rect x="36.4" y="41.6" width="5.2" height="5.2"/><rect x="41.6" y="41.6" width="5.2" height="5.2"/><rect x="46.8" y="41.6" width="5.2" height="5.2"/><rect x="57.2" y="41.6" width="5.2" height="5.2"/><rect x="67.6" y="41.6" width="5.2" height="5.2"/><rect x="72.8" y="41.6" width="5.2" height="5.2"/><rect x="83.2" y="41.6" width="5.2" height="5.2"/><rect x="88.4" y="41.6" width="5.2" height="5.2"/><rect x="98.8" y="41.6" width="5.2" height="5.2"/><rect x="104.0" y="41.6" width="5.2" height="5.2"/><rect x="109.2" y="41.6" width="5.2" height="5.2"/><rect x="119.6" y="41.6" width="5.2" height="5.2"/><rect x="124.8" y="41.6" width="5.2" height="5.2"/><rect x="52.0" y="46.8" width="5.2" height="5.2"/><rect x="57.2" y="46.8" width="5.2" height="5.2"/><rect x="62.4" y="46.8" width="5.2" height="5.2"/><rect x="67.6" y="46.8" width="5.2" height="5.2"/><rect x="72.8" y="46.8" width="5.2" height="5.2"/><rect x="88.4" y="46.8" width="5.2" height="5.2"/><rect x="93.6" y="46.8" width="5.2" height="5.2"/><rect x="104.0" y="46.8" width="5.2" height="5.2"/><rect x="119.6" y="46.8" width="5.2" height="5.2"/><rect x="20.8" y="52.0" width="5.2" height="5.2"/><rect x="26.0" y="52.0" width="5.2" height="5.2"/><rect x="41.6" y="52.0" width="5.2" height="5.2"/><rect x="46.8" y="52.0" width="5.2" height="5.2"/><rect x="52.0" y="52.0" width="5.2" height="5.2"/><rect x="67.6" y="52.0" width="5.2" height="5.2"/><rect x="72.8" y="52.0" width="5.2" height="5.2"/><rect x="83.2" y="52.0" width="5.2" height="5.2"/><rect x="88.4" y="52.0" width="5.2" height="5.2"/><rect x="93.6" y="52.0" width="5.2" height="5.2"/><rect x="98.8" y="52.0" width="5.2" height="5.2"/><rect x="109.2" y="52.0" width="5.2" height="5.2"/><rect x="114.4" y="52.0" width="5.2" height="5.2"/><rect x="124.8" y="52.0" width="5.2" height="5.2"/><rect x="5.2" y="57.2" width="5.2" height="5.2"/><rect x="36.4" y="57.2" width="5.2" height="5.2"/><rect x="41.6" y="57.2" width="5.2" height="5.2"/><rect x="46.8" y="57.2" width="5.2" height="5.2"/><rect x="52.0" y="57.2" width="5.2" height="5.2"/><rect x="78.0" y="57.2" width="5.2" height="5.2"/><rect x="83.2" y="57.2" width="5.2" height="5.2"/><rect x="88.4" y="57.2" width="5.2" height="5.2"/><rect x="114.4" y="57.2" width="5.2" height="5.2"/><rect x="119.6" y="57.2" width="5.2" height="5.2"/><rect x="0.0" y="62.4" width="5.2" height="5.2"/><rect x="10.4" y="62.4" width="5.2" height="5.2"/><rect x="31.2" y="62.4" width="5.2" height="5.2"/><rect x="52.0" y="62.4" width="5.2" height="5.2"/><rect x="78.0" y="62.4" width="5.2" height="5.2"/><rect x="88.4" y="62.4" width="5.2" height="5.2"/><rect x="0.0" y="67.6" width="5.2" height="5.2"/><rect x="10.4" y="67.6" width="5.2" height="5.2"/><rect x="26.0" y="67.6" width="5.2" height="5.2"/><rect x="36.4" y="67.6" width="5.2" height="5.2"/><rect x="41.6" y="67.6" width="5.2" height="5.2"/><rect x="46.8" y="67.6" width="5.2" height="5.2"/><rect x="52.0" y="67.6" width="5.2" height="5.2"/><rect x="62.4" y="67.6" width="5.2" height="5.2"/><rect x="78.0" y="67.6" width="5.2" height="5.2"/><rect x="93.6" y="67.6" width="5.2" height="5.2"/><rect x="98.8" y="67.6" width="5.2" height="5.2"/><rect x="104.0" y="67.6" width="5.2" height="5.2"/><rect x="124.8" y="67.6" width="5.2" height="5.2"/><rect x="0.0" y="72.8" width="5.2" height="5.2"/><rect x="10.4" y="72.8" width="5.2" height="5.2"/><rect x="15.6" y="72.8" width="5.2" height="5.2"/><rect x="41.6" y="72.8" width="5.2" height="5.2"/><rect x="62.4" y="72.8" width="5.2" height="5.2"/><rect x="72.8" y="72.8" width="5.2" height="5.2"/><rect x="78.0" y="72.8" width="5.2" height="5.2"/><rect x="93.6" y="72.8" width="5.2" height="5.2"/><rect x="98.8" y="72.8" width="5.2" height="5.2"/><rect x="104.0" y="72.8" width="5.2" height="5.2"/><rect x="114.4" y="72.8" width="5.2" height="5.2"/><rect x="10.4" y="78.0" width="5.2" height="5.2"/><rect x="15.6" y="78.0" width="5.2" height="5.2"/><rect x="31.2" y="78.0" width="5.2" height="5.2"/><rect x="36.4" y="78.0" width="5.2" height="5.2"/><rect x="52.0" y="78.0" width="5.2" height="5.2"/><rect x="57.2" y="78.0" width="5.2" height="5.2"/><rect x="62.4" y="78.0" width="5.2" height="5.2"/><rect x="78.0" y="78.0" width="5.2" height="5.2"/><rect x="83.2" y="78.0" width="5.2" height="5.2"/><rect x="93.6" y="78.0" width="5.2" height="5.2"/><rect x="98.8" y="78.0" width="5.2" height="5.2"/><rect x="119.6" y="78.0" width="5.2" height="5.2"/><rect x="5.2" y="83.2" width="5.2" height="5.2"/><rect x="10.4" y="83.2" width="5.2" height="5.2"/><rect x="15.6" y="83.2" width="5.2" height="5.2"/><rect x="20.8" y="83.2" width="5.2" height="5.2"/><rect x="26.0" y="83.2" width="5.2" height="5.2"/><rect x="36.4" y="83.2" width="5.2" height="5.2"/><rect x="57.2" y="83.2" width="5.2" height="5.2"/><rect x="62.4" y="83.2" width="5.2" height="5.2"/><rect x="67.6" y="83.2" width="5.2" height="5.2"/><rect x="72.8" y="83.2" width="5.2" height="5.2"/><rect x="78.0" y="83.2" width="5.2" height="5.2"/><rect x="83.2" y="83.2" width="5.2" height="5.2"/><rect x="93.6" y="83.2" width="5.2" height="5.2"/><rect x="109.2" y="83.2" width="5.2" height="5.2"/><rect x="114.4" y="83.2" width="5.2" height="5.2"/><rect x="124.8" y="83.2" width="5.2" height="5.2"/><rect x="41.6" y="88.4" width="5.2" height="5.2"/><rect x="52.0" y="88.4" width="5.2" height="5.2"/><rect x="62.4" y="88.4" width="5.2" height="5.2"/><rect x="72.8" y="88.4" width="5.2" height="5.2"/><rect x="83.2" y="88.4" width="5.2" height="5.2"/><rect x="93.6" y="88.4" width="5.2" height="5.2"/><rect x="98.8" y="88.4" width="5.2" height="5.2"/><rect x="104.0" y="88.4" width="5.2" height="5.2"/><rect x="114.4" y="88.4" width="5.2" height="5.2"/><rect x="124.8" y="88.4" width="5.2" height="5.2"/><rect x="52.0" y="93.6" width="5.2" height="5.2"/><rect x="57.2" y="93.6" width="5.2" height="5.2"/><rect x="78.0" y="93.6" width="5.2" height="5.2"/><rect x="83.2" y="93.6" width="5.2" height="5.2"/><rect x="98.8" y="93.6" width="5.2" height="5.2"/><rect x="114.4" y="93.6" width="5.2" height="5.2"/><rect x="119.6" y="93.6" width="5.2" height="5.2"/><rect x="41.6" y="98.8" width="5.2" height="5.2"/><rect x="52.0" y="98.8" width="5.2" height="5.2"/><rect x="57.2" y="98.8" width="5.2" height="5.2"/><rect x="72.8" y="98.8" width="5.2" height="5.2"/><rect x="78.0" y="98.8" width="5.2" height="5.2"/><rect x="83.2" y="98.8" width="5.2" height="5.2"/><rect x="124.8" y="98.8" width="5.2" height="5.2"/><rect x="46.8" y="104.0" width="5.2" height="5.2"/><rect x="52.0" y="104.0" width="5.2" height="5.2"/><rect x="78.0" y="104.0" width="5.2" height="5.2"/><rect x="93.6" y="104.0" width="5.2" height="5.2"/><rect x="98.8" y="104.0" width="5.2" height="5.2"/><rect x="114.4" y="104.0" width="5.2" height="5.2"/><rect x="119.6" y="104.0" width="5.2" height="5.2"/><rect x="52.0" y="109.2" width="5.2" height="5.2"/><rect x="57.2" y="109.2" width="5.2" height="5.2"/><rect x="62.4" y="109.2" width="5.2" height="5.2"/><rect x="67.6" y="109.2" width="5.2" height="5.2"/><rect x="78.0" y="109.2" width="5.2" height="5.2"/><rect x="93.6" y="109.2" width="5.2" height="5.2"/><rect x="109.2" y="109.2" width="5.2" height="5.2"/><rect x="119.6" y="109.2" width="5.2" height="5.2"/><rect x="62.4" y="114.4" width="5.2" height="5.2"/><rect x="67.6" y="114.4" width="5.2" height="5.2"/><rect x="72.8" y="114.4" width="5.2" height="5.2"/><rect x="93.6" y="114.4" width="5.2" height="5.2"/><rect x="98.8" y="114.4" width="5.2" height="5.2"/><rect x="124.8" y="114.4" width="5.2" height="5.2"/><rect x="52.0" y="119.6" width="5.2" height="5.2"/><rect x="57.2" y="119.6" width="5.2" height="5.2"/><rect x="67.6" y="119.6" width="5.2" height="5.2"/><rect x="78.0" y="119.6" width="5.2" height="5.2"/><rect x="88.4" y="119.6" width="5.2" height="5.2"/><rect x="98.8" y="119.6" width="5.2" height="5.2"/><rect x="104.0" y="119.6" width="5.2" height="5.2"/><rect x="114.4" y="119.6" width="5.2" height="5.2"/><rect x="119.6" y="119.6" width="5.2" height="5.2"/><rect x="67.6" y="124.8" width="5.2" height="5.2"/><rect x="72.8" y="124.8" width="5.2" height="5.2"/><rect x="93.6" y="124.8" width="5.2" height="5.2"/><rect x="98.8" y="124.8" width="5.2" height="5.2"/><rect x="104.0" y="124.8" width="5.2" height="5.2"/><rect x="114.4" y="124.8" width="5.2" height="5.2"/><rect x="119.6" y="124.8" width="5.2" height="5.2"/><rect x="0.0" y="0.0" width="36.4" height="36.4"/><rect x="5.2" y="5.2" width="26.0" height="26.0" fill="#fff"/><rect x="10.4" y="10.4" width="15.6" height="15.6"/><rect x="93.6" y="0.0" width="36.4" height="36.4"/><rect x="98.8" y="5.2" width="26.0" height="26.0" fill="#fff"/><rect x="104.0" y="10.4" width="15.6" height="15.6"/><rect x="0.0" y="93.6" width="36.4" height="36.4"/><rect x="5.2" y="98.8" width="26.0" height="26.0" fill="#fff"/><rect x="10.4" y="104.0" width="15.6" height="15.6"/></g></svg>
+              <svg class="cb" viewBox="0 0 460 38" preserveAspectRatio="none" aria-hidden="true"><g fill="#0e1726"><rect x="0" y="0" width="2" height="38"/><rect x="4" y="0" width="1" height="38"/><rect x="9" y="0" width="4" height="38"/><rect x="17" y="0" width="2" height="38"/><rect x="20" y="0" width="4" height="38"/><rect x="28" y="0" width="1" height="38"/><rect x="33" y="0" width="4" height="38"/><rect x="40" y="0" width="4" height="38"/><rect x="46" y="0" width="3" height="38"/><rect x="52" y="0" width="2" height="38"/><rect x="56" y="0" width="4" height="38"/><rect x="63" y="0" width="4" height="38"/><rect x="69" y="0" width="1" height="38"/><rect x="72" y="0" width="3" height="38"/><rect x="79" y="0" width="3" height="38"/><rect x="83" y="0" width="2" height="38"/><rect x="88" y="0" width="3" height="38"/><rect x="93" y="0" width="1" height="38"/><rect x="96" y="0" width="3" height="38"/><rect x="101" y="0" width="4" height="38"/><rect x="107" y="0" width="3" height="38"/><rect x="111" y="0" width="1" height="38"/><rect x="113" y="0" width="4" height="38"/><rect x="119" y="0" width="3" height="38"/><rect x="124" y="0" width="4" height="38"/><rect x="132" y="0" width="1" height="38"/><rect x="137" y="0" width="2" height="38"/><rect x="143" y="0" width="2" height="38"/><rect x="147" y="0" width="1" height="38"/><rect x="150" y="0" width="1" height="38"/><rect x="153" y="0" width="3" height="38"/><rect x="157" y="0" width="1" height="38"/><rect x="162" y="0" width="3" height="38"/><rect x="168" y="0" width="1" height="38"/><rect x="173" y="0" width="2" height="38"/><rect x="176" y="0" width="2" height="38"/><rect x="181" y="0" width="3" height="38"/><rect x="185" y="0" width="4" height="38"/><rect x="191" y="0" width="4" height="38"/><rect x="197" y="0" width="1" height="38"/><rect x="199" y="0" width="2" height="38"/><rect x="204" y="0" width="2" height="38"/><rect x="210" y="0" width="4" height="38"/><rect x="218" y="0" width="3" height="38"/><rect x="225" y="0" width="3" height="38"/><rect x="229" y="0" width="2" height="38"/><rect x="232" y="0" width="1" height="38"/><rect x="237" y="0" width="3" height="38"/><rect x="241" y="0" width="4" height="38"/><rect x="247" y="0" width="1" height="38"/><rect x="251" y="0" width="1" height="38"/><rect x="256" y="0" width="4" height="38"/><rect x="261" y="0" width="3" height="38"/><rect x="265" y="0" width="4" height="38"/><rect x="271" y="0" width="3" height="38"/><rect x="277" y="0" width="4" height="38"/><rect x="283" y="0" width="1" height="38"/><rect x="286" y="0" width="1" height="38"/><rect x="288" y="0" width="3" height="38"/><rect x="294" y="0" width="2" height="38"/><rect x="299" y="0" width="2" height="38"/><rect x="303" y="0" width="2" height="38"/><rect x="307" y="0" width="2" height="38"/><rect x="311" y="0" width="4" height="38"/><rect x="319" y="0" width="4" height="38"/><rect x="325" y="0" width="4" height="38"/><rect x="333" y="0" width="1" height="38"/><rect x="338" y="0" width="1" height="38"/><rect x="342" y="0" width="2" height="38"/><rect x="347" y="0" width="4" height="38"/><rect x="355" y="0" width="4" height="38"/><rect x="361" y="0" width="1" height="38"/><rect x="363" y="0" width="4" height="38"/><rect x="369" y="0" width="1" height="38"/><rect x="371" y="0" width="2" height="38"/><rect x="375" y="0" width="3" height="38"/><rect x="379" y="0" width="2" height="38"/><rect x="385" y="0" width="2" height="38"/><rect x="388" y="0" width="2" height="38"/><rect x="391" y="0" width="1" height="38"/><rect x="395" y="0" width="2" height="38"/><rect x="401" y="0" width="2" height="38"/><rect x="404" y="0" width="2" height="38"/><rect x="408" y="0" width="1" height="38"/><rect x="412" y="0" width="3" height="38"/><rect x="419" y="0" width="4" height="38"/><rect x="426" y="0" width="4" height="38"/><rect x="431" y="0" width="4" height="38"/><rect x="439" y="0" width="2" height="38"/><rect x="443" y="0" width="1" height="38"/><rect x="445" y="0" width="2" height="38"/><rect x="449" y="0" width="1" height="38"/><rect x="454" y="0" width="4" height="38"/><rect x="459" y="0" width="3" height="38"/></g></svg>
+            </div>
+          </div>
+        </article>
+      </div>
+      <p class="note">Chiffres d’exemple, ceux du film.</p>
+    </div>
+  </section>
+
+  <!-- qui nous sommes -->
+  <section class="bloc nous" id="nous" aria-labelledby="t-nous">
+    <div class="cadre">
+      <h2 class="vh" id="t-nous">Qui nous sommes</h2>
+      <p class="nous-texte" id="nous-texte">Nous sommes buralistes. Le cockpit, nous l’avons d’abord construit pour notre propre tabac. Il nous a servi à prendre le virage de la cigarette électronique, et à multiplier par six en six mois les ventes de notre rayon CBD. Avant chaque envoi, vos chiffres sont vérifiés par quelqu’un qui connaît le métier.</p>
+      <p class="nous-signe">Conçu par un buraliste, pour les buralistes.</p>
+    </div>
+  </section>
+
+  <!-- le film -->
+  <section class="bloc film-bande" id="film" aria-labelledby="t-film">
+    <div class="cadre">
+      <div class="intro intro-ligne">
+        <h2 id="t-film">La vie d’un tabac, en deux minutes.</h2>
+        <p>Le film raconte une soirée et une semaine au tabac, avec le cockpit. Montez le son.</p>
+      </div>
+      <button class="film-carte" type="button" data-film aria-label="Lancer le film, 2 minutes 04, avec le son">
+        <img src="affiche.jpg" alt="" loading="lazy" decoding="async" width="1600" height="900">
+        <span class="film-lecture"><span class="rond"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2a1 1 0 0 0 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z" fill="currentColor" stroke="none"/></svg></span><span><b>Voir le film</b><small>2&nbsp;min&nbsp;04, avec le son</small></span></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- la méthode -->
+  <section class="bloc methode" id="methode" aria-labelledby="t-methode">
+    <div class="cadre">
+      <div class="intro"><h2 id="t-methode">Comment ça se passe</h2></div>
+      <ol class="etapes" id="etapes">
+        <li class="etape"><span class="n" aria-hidden="true">1</span><h3>Vous transférez</h3><p>Vos factures, vos relevés Logista et FDJ, l’export de votre caisse.</p></li>
+        <li class="etape"><span class="n" aria-hidden="true">2</span><h3>L’IA lit, classe et calcule</h3><p>Chaque document est lu, rangé et rapproché de vos comptes.</p></li>
+        <li class="etape"><span class="n" aria-hidden="true">3</span><h3>Un buraliste vérifie</h3><p>Avant chaque envoi, les chiffres sont contrôlés.</p></li>
+        <li class="etape"><span class="n" aria-hidden="true">4</span><h3>Vous pilotez</h3><p>Sur votre téléphone&nbsp;: la réponse du soir, les actions de la semaine, le plan de vol à six mois.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- les formules -->
+  <section class="bloc formules" id="formules" aria-labelledby="t-formules">
+    <div class="cadre">
+      <div class="intro">
+        <h2 id="t-formules">Les formules</h2>
+        <p>Un forfait pour décoller. Des modules, quand vous en avez besoin. Et pour aller plus loin, un accompagnement pas à pas&nbsp;: avec la règle du 20/80, vos commandes de CBD et de vape se passent toutes seules.</p>
+      </div>
+      <div class="recus" id="recus">
+        <div class="recu">
+  <div class="recu-fente"></div>
+  <div class="recu-clip">
+    <div class="ticket">
+      <p class="t-ent">COCKPIT BURALISTE</p>
+      <hr class="t-sep">
+      <h3 class="t-nom">Décollage</h3>
+      <p class="t-pour">Le forfait de départ</p>
+      <hr class="t-sep">
+      <ul class="t-lignes"><li><span>Cockpit installé</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Caisse et banques reliées</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>FDJ et Logista suivis</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Plan de vol à six mois</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li></ul>
+      <hr class="t-sep">
+      <p class="t-pied">Une fois, pour démarrer</p>
+      
+    </div>
+  </div>
+</div>
+<div class="recu">
+  <div class="recu-fente"></div>
+  <div class="recu-clip">
+    <div class="ticket">
+      <p class="t-ent">COCKPIT BURALISTE</p>
+      <hr class="t-sep">
+      <h3 class="t-nom">Modules</h3>
+      <p class="t-pour">À la carte</p>
+      <hr class="t-sep">
+      <ul class="t-lignes"><li><span>Mails et factures</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Contrôle FDJ</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Stocks et Strator</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Boîte vocale</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>WhatsApp</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Références et ventes</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li></ul>
+      <hr class="t-sep">
+      <p class="t-pied">Quand vous en avez besoin</p>
+      
+    </div>
+  </div>
+</div>
+<div class="recu">
+  <div class="recu-fente"></div>
+  <div class="recu-clip">
+    <div class="ticket">
+      <p class="t-ent">COCKPIT BURALISTE</p>
+      <hr class="t-sep">
+      <h3 class="t-nom">Conseil</h3>
+      <p class="t-pour">Votre CBD, de A à Z</p>
+      <hr class="t-sep">
+      <ul class="t-lignes"><li><span>Choix des produits</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Étiquetage, traçabilité</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Prix et concurrence</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Méthode éprouvée</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li></ul>
+      <hr class="t-sep">
+      <p class="t-pied">Sur devis</p>
+      
+    </div>
+  </div>
+</div>
+<div class="recu">
+  <div class="recu-fente"></div>
+  <div class="recu-clip">
+    <div class="ticket tamponne">
+      <p class="t-ent">COCKPIT BURALISTE</p>
+      <hr class="t-sep">
+      <h3 class="t-nom">Accompagnement</h3>
+      <p class="t-pour">On vous prend par la main</p>
+      <hr class="t-sep">
+      <ul class="t-lignes"><li><span>Nos chiffres, ouverts</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Nos méthodes</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span><mark><i class="surligne"></i>La règle du 20/80</mark></span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span><mark><i class="surligne"></i>Commandes CBD/vape auto</mark></span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li><li><span>Une action chaque mois</span><i class="pts"></i><span class="ok" aria-label="inclus">✓</span></li></ul>
+      <hr class="t-sep">
+      <p class="t-pied">Sur rendez-vous</p>
+      <span class="tampon">Le plus complet</span>
+    </div>
+  </div>
+</div>
+      </div>
+      <div class="apres-recus"><a class="bouton bouton-plein" href="#demo">Demander une démonstration</a></div>
+    </div>
+  </section>
+
+  <!-- la démonstration -->
+  <section class="bloc bloc-fin demo" id="demo" aria-labelledby="t-demo">
+    <div class="cadre">
+      <div class="intro">
+        <h2 id="t-demo">Démonstration sur rendez-vous</h2>
+        <p>Dites-nous qui vous êtes et ce qui vous prend le plus de temps. Votre demande part sur WhatsApp, et nous revenons vers vous pour fixer le rendez-vous.</p>
+      </div>
+      <div class="rdv-grille">
+        <form class="formulaire" id="formulaire" novalidate>
+          <div class="champ">
+            <label for="d-nom">Votre nom</label>
+            <input id="d-nom" name="nom" type="text" autocomplete="name" placeholder="ex. Julien Martin">
+          </div>
+          <div class="champ">
+            <label for="d-tabac">Votre tabac et sa ville</label>
+            <input id="d-tabac" name="tabac" type="text" autocomplete="organization" placeholder="ex. Tabac de la Mairie, Montreuil">
+          </div>
+          <fieldset>
+            <legend>Ce qui vous prend le plus de temps</legend>
+            <div class="puces">
+              <label class="puce"><input type="checkbox" id="i-fdj" name="irritant" value="le contrôle FDJ"><span>Le contrôle FDJ</span></label>
+              <label class="puce"><input type="checkbox" id="i-factures" name="irritant" value="les factures et les mails"><span>Les factures et les mails</span></label>
+              <label class="puce"><input type="checkbox" id="i-stock" name="irritant" value="le stock"><span>Le stock</span></label>
+              <label class="puce"><input type="checkbox" id="i-tel" name="irritant" value="le téléphone"><span>Le téléphone</span></label>
+              <label class="puce"><input type="checkbox" id="i-treso" name="irritant" value="la trésorerie"><span>La trésorerie</span></label>
+              <label class="puce"><input type="checkbox" id="i-commandes" name="irritant" value="les commandes CBD et vape"><span>Les commandes CBD et vape</span></label>
+            </div>
+          </fieldset>
+          <div class="champ">
+            <label for="d-note">Un mot de plus <span class="aide">(facultatif)</span></label>
+            <textarea id="d-note" name="note" rows="3" placeholder="ex. Je suis disponible le matin, avant 10 h."></textarea>
+          </div>
+          <div class="envoi">
+            <a class="bouton bouton-plein" id="envoyer" href="https://wa.me/33761589323" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-7-6 16-3-6.5z"/><path d="M11 14.5L20 5"/></svg>Envoyer sur WhatsApp</a>
+            <button class="bouton bouton-verre" type="button" id="copier"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg>Copier le message</button>
+          </div>
+          <p class="numero">Ou écrivez directement sur WhatsApp au <b>07&nbsp;61&nbsp;58&nbsp;93&nbsp;23</b>, ou par e-mail à <a href="mailto:contact@cockpit-buraliste.fr"><b>contact@cockpit-buraliste.fr</b></a>.</p>
+          <p class="retour" id="retour" aria-live="polite"></p>
+        </form>
+
+        <aside class="apercu" aria-labelledby="t-apercu">
+          <div class="wa-tel wa-tel-apercu">
+            <div class="wa-ecran">
+              <div class="wa-entete"><span class="av"><svg class="jauge" viewBox="0 0 40 40" aria-hidden="true"><path class="arc-fond" d="M8.5 26.5a11.5 11.5 0 0 1 23 0"/><path class="arc-vert" d="M8.5 26.5a11.5 11.5 0 0 1 7.4-10.75"/><path class="aiguille" d="M20 12.2l2.5 9.3-2.5 5-2.5-5z" transform="rotate(36 20 26.5)"/><circle class="moyeu" cx="20" cy="26.5" r="2.4"/></svg></span><span><b id="t-apercu">Cockpit Buraliste</b><small>votre demande, en aperçu</small></span></div>
+              <div class="wa-fil">
+                <p class="bulle bulle-moi"><span class="apercu-txt" id="apercu">Bonjour,
+Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</time></p>
+              </div>
+              <div class="wa-saisie" aria-hidden="true"><span>Message</span><i><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-7-6 16-3-6.5z"/><path d="M11 14.5L20 5"/></svg></i></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pied">
+  <div class="cadre pied-in">
+    <div class="pied-marque">
+      <a class="marque" href="#haut" aria-label="Cockpit Buraliste, retour en haut de page"><svg class="jauge" viewBox="0 0 40 40" aria-hidden="true"><path class="arc-fond" d="M8.5 26.5a11.5 11.5 0 0 1 23 0"/><path class="arc-vert" d="M8.5 26.5a11.5 11.5 0 0 1 7.4-10.75"/><path class="aiguille" d="M20 12.2l2.5 9.3-2.5 5-2.5-5z" transform="rotate(36 20 26.5)"/><circle class="moyeu" cx="20" cy="26.5" r="2.4"/></svg><span><b>Cockpit</b> Buraliste</span></a>
+      <p class="devise">Conçu par un buraliste, pour les buralistes.</p>
+    </div>
+    <div class="pied-txt">
+      <p>Les chiffres, les noms et les situations présentés sur ce site sont des exemples.</p>
+      <p><a href="mentions-legales.html">Mentions légales et confidentialité</a></p>
+      <p>© 2026 Cockpit Buraliste</p>
+    </div>
+  </div>
+</footer>
+
+<dialog class="lecteur" id="lecteur" aria-label="Le film Cockpit Buraliste">
+  <button class="lecteur-fermer" type="button" id="lecteur-fermer" aria-label="Fermer le film"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <video id="video" controls playsinline preload="none" poster="affiche.jpg">
+    <source src="cockpit-buraliste.mp4" type="video/mp4">
+  </video>
+</dialog>
+
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "ProfessionalService", "name": "Cockpit Buraliste", "description": "Chaque soir, la réponse en une phrase. Le copilote de gestion conçu par un buraliste, pour les buralistes.", "url": "https://cockpit-buraliste.fr/", "image": "https://cockpit-buraliste.fr/partage.jpg", "telephone": "+33761589323", "email": "contact@cockpit-buraliste.fr", "areaServed": "FR", "slogan": "Conçu par un buraliste, pour les buralistes."}</script>
+<script src="js/gsap.min.js"></script>
+<script src="js/ScrollTrigger.min.js"></script>
+<script src="js/SplitText.min.js"></script>
+<script src="js/DrawSVGPlugin.min.js"></script>
+<script src="js/MotionPathPlugin.min.js"></script>
+<script>
+(() => {
+  'use strict';
+  const D = document;
+  const html = D.documentElement;
+  const $ = (s, r = D) => r.querySelector(s);
+  const $$ = (s, r = D) => Array.from(r.querySelectorAll(s));
+  const nf = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+  const eur = (v) => nf.format(Math.round(v)) + ' €';
+  const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+  const G = window.gsap;
+  const ST = window.ScrollTrigger;
+  const avecGsap = !!(G && ST);
+  const mqReduit = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const reduit = () => mqReduit.matches;
+  const majClasseAnim = () => html.classList.toggle('anim', avecGsap && !reduit());
+  majClasseAnim();
+  if (mqReduit.addEventListener) mqReduit.addEventListener('change', majClasseAnim);
+  if (avecGsap) {
+    G.registerPlugin(...[ST, window.SplitText, window.DrawSVGPlugin, window.MotionPathPlugin].filter(Boolean));
+    ST.config({ ignoreMobileResize: true });
+  }
+  const mm = avecGsap ? G.matchMedia() : null;
+  const MOUV = '(prefers-reduced-motion: no-preference)';
+  const debounce = (f, ms) => { let t; return () => { clearTimeout(t); t = setTimeout(f, ms); }; };
+
+  // courbe monotone (sans dépassement) à travers des points, comme dans le film
+  const monotone = (pts) => {
+    const n = pts.length, dx = [], dy = [], m = [], t = [];
+    for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; dy[i] = pts[i + 1][1] - pts[i][1]; m[i] = dy[i] / dx[i]; }
+    t[0] = m[0]; t[n - 1] = m[n - 2];
+    for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+      if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+      const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+      if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+    }
+    let d = 'M' + pts[0][0].toFixed(1) + ',' + pts[0][1].toFixed(1);
+    for (let i = 0; i < n - 1; i++) {
+      const h = dx[i] / 3;
+      d += 'C' + (pts[i][0] + h).toFixed(1) + ',' + (pts[i][1] + h * t[i]).toFixed(1) + ' ' + (pts[i + 1][0] - h).toFixed(1) + ',' + (pts[i + 1][1] - h * t[i + 1]).toFixed(1) + ' ' + pts[i + 1][0].toFixed(1) + ',' + pts[i + 1][1].toFixed(1);
+    }
+    return d;
+  };
+
+  // =================================================================== le son (coupé par défaut)
+  const Son = (() => {
+    const NOMS = ['musique', 'rideau', 'avion', 'sonnerie', 'imprimante', 'tampon', 'message_envoye', 'message_recu', 'alerte', 'pop', 'cloche', 'neon', 'aiguille'];
+    const VOLUME_MUSIQUE = 0.4;
+    const tampons = {};
+    let ctx = null, maitre = null, bus = null, source = null, actif = false, attenue = false, chargement = null;
+    const rampe = (g, v, d) => { const t = ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(v, t + d); };
+    const charger = () => chargement || (chargement = Promise.all(NOMS.map(async (n) => {
+      try {
+        const r = await fetch('son/' + n + '.mp3');
+        if (!r.ok) return;
+        const b = await r.arrayBuffer();
+        tampons[n] = await new Promise((ok, ko) => ctx.decodeAudioData(b, ok, ko));
+      } catch (e) { /* un son manquant n'empêche pas les autres */ }
+    })));
+    const lancerMusique = () => {
+      if (source || !tampons.musique) return;
+      source = ctx.createBufferSource();
+      source.buffer = tampons.musique;
+      source.loop = true;
+      source.loopStart = 2.4;
+      source.loopEnd = Math.min(60, tampons.musique.duration);
+      source.connect(bus);
+      source.start(0, 2.4);
+    };
+    return {
+      get actif() { return actif; },
+      async activer() {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return false;
+        if (!ctx) {
+          ctx = new AC();
+          maitre = ctx.createGain(); maitre.connect(ctx.destination);
+          bus = ctx.createGain(); bus.gain.value = 0; bus.connect(maitre);
+        }
+        try { await ctx.resume(); } catch (e) { return false; }
+        actif = true;
+        await charger();
+        if (!actif) return true;
+        lancerMusique();
+        rampe(bus.gain, attenue ? 0 : VOLUME_MUSIQUE, 2.5);
+        return true;
+      },
+      couper() {
+        actif = false;
+        if (!ctx) return;
+        rampe(bus.gain, 0, 0.6);
+        setTimeout(() => { if (!actif && source) { try { source.stop(); } catch (e) { /* déjà arrêtée */ } source = null; } }, 700);
+      },
+      attenuer(oui) { attenue = oui; if (ctx && actif) rampe(bus.gain, oui ? 0 : VOLUME_MUSIQUE, 0.5); },
+      veille(oui) { if (!ctx) return; if (oui) ctx.suspend(); else if (actif) ctx.resume(); },
+      jouer(nom, vol = 1) {
+        if (!actif || !ctx || !tampons[nom]) return;
+        const s = ctx.createBufferSource(), g = ctx.createGain();
+        s.buffer = tampons[nom]; g.gain.value = vol;
+        s.connect(g); g.connect(maitre); s.start();
+      },
+    };
+  })();
+  const sonAvant = (tl, nom, vol) => () => { const s = tl.scrollTrigger; if (!s || s.direction > 0) Son.jouer(nom, vol); };
+
+  const btnSon = $('#son');
+  const majBtnSon = (on) => { btnSon.setAttribute('aria-pressed', String(on)); btnSon.setAttribute('aria-label', on ? 'Couper le son' : 'Activer le son'); };
+  btnSon.addEventListener('click', async () => {
+    if (Son.actif) { Son.couper(); majBtnSon(false); return; }
+    majBtnSon(true);
+    const ok = await Son.activer();
+    if (!ok) majBtnSon(false); else Son.jouer('neon', 0.5);
+  });
+  D.addEventListener('visibilitychange', () => Son.veille(D.hidden));
+
+  // =================================================================== l'horloge de l'en-tête et le ciel
+  const horloge = $('#horloge');
+  let heureCourante = horloge.textContent;
+  const mettreHeure = (h) => {
+    if (!h || h === heureCourante) return;
+    heureCourante = h;
+    if (!avecGsap || reduit()) { horloge.textContent = h; return; }
+    G.killTweensOf(horloge);
+    G.timeline()
+      .to(horloge, { yPercent: -70, autoAlpha: 0, duration: 0.14, ease: 'power2.in' })
+      .add(() => { horloge.textContent = h; })
+      .fromTo(horloge, { yPercent: 70, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' });
+  };
+  const fond = $('#fond');
+  const CIELS = {
+    nuit: { '--c1': '#10203d', '--c2': '#0a1222', '--lueur': 'rgba(255,181,71,0.10)', '--lx': '12%', '--ly': '96%' },
+    aube: { '--c1': '#1d2752', '--c2': '#2b1d3c', '--lueur': 'rgba(255,146,102,0.26)', '--lx': '84%', '--ly': '100%' },
+    jour: { '--c1': '#16325d', '--c2': '#0f2342', '--lueur': 'rgba(150,200,255,0.16)', '--lx': '72%', '--ly': '-8%' },
+    soir: { '--c1': '#2b1d40', '--c2': '#14172d', '--lueur': 'rgba(255,120,80,0.24)', '--lx': '8%', '--ly': '100%' },
+  };
+
+  const prog = $('#progression');
+  const majProgression = () => {
+    const h = html.scrollHeight - window.innerHeight;
+    prog.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, Math.max(0, window.scrollY / h)) : 0).toFixed(4) + ')';
+  };
+  window.addEventListener('scroll', majProgression, { passive: true });
+  majProgression();
+
+  // =================================================================== le film en plein écran
+  const lecteur = $('#lecteur'), video = $('#video');
+  const ouvrirFilm = () => {
+    if (typeof lecteur.showModal === 'function') lecteur.showModal(); else lecteur.setAttribute('open', '');
+    Son.attenuer(true);
+    const p = video.play();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  };
+  const fermerFilm = () => {
+    video.pause();
+    if (typeof lecteur.close === 'function') lecteur.close();
+    else { lecteur.removeAttribute('open'); Son.attenuer(false); }
+  };
+  $$('[data-film]').forEach((b) => b.addEventListener('click', ouvrirFilm));
+  $('#lecteur-fermer').addEventListener('click', fermerFilm);
+  lecteur.addEventListener('close', () => { video.pause(); Son.attenuer(false); });
+  lecteur.addEventListener('click', (e) => { if (e.target === lecteur) fermerFilm(); });
+
+  // =================================================================== 21 h : la rue, le rideau
+  const decor = $('#decor'), lune = $('#lune'), cadreScene = $('.scene-cadre'), texteScene = $('#scene-texte');
+  const cadrerDecor = () => {
+    const r = cadreScene.getBoundingClientRect();
+    const a = r.width / Math.max(1, r.height);
+    const paysage = a >= 1.5;
+    let x, y, w, h, lx, ly;
+    if (paysage) {
+      // la façade (porte comprise) reste entière à droite, le texte prend le ciel à gauche
+      h = 1080; w = 1080 * a; y = 0;
+      x = Math.max(-600, 1870 - w);
+      lx = Math.max(x + 180, 560); ly = 128;
+    } else {
+      // en hauteur : la vitrine en bas, un grand ciel au-dessus pour le texte
+      w = 860; h = w / a;
+      if (h < 1300) { h = 1300; w = h * a; }
+      x = Math.max(-600, Math.min(1920 - w, 1205 - w / 2));
+      y = 1300 - h;
+      if (y < -150) { lx = x + w * 0.74; ly = y + (40 - y) * 0.42; } else { lx = Math.max(x + 90, 560); ly = 128; }
+    }
+    decor.setAttribute('viewBox', [x, y, w, h].map((v) => v.toFixed(1)).join(' '));
+    lune.setAttribute('transform', 'translate(' + lx.toFixed(0) + ' ' + ly.toFixed(0) + ')');
+    if (paysage) {
+      // le texte s'arrête avant l'enseigne rouge
+      const enseigne = (790 - x) * (r.height / 1080);
+      const gauche = texteScene.getBoundingClientRect().left - r.left;
+      texteScene.style.setProperty('--larg', Math.max(300, enseigne - gauche - 24).toFixed(0) + 'px');
+    } else {
+      texteScene.style.removeProperty('--larg');
+    }
+  };
+  cadrerDecor();
+
+  if (mm) mm.add(MOUV, () => {
+    const pancarte = $('#pancarte');
+    let ferme = false, sonRideau = false, minute = 0;
+    G.set(['.l3 > span', '.l4 > span'], { yPercent: 115 });
+    G.set(['.l3', '.l4'], { visibility: 'visible' });
+    const tl = G.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: '#haut', start: 'top top', end: '+=190%', scrub: 0.6, pin: true, anticipatePin: 1,
+        onUpdate: (s) => {
+          const p = s.progress;
+          const f = p > 0.3;
+          if (f !== ferme) { ferme = f; pancarte.textContent = f ? 'FERMÉ' : 'OUVERT'; pancarte.classList.toggle('ferme', f); }
+          if (p > 0.04 && !sonRideau && s.direction > 0) { sonRideau = true; Son.jouer('rideau', 0.75); }
+          if (p < 0.01) sonRideau = false;
+          const m = Math.min(4, Math.floor(p * 5));
+          if (m !== minute) { minute = m; mettreHeure('21:0' + m); }
+        },
+      },
+    });
+    tl.to('#scene-pied', { autoAlpha: 0, y: 30, duration: 0.7, ease: 'power1.in' }, 0)
+      .to('#cam', { scale: 1.08, svgOrigin: '1300 760', duration: 7.2 }, 0)
+      .to('#rideau', { y: 246, duration: 2.6, ease: 'power1.inOut' }, 0.25)
+      .to('#reflet', { opacity: 0.1, duration: 2.2 }, 0.6)
+      .to('#porte-lumiere', { opacity: 0.12, duration: 1.4 }, 1.6)
+      .to('.l3 > span', { yPercent: 0, duration: 0.9, ease: 'power3.out' }, 2.6)
+      .to('.fen-lum', { opacity: 0, duration: 0.2, stagger: { each: 0.4, from: 'random' } }, 2.9)
+      .to('.imm-lum', { opacity: 0, duration: 0.15, stagger: { each: 0.05, from: 'random' } }, 3.0)
+      .to('.l4 > span', { yPercent: 0, duration: 1.1, ease: 'power3.out' }, 4.3)
+      .to('#halo', { scale: 1.4, svgOrigin: '850 365', duration: 1.4 }, 4.7)
+      .to('#scene-voile', { opacity: 1, duration: 1.6 }, 5.2)
+      .to('#scene-texte', { autoAlpha: 0, y: -40, duration: 0.9, ease: 'power1.in' }, 6.6)
+      .to({}, { duration: 0.3 }, 7.5);
+    return () => { pancarte.textContent = 'OUVERT'; pancarte.classList.remove('ferme'); };
+  });
+
+  // =================================================================== 21 h 04 : le cockpit répond
+  const etages = $$('.etage');
+  const ajusterEtages = () => {
+    const vw = html.clientWidth, vh = window.innerHeight;
+    const g = Math.min(48, Math.max(16, vw * 0.04));
+    const haut = vw < 560 ? 76 : 84;
+    etages.forEach((e) => {
+      if (getComputedStyle(e).display === 'none') return;
+      const w = +e.dataset.w, h = +e.dataset.h;
+      const k = Math.max(0.3, Math.min((vw - 2 * g) / w, (vh - haut - 20) / h, 1.12));
+      e.style.setProperty('--k', k.toFixed(4));
+      e.style.setProperty('--top', (haut + Math.max(0, (vh - haut - 20 - h * k) / 2)).toFixed(1) + 'px');
+    });
+  };
+  ajusterEtages();
+
+  const animerReponse = (etage) => {
+    const q = (s) => $(s, etage), qa = (s) => $$(s, etage);
+    const sources = qa('.source'), fils = qa('.fil-donnee'), points = qa('.point-donnee'), svgFils = q('.fils');
+    const noir = q('.tel-noir'), blocs = qa('.app > *'), parts = qa('.split i');
+    const legendes = qa('.legende'), forte = q('.forte');
+    const gros = q('[data-compte="gros"]'), net = q('[data-compte="net"]'), forteV = q('[data-compte="forte"]');
+    const o = { gros: 0, net: 0, forte: 0 };
+    const ecrire = () => { gros.textContent = eur(o.gros); net.textContent = eur(o.net); if (forteV) forteV.textContent = eur(o.forte); };
+    G.set(sources, { autoAlpha: 0, x: (i, el) => (el.dataset.cote === 'g' ? -40 : el.dataset.cote === 'd' ? 40 : 0), y: (i, el) => (el.dataset.cote === 'h' ? -18 : 0) });
+    G.set(svgFils, { autoAlpha: 1 });
+    G.set(fils, { drawSVG: '0%' });
+    G.set(points, { autoAlpha: 0 });
+    G.set(noir, { autoAlpha: 1 });
+    G.set(blocs, { autoAlpha: 0, y: 12 });
+    G.set(parts, { scaleX: 0, transformOrigin: 'left center' });
+    if (legendes.length) G.set(legendes, { autoAlpha: 0, x: 30 });
+    if (forte) G.set(forte, { autoAlpha: 0, y: forte.classList.contains('forte-m') ? 16 : 0, x: forte.classList.contains('forte-m') ? 0 : -30 });
+    ecrire();
+    const tl = G.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '#cockpit', start: 'top top', end: '+=240%', scrub: 0.7, pin: true, anticipatePin: 1 } });
+    sources.forEach((s, i) => {
+      const t = i * 0.5;
+      tl.to(s, { autoAlpha: 1, x: 0, y: 0, duration: 0.4, ease: 'power2.out' }, t)
+        .to(fils[i], { drawSVG: '100%', duration: 0.5 }, t + 0.12)
+        .set(points[i], { autoAlpha: 1 }, t + 0.3)
+        .to(points[i], { motionPath: { path: fils[i], align: fils[i], alignOrigin: [0.5, 0.5] }, duration: 0.55, ease: 'power1.in' }, t + 0.3)
+        .set(points[i], { autoAlpha: 0 }, t + 0.86)
+        .add(sonAvant(tl, 'pop', 0.45), t + 0.84);
+    });
+    tl.to(noir, { autoAlpha: 0, duration: 0.35 }, 2.15)
+      .add(sonAvant(tl, 'cloche', 0.45), 2.2)
+      .to(blocs, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.08, ease: 'power2.out' }, 2.3)
+      .to(o, { gros: 47380, duration: 1.1, ease: 'power2.out', onUpdate: ecrire }, 2.45)
+      .to(o, { net: 37520, duration: 1.0, ease: 'power2.out', onUpdate: ecrire }, 2.65)
+      .to(parts, { scaleX: 1, duration: 0.45, stagger: 0.08, ease: 'power2.out' }, 3.2)
+      .to([...sources, svgFils], { autoAlpha: 0, duration: 0.35 }, 3.75);
+    if (legendes.length) tl.to(legendes, { autoAlpha: 1, x: 0, duration: 0.4, stagger: 0.14, ease: 'power2.out' }, 3.95);
+    if (forte) {
+      tl.to(forte, { autoAlpha: 1, x: 0, y: 0, duration: 0.45, ease: 'power2.out' }, 4.6)
+        .to(o, { forte: 37520, duration: 0.9, ease: 'power2.out', onUpdate: ecrire }, 4.6);
+    }
+    tl.to({}, { duration: 0.8 }, 5.5);
+    return () => { gros.textContent = eur(47380); net.textContent = eur(37520); if (forteV) forteV.textContent = eur(37520); };
+  };
+  if (mm) {
+    mm.add({ bureau: '(min-width: 900px) and ' + MOUV, mobile: '(max-width: 899px) and ' + MOUV }, (c) => {
+      const { bureau, mobile } = c.conditions;
+      if (bureau) return animerReponse($('#etage-b'));
+      if (mobile) return animerReponse($('#etage-m'));
+      return undefined;
+    });
+  }
+
+  // =================================================================== 7 h 30 : la semaine, et l'avion qui atterrit
+  const SEM = [49120, 51850, 56940, 56130, 57750, 61440, 66530, 71620, 47380];
+  const zoneSem = $('.sem-barres');
+  const semTracer = () => {
+    const r = zoneSem.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const max = Math.max(...SEM);
+    const pts = $$('.sem-col', zoneSem).map((c, i) => { const b = c.getBoundingClientRect(); return [b.left - r.left + b.width / 2, r.height * (1 - SEM[i] / max)]; });
+    $('.sem-courbe', zoneSem).setAttribute('viewBox', '0 0 ' + r.width.toFixed(1) + ' ' + r.height.toFixed(1));
+    const d = monotone(pts);
+    $('#sem-pointille').setAttribute('d', d);
+    $('#sem-trace').setAttribute('d', d);
+  };
+  semTracer();
+
+  if (mm) mm.add(MOUV, () => {
+    semTracer();
+    const barres = $$('.sem-barre'), vals = $$('.sem-val'), sorties = $$('.sem-jour .sortie, .sem-liste li'), fin = $('#sem-fin');
+    G.set(barres, { scaleY: 0 });
+    G.set(vals, { autoAlpha: 0 });
+    G.set(sorties, { autoAlpha: 0, y: 8 });
+    G.set('#sem-trace', { drawSVG: '0%' });
+    G.set('#sem-avion', { autoAlpha: 0 });
+    G.set(fin, { autoAlpha: 0, y: 8 });
+    const tl = G.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '.sem-carte', start: 'top 80%', end: 'bottom 38%', scrub: 0.6, invalidateOnRefresh: true } });
+    tl.to(barres, { scaleY: 1, duration: 0.5, stagger: 0.07, ease: 'power2.out' }, 0)
+      .to(vals, { autoAlpha: 1, duration: 0.25, stagger: 0.07 }, 0.35)
+      .to(sorties, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.1 }, 0.5)
+      .set('#sem-avion', { autoAlpha: 1 }, 1.0)
+      .to('#sem-trace', { drawSVG: '100%', duration: 2.2 }, 1.0)
+      .to('#sem-avion', { motionPath: { path: '#sem-trace', align: '#sem-trace', alignOrigin: [0.5, 0.5], autoRotate: true }, duration: 2.2 }, 1.0)
+      .add(sonAvant(tl, 'avion', 0.6), 2.9)
+      .to(fin, { autoAlpha: 1, y: 0, duration: 0.3, ease: 'back.out(2)' }, 3.2);
+    G.from('.action', { autoAlpha: 0, y: 40, duration: 0.7, stagger: 0.12, ease: 'power3.out', scrollTrigger: { trigger: '.actions-semaine', start: 'top 88%', once: true } });
+  });
+
+  // =================================================================== 10 h : le simulateur de plan de vol
+  const SIM = {
+    base: [3800, 3900, 3400, 1250, 2950, 1640, 3640, 1640, 3640, 1640, 1940, 1640, 3640],
+    cbd: [0, 0, 0, 300, 450, 600, 750, 900, 1000, 1100, 1100, 1100, 1100],
+    depart: 47380, seuil: 29330, alerte: 5000, vmax: 100000,
+    quand: ['mi-octobre', 'fin octobre', 'mi-novembre', 'fin novembre', 'mi-décembre', 'fin décembre', 'mi-janvier', 'fin janvier', 'mi-février', 'fin février', 'mi-mars', 'fin mars', 'mi-avril', 'fin avril'],
+    mois: ['octobre', 'octobre', 'novembre', 'novembre', 'décembre', 'décembre', 'janvier', 'janvier', 'février', 'février', 'mars', 'mars', 'avril', 'avril'],
+    reperes: { embauche: 2, cbd: 3, credit: 5, salaire: 6, agencement: 8 },
+  };
+  const DEFAUT = { embauche: true, credit: true, salaire: 2000, cbd: false, agencement: false };
+  const etat = Object.assign({}, DEFAUT);
+  const calcul = () => {
+    const pts = [SIM.depart];
+    let v = SIM.depart;
+    for (let k = 1; k <= 13; k++) {
+      let d = SIM.base[k - 1];
+      if (etat.embauche) d += k === 2 || k === 3 ? -600 : k >= 4 ? -150 : 0;
+      if (etat.credit) d += k === 5 ? -7200 : k >= 6 ? 310 : 0;
+      if (k >= 6) d -= etat.salaire / 2;
+      if (etat.cbd) d += (k === 2 ? -6000 : 0) + SIM.cbd[k - 1];
+      if (etat.agencement) d += k === 8 ? -40000 : k >= 10 ? 200 : 0;
+      v += d;
+      pts.push(v);
+    }
+    return pts;
+  };
+  const ligneSimu = $('#simu-ligne'), aireSimu = $('#simu-aire'), boutSimu = $('#simu-bout');
+  const reperes = $$('#simu-graphe .repere');
+  const yPct = (v) => (1 - Math.max(-0.1 * SIM.vmax, v) / SIM.vmax) * 100;
+  const aff = calcul();
+  const dessinerSimu = () => {
+    const d = monotone(aff.map((v, i) => [(i / 13) * 600, yPct(v) * 2.6]));
+    ligneSimu.setAttribute('d', d);
+    aireSimu.setAttribute('d', d + 'L600,260L0,260Z');
+    boutSimu.style.left = '100%';
+    boutSimu.style.top = yPct(aff[13]) + '%';
+    reperes.forEach((r) => { const k = SIM.reperes[r.dataset.ev]; r.style.left = (k / 13) * 100 + '%'; r.style.top = yPct(aff[k]) + '%'; });
+  };
+  const cpt = { fin: 0, bas: 0 };
+  const vFin = $('#v-fin'), vBas = $('#v-bas'), vBasQuand = $('#v-bas-quand');
+  const etatCiel = $('#etat-ciel'), etatCielTxt = $('#etat-ciel-txt'), phrase = $('#simu-phrase');
+  const ecrireCpt = () => { vFin.textContent = eur(cpt.fin); vBas.textContent = eur(cpt.bas); };
+  const majuscule = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const majSimu = (instant) => {
+    const pts = calcul();
+    let bas = Infinity, kb = 0;
+    pts.forEach((v, i) => { if (v < bas) { bas = v; kb = i; } });
+    if (!instant && avecGsap && !reduit()) {
+      G.to(aff, { endArray: pts, duration: 0.75, ease: 'power3.out', onUpdate: dessinerSimu, overwrite: true });
+      G.to(cpt, { fin: pts[13], bas, duration: 0.75, ease: 'power3.out', onUpdate: ecrireCpt, overwrite: true });
+    } else {
+      pts.forEach((v, i) => { aff[i] = v; });
+      cpt.fin = pts[13]; cpt.bas = bas;
+      dessinerSimu(); ecrireCpt();
+    }
+    vBasQuand.textContent = SIM.quand[kb];
+    const niveau = bas >= SIM.seuil ? 'ok' : bas >= SIM.alerte ? 'moyen' : 'ko';
+    etatCiel.className = 'etat-ciel ' + niveau;
+    etatCielTxt.textContent = niveau === 'ok' ? 'Ciel dégagé jusqu’en avril' : (niveau === 'moyen' ? 'Turbulences en ' : 'Alerte en ') + SIM.mois[kb];
+    phrase.textContent = niveau === 'ok'
+      ? 'Toujours au moins une facture Logista d’avance.'
+      : niveau === 'moyen'
+        ? majuscule(SIM.quand[kb]) + ', il vous reste moins d’une facture Logista d’avance. Le cockpit vous prévient des semaines avant.'
+        : majuscule(SIM.quand[kb]) + ', vous passez sous les 5 000 €. Le cockpit vous alerte à temps pour décaler ou financer.';
+    reperes.forEach((r) => { const ev = r.dataset.ev; const on = ev === 'salaire' ? etat.salaire > 0 : !!etat[ev]; r.classList.toggle('off', !on); });
+  };
+  const bascules = $$('.bascule');
+  bascules.forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.cle;
+    etat[k] = !etat[k];
+    b.setAttribute('aria-checked', String(etat[k]));
+    Son.jouer('pop', 0.5);
+    majSimu();
+  }));
+  const curseur = $('#c-salaire'), sortieSalaire = $('#o-salaire');
+  const majCurseur = () => {
+    curseur.style.setProperty('--p', (etat.salaire / 40) + '%');
+    sortieSalaire.textContent = etat.salaire ? eur(etat.salaire) + ' par mois' : 'aucun salaire';
+  };
+  curseur.addEventListener('input', () => { etat.salaire = +curseur.value; majCurseur(); majSimu(); });
+  $('#simu-zero').addEventListener('click', () => {
+    Object.assign(etat, DEFAUT);
+    curseur.value = String(DEFAUT.salaire);
+    bascules.forEach((b) => b.setAttribute('aria-checked', String(!!etat[b.dataset.cle])));
+    majCurseur(); majSimu();
+    Son.jouer('pop', 0.5);
+  });
+  majCurseur();
+  majSimu(true);
+  if (mm) mm.add(MOUV, () => {
+    G.from(ligneSimu, {
+      drawSVG: '0%', duration: 1.8, ease: 'power2.inOut',
+      scrollTrigger: { trigger: '#simu-graphe', start: 'top 78%', once: true },
+      onComplete: () => { ligneSimu.style.strokeDasharray = ''; ligneSimu.style.strokeDashoffset = ''; },
+    });
+  });
+
+  // =================================================================== 14 h 31 : le contrôle FDJ
+  const rejouer = {};
+  $$('[data-rejouer]').forEach((b) => b.addEventListener('click', () => { const f = rejouer[b.dataset.rejouer]; if (f) f(); }));
+  const fdjCarte = $('#fdj-carte');
+  if (mm) mm.add(MOUV, () => {
+    const lignes = $$('tbody tr', fdjCarte), badges = $$('tbody .etat', fdjCarte), ko = $('tbody tr.ko', fdjCarte), total = $('tfoot tr', fdjCarte);
+    const exp = $('.export', fdjCarte), ops = $$('.op', fdjCarte), opKo = $('.op.ko', fdjCarte), scan = $('.scanner', fdjCarte), trouve = $('.trouve', fdjCarte);
+    const iKo = lignes.indexOf(ko);
+    const tl = G.timeline({ paused: true });
+    tl.add(() => { ko.classList.remove('rouge'); opKo.classList.remove('rouge'); }, 0)
+      .set(lignes, { autoAlpha: 0, y: 10 }, 0)
+      .set(badges, { autoAlpha: 0, scale: 0.6 }, 0)
+      .set(total, { autoAlpha: 0 }, 0)
+      .set(exp, { autoAlpha: 0, y: 26 }, 0)
+      .set(ops, { autoAlpha: 0, x: 14 }, 0)
+      .set(scan, { autoAlpha: 0, y: () => ops[0].offsetTop }, 0)
+      .set(trouve, { autoAlpha: 0, scale: 0.94 }, 0)
+      .to(lignes, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.12, ease: 'power2.out' }, 0.15)
+      .to(badges, { autoAlpha: 1, scale: 1, duration: 0.3, stagger: 0.24, ease: 'back.out(2.2)' }, 0.7)
+      .add(() => { ko.classList.add('rouge'); Son.jouer('alerte', 0.7); }, 0.7 + iKo * 0.24)
+      .to(total, { autoAlpha: 1, duration: 0.3 }, 2.0)
+      .to(exp, { autoAlpha: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 2.4)
+      .to(ops, { autoAlpha: 1, x: 0, duration: 0.25, stagger: 0.09 }, 2.7)
+      .set(scan, { autoAlpha: 1 }, 3.3)
+      .to(scan, { y: () => ops[1].offsetTop, duration: 0.3, ease: 'power2.inOut' }, 3.6)
+      .to(scan, { y: () => opKo.offsetTop, duration: 0.3, ease: 'power2.inOut' }, 4.1)
+      .add(() => { opKo.classList.add('rouge'); Son.jouer('alerte', 0.85); }, 4.45)
+      .to(scan, { autoAlpha: 0, duration: 0.3 }, 4.7)
+      .to(trouve, { autoAlpha: 1, scale: 1, duration: 0.45, ease: 'back.out(1.8)' }, 4.7);
+    tl.seek(0.01, false);
+    const st = ST.create({ trigger: fdjCarte, start: 'top 72%', once: true, onEnter: () => tl.play(0) });
+    rejouer.fdj = () => { tl.invalidate().restart(); };
+    return () => { st.kill(); tl.progress(1).kill(); ko.classList.add('rouge'); opKo.classList.add('rouge'); delete rejouer.fdj; };
+  });
+
+  // =================================================================== 18 h 42 : la boîte vocale
+  const vocal = $('#vocal-carte');
+  if (mm) mm.add(MOUV, () => {
+    const etatAppel = $('#appel-etat'), anneaux = $$('.anneau', vocal), mots = $$('.mot', vocal), resume = $('.resume', vocal), envoye = $('.envoye', vocal);
+    const tl = G.timeline({ paused: true });
+    tl.add(() => { etatAppel.textContent = 'Appel entrant'; vocal.classList.remove('enregistre'); }, 0)
+      .set(mots, { opacity: 0.16 }, 0)
+      .set(resume, { autoAlpha: 0, y: 14 }, 0)
+      .set(envoye, { autoAlpha: 0, scale: 0.85 }, 0)
+      .fromTo(anneaux, { scale: 1, autoAlpha: 0.75 }, { scale: 1.9, autoAlpha: 0, duration: 0.9, stagger: 0.3, repeat: 1, ease: 'power1.out' }, 0.1)
+      .add(() => Son.jouer('sonnerie', 0.6), 0.1)
+      .add(() => Son.jouer('sonnerie', 0.6), 1.2)
+      .add(() => { etatAppel.textContent = 'Message en cours…'; vocal.classList.add('enregistre'); }, 2.4)
+      .to(mots, { opacity: 1, duration: 0.12, stagger: 0.12, ease: 'none' }, 2.6)
+      .add(() => { etatAppel.textContent = 'Message pris'; vocal.classList.remove('enregistre'); }, '>+0.2')
+      .to(resume, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'power3.out' }, '>+0.2')
+      .to(envoye, { autoAlpha: 1, scale: 1, duration: 0.35, ease: 'back.out(2)' }, '>+0.35')
+      .add(() => Son.jouer('message_envoye', 0.7), '<');
+    tl.seek(0.01, false);
+    const st = ST.create({ trigger: vocal, start: 'top 70%', once: true, onEnter: () => tl.play(0) });
+    rejouer.vocale = () => { tl.restart(); };
+    return () => { st.kill(); tl.progress(1).kill(); etatAppel.textContent = 'Message pris'; vocal.classList.remove('enregistre'); delete rejouer.vocale; };
+  });
+
+  // =================================================================== 23 h 14 : l'assistant WhatsApp
+  const ICONE_MSG = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>';
+  const QUESTIONS = [
+    { q: 'Combien on a fait aujourd’hui ?', r: 'Aujourd’hui : <b>6 840 €</b> de ventes, dont <b>1 210 €</b> de CBD. Marge du jour : <b>1 930 €</b>.' },
+    { q: 'Où j’atterris lundi ?', r: 'Lundi à 21 h, après la facture tabac : <b>47 380 €</b>, dont <b>37 520 €</b> vraiment à vous. Ciel dégagé.' },
+    { q: 'Le FDJ est juste cette semaine ?', r: 'Un seul écart : <b>−45,00 €</b> jeudi à 14 h 31 min 08 s, trois tickets à gratter absents de la caisse. Le reste est juste.' },
+    { q: 'Qui a appelé ce soir ?', r: 'Mme Lefèvre, à 18 h 42 : son journal et un carnet de timbres à garder pour demain, 9 h. Julien est prévenu.' },
+    { q: 'Il reste combien de Fraise glacée ?', r: '<b>14 flacons.</b> Je l’ajoute à la commande de jeudi ?', suite: { q: 'Oui, ajoute-la.', r: 'C’est noté : Fraise glacée ajoutée à la commande de jeudi.' } },
+  ];
+  const filWa = $('#wa-fil'), zoneQ = $('#wa-questions'), statutWa = $('#wa-statut');
+  let minuteWa = 14, occupe = false;
+  const heureWa = () => '23:' + String(minuteWa).padStart(2, '0');
+  const bulle = (contenu, moi) => {
+    const p = D.createElement('p');
+    p.className = 'bulle ' + (moi ? 'bulle-moi' : 'bulle-lui');
+    p.innerHTML = contenu + '<time>' + heureWa() + '</time>';
+    filWa.appendChild(p);
+    if (avecGsap && !reduit()) G.from(p, { autoAlpha: 0, y: 14, scale: 0.96, transformOrigin: moi ? '100% 100%' : '0% 100%', duration: 0.35, ease: 'back.out(1.6)' });
+    filWa.scrollTop = filWa.scrollHeight;
+  };
+  const activerQuestions = (on) => $$('.question', zoneQ).forEach((b) => { b.disabled = !on; });
+  const ajouterQuestion = (item, enTete) => {
+    const b = D.createElement('button');
+    b.type = 'button';
+    b.className = 'question';
+    b.innerHTML = ICONE_MSG + '<span></span>';
+    b.querySelector('span').textContent = item.q;
+    b.addEventListener('click', () => poser(item, b));
+    if (enTete) zoneQ.prepend(b); else zoneQ.appendChild(b);
+  };
+  const ajouterRelance = () => {
+    const b = D.createElement('button');
+    b.type = 'button';
+    b.className = 'question';
+    b.textContent = 'Recommencer la conversation';
+    b.addEventListener('click', () => {
+      $$('.bulle', filWa).forEach((x) => x.remove());
+      minuteWa = 14;
+      b.remove();
+      QUESTIONS.forEach((it) => ajouterQuestion(it));
+    });
+    zoneQ.appendChild(b);
+  };
+  const poser = async (item, bouton) => {
+    if (occupe) return;
+    occupe = true;
+    if (bouton) bouton.remove();
+    activerQuestions(false);
+    bulle(item.q, true);
+    Son.jouer('message_envoye', 0.6);
+    const lent = !reduit();
+    await attendre(lent ? 450 : 80);
+    statutWa.textContent = 'écrit…';
+    const frappe = D.createElement('p');
+    frappe.className = 'bulle bulle-lui frappe';
+    frappe.setAttribute('aria-label', 'Le cockpit écrit');
+    frappe.innerHTML = '<i></i><i></i><i></i>';
+    filWa.appendChild(frappe);
+    filWa.scrollTop = filWa.scrollHeight;
+    await attendre(lent ? 1100 : 150);
+    frappe.remove();
+    statutWa.textContent = 'en ligne';
+    bulle(item.r, false);
+    Son.jouer('message_recu', 0.6);
+    if (minuteWa < 59) minuteWa += 1;
+    if (item.suite) ajouterQuestion(item.suite, true);
+    occupe = false;
+    activerQuestions(true);
+    if (!$('.question', zoneQ)) ajouterRelance();
+  };
+  QUESTIONS.forEach((it) => ajouterQuestion(it));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entrees) => {
+      if (!entrees.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      setTimeout(() => { const b = $('.question', zoneQ); if (b && !$('.bulle', filWa)) poser(QUESTIONS[0], b); }, 500);
+    }, { threshold: 0.6 });
+    io.observe($('#whatsapp .wa-tel'));
+  }
+
+  // =================================================================== le quotidien (bento)
+  if (mm) mm.add(MOUV, () => {
+    const lis = $$('.mails li'), nv = $$('.mails .nv'), fait = $$('.mails .fait');
+    G.set(lis, { autoAlpha: 0, y: -16 });
+    G.set(nv, { visibility: 'visible' });
+    G.set(fait, { autoAlpha: 0, scale: 0.7 });
+    const tM = G.timeline({ paused: true });
+    tM.to(lis, { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.25, ease: 'power3.out' }, 0);
+    lis.forEach((li, i) => {
+      const t = 1.2 + i * 0.4;
+      tM.set(nv[i], { visibility: 'hidden' }, t)
+        .to(fait[i], { autoAlpha: 1, scale: 1, duration: 0.3, ease: 'back.out(2.4)' }, t)
+        .add(() => Son.jouer('pop', 0.35), t);
+    });
+    ST.create({ trigger: '.tuile-mails', start: 'top 75%', once: true, onEnter: () => tM.play() });
+
+    const vals = $$('.stock b[data-vers]'), jauges = $$('.jauge-s i'), ecart = $('.tuile-stock .ecart');
+    const o = vals.map(() => ({ v: 0 }));
+    vals.forEach((b) => { b.textContent = eur(0); });
+    G.set(jauges, { scaleX: 0 });
+    G.set(ecart, { autoAlpha: 0, y: 12 });
+    const tS = G.timeline({ paused: true });
+    vals.forEach((b, i) => tS.to(o[i], { v: +b.dataset.vers, duration: 1.3, ease: 'power2.out', onUpdate: () => { b.textContent = eur(o[i].v); } }, i * 0.25));
+    tS.to(jauges, { scaleX: 1, duration: 1.2, stagger: 0.25, ease: 'power2.out' }, 0)
+      .to(ecart, { autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(1.8)' }, 1.45)
+      .add(() => Son.jouer('pop', 0.4), 1.45);
+    ST.create({ trigger: '.tuile-stock', start: 'top 75%', once: true, onEnter: () => tS.play() });
+
+    const spk = $$('.refs svg path'), tags = $$('.refs .tag');
+    G.set(spk, { drawSVG: '0%' });
+    G.set(tags, { autoAlpha: 0, scale: 0.7 });
+    const tR = G.timeline({ paused: true })
+      .to(spk, { drawSVG: '100%', duration: 1, stagger: 0.2, ease: 'power2.inOut' }, 0)
+      .to(tags, { autoAlpha: 1, scale: 1, duration: 0.3, stagger: 0.15, ease: 'back.out(2.2)' }, 0.8);
+    ST.create({ trigger: '.tuile-refs', start: 'top 75%', once: true, onEnter: () => tR.play() });
+
+    const mb = $$('.mini-barres i'), n = $('#fois-n'), on = { v: 1 };
+    G.set(mb, { scaleY: 0 });
+    n.textContent = '1';
+    const tV = G.timeline({ paused: true })
+      .to(mb, { scaleY: 1, duration: 0.45, stagger: 0.08, ease: 'power2.out' }, 0)
+      .to(on, { v: 6, duration: 1, ease: 'power2.out', snap: { v: 1 }, onUpdate: () => { n.textContent = String(on.v); } }, 0.45);
+    ST.create({ trigger: '.tuile-ventes', start: 'top 75%', once: true, onEnter: () => tV.play() });
+    return () => { vals.forEach((b) => { b.textContent = eur(+b.dataset.vers); }); n.textContent = '6'; };
+  });
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    $$('.tuile').forEach((t) => t.addEventListener('pointermove', (e) => {
+      const r = t.getBoundingClientRect();
+      t.style.setProperty('--mx', (e.clientX - r.left).toFixed(0) + 'px');
+      t.style.setProperty('--my', (e.clientY - r.top).toFixed(0) + 'px');
+    }));
+    const etiq = $('#etiq'), sceneEtiq = $('.etiq-scene');
+    sceneEtiq.addEventListener('pointermove', (e) => {
+      if (reduit()) return;
+      const r = sceneEtiq.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      etiq.style.setProperty('--ry', (x * 16).toFixed(2) + 'deg');
+      etiq.style.setProperty('--rx', (-y * 12).toFixed(2) + 'deg');
+    });
+    sceneEtiq.addEventListener('pointerleave', () => { etiq.style.setProperty('--rx', '0deg'); etiq.style.setProperty('--ry', '0deg'); });
+  }
+
+  // =================================================================== la méthode : la ligne qui avance
+  if (mm) mm.add(MOUV, () => {
+    const ol = $('#etapes'), etapes = $$('.etape', ol);
+    const maj = (p) => {
+      ol.style.setProperty('--p', p.toFixed(3));
+      etapes.forEach((e, i) => e.classList.toggle('eteinte', i === 0 ? p <= 0.001 : p < i / (etapes.length - 1) - 0.02));
+    };
+    maj(0);
+    const st = ST.create({ trigger: ol, start: 'top 72%', end: 'bottom 58%', onUpdate: (s) => maj(s.progress) });
+    return () => { st.kill(); ol.style.removeProperty('--p'); etapes.forEach((e) => e.classList.remove('eteinte')); };
+  });
+
+  // =================================================================== les formules s'impriment
+  if (mm) mm.add(MOUV, () => {
+    const tickets = $$('.ticket'), surl = $$('.surligne'), tampon = $('.tampon');
+    G.set(tickets, { yPercent: -101 });
+    G.set(surl, { scaleX: 0 });
+    G.set(tampon, { autoAlpha: 0, scale: 2.4, rotation: -20 });
+    const imprimer = (t) => G.to(t, { yPercent: 0, duration: 1.3, ease: 'steps(16)' });
+    const finir = () => G.timeline()
+      .to(surl, { scaleX: 1, duration: 0.5, stagger: 0.45, ease: 'power2.inOut' })
+      .to(tampon, { autoAlpha: 1, scale: 1, rotation: -7, duration: 0.32, ease: 'power4.in' }, '+=0.15')
+      .add(() => Son.jouer('tampon', 0.9), '-=0.04');
+    if (window.matchMedia('(min-width: 1140px)').matches) {
+      ST.create({
+        trigger: '#recus', start: 'top 72%', once: true,
+        onEnter: () => {
+          const tl = G.timeline();
+          tickets.forEach((t, i) => { tl.add(imprimer(t), i * 0.5).add(() => Son.jouer('imprimante', 0.5), i * 0.5); });
+          tl.add(finir(), '+=0.1');
+        },
+      });
+    } else {
+      tickets.forEach((t, i) => ST.create({
+        trigger: t.closest('.recu'), start: 'top 84%', once: true,
+        onEnter: () => { imprimer(t); Son.jouer('imprimante', 0.5); if (i === tickets.length - 1) G.delayedCall(1.4, finir); },
+      }));
+    }
+  });
+
+  // =================================================================== la jauge du pied de page
+  if (mm) mm.add(MOUV, () => {
+    const aig = $('.pied .aiguille');
+    G.set(aig, { rotation: -100, svgOrigin: '20 26.5' });
+    ST.create({
+      trigger: '.pied', start: 'top 95%', once: true,
+      onEnter: () => { G.to(aig, { rotation: 36, svgOrigin: '20 26.5', duration: 1.6, ease: 'elastic.out(1, 0.55)' }); Son.jouer('aiguille', 0.6); },
+    });
+  });
+
+  // =================================================================== la demande de démonstration
+  const NUMERO_WHATSAPP = '33761589323';
+  const nom = $('#d-nom'), tabac = $('#d-tabac'), note = $('#d-note');
+  const cases = $$('input[name="irritant"]');
+  const apercu = $('#apercu'), envoyer = $('#envoyer'), copier = $('#copier'), retour = $('#retour');
+  const enListe = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' et ' + a[a.length - 1]);
+  const message = () => {
+    const l = ['Bonjour,', 'Je souhaite une démonstration de Cockpit Buraliste.'];
+    const n = nom.value.trim(), t = tabac.value.trim(), x = note.value.trim();
+    const choix = cases.filter((c) => c.checked).map((c) => c.value);
+    if (n) l.push('Nom : ' + n);
+    if (t) l.push('Tabac : ' + t);
+    if (choix.length) l.push('Ce qui me prend le plus de temps : ' + enListe(choix) + '.');
+    if (x) l.push(x);
+    return l.join('\n');
+  };
+  const dire = (texte, erreur) => { retour.textContent = texte; retour.classList.toggle('erreur', !!erreur); };
+  const majMessage = () => {
+    const m = message();
+    apercu.textContent = m;
+    envoyer.href = 'https://wa.me/' + NUMERO_WHATSAPP + '?text=' + encodeURIComponent(m);
+  };
+  const marquer = () => {
+    const vides = [nom, tabac].filter((e) => !e.value.trim());
+    [nom, tabac].forEach((e) => { if (vides.includes(e)) e.setAttribute('aria-invalid', 'true'); else e.removeAttribute('aria-invalid'); });
+    return vides;
+  };
+  [nom, tabac, note].forEach((e) => e.addEventListener('input', () => {
+    majMessage();
+    if (retour.classList.contains('erreur') && marquer().length === 0) dire('', false);
+  }));
+  cases.forEach((c) => c.addEventListener('change', majMessage));
+  $('#formulaire').addEventListener('submit', (ev) => ev.preventDefault());
+  envoyer.addEventListener('click', (ev) => {
+    const vides = marquer();
+    if (vides.length) {
+      ev.preventDefault();
+      dire('Indiquez votre nom et votre tabac, pour que nous puissions vous rappeler.', true);
+      vides[0].focus();
+      return;
+    }
+    majMessage();
+    Son.jouer('message_envoye', 0.7);
+    dire('Si WhatsApp ne s’ouvre pas, copiez le message et envoyez-le au 07 61 58 93 23.', false);
+  });
+  copier.addEventListener('click', () => {
+    const m = message();
+    const selectionner = () => {
+      const r = D.createRange();
+      r.selectNodeContents(apercu);
+      const s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      dire('Le message est sélectionné dans l’aperçu : copiez-le.', false);
+    };
+    try { navigator.clipboard.writeText(m).then(() => dire('Message copié.', false), selectionner); } catch (e) { selectionner(); }
+  });
+  majMessage();
+
+  // =================================================================== l'heure et le ciel suivent la lecture
+  if (avecGsap) {
+    $$('[data-heure], [data-ciel]').forEach((el) => {
+      ST.create({
+        trigger: el, start: 'top 55%', end: 'bottom 55%', refreshPriority: -1,
+        onToggle: (s) => {
+          if (!s.isActive) return;
+          if (el.dataset.heure && el.id !== 'haut') mettreHeure(el.dataset.heure);
+          if (el.id === 'haut') mettreHeure('21:00');
+          if (el.dataset.ciel) G.to(fond, Object.assign({ duration: 1.6, ease: 'power2.inOut', overwrite: 'auto' }, CIELS[el.dataset.ciel]));
+        },
+      });
+    });
+  }
+
+  // =================================================================== titres qui montent, texte qui s'allume
+  const apresPolices = () => {
+    cadrerDecor();
+    ajusterEtages();
+    semTracer();
+    if (!mm || !window.SplitText) { if (avecGsap) ST.refresh(); return; }
+    mm.add(MOUV, () => {
+      const decoupes = [];
+      $$('.intro h2, .titre-geant').forEach((h) => {
+        const sp = new window.SplitText(h, { type: 'lines', mask: 'lines' });
+        decoupes.push(sp);
+        G.from(sp.lines, {
+          yPercent: 108, duration: 1, stagger: 0.12, ease: 'power4.out',
+          scrollTrigger: { trigger: h, start: 'top 86%', once: true },
+          onComplete: () => sp.revert(),
+        });
+      });
+      const nous = new window.SplitText('#nous-texte', { type: 'words' });
+      decoupes.push(nous);
+      G.fromTo(nous.words, { opacity: 0.16 }, { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: '#nous-texte', start: 'top 80%', end: 'bottom 45%', scrub: true } });
+      return () => decoupes.forEach((s) => s.revert());
+    });
+    ST.refresh();
+  };
+  let policesPretes = false;
+  const quandPret = () => { if (policesPretes) return; policesPretes = true; apresPolices(); };
+  if (D.fonts && D.fonts.ready) D.fonts.ready.then(quandPret); else window.addEventListener('load', quandPret);
+  setTimeout(quandPret, 3000);
+  window.addEventListener('resize', debounce(() => { cadrerDecor(); ajusterEtages(); semTracer(); }, 120));
+  if (avecGsap) ST.addEventListener('refreshInit', () => { ajusterEtages(); semTracer(); });
+})();
+
+</script>
+</body>
+</html>
