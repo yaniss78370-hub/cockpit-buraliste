@@ -612,6 +612,14 @@ mark{position:relative;z-index:0;background:none;color:inherit;padding:0 2px}
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
+/* téléphones et tablettes : on retire les effets qui coûtent cher à chaque image du défilement */
+@media (hover: none) and (pointer: coarse) {
+  .grain{display:none}
+  .pilule{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(9,16,32,.95)}
+  .source,.commandes,.bouton-verre{-webkit-backdrop-filter:none;backdrop-filter:none}
+  .decor .scintille{animation:none;opacity:.6}
+  #halo-neon{animation:neon 1.4s steps(1,end) .4s both}
+}
 
 [hidden]{display:none!important}
 .texte-page{padding-top:clamp(130px,16vw,200px)}

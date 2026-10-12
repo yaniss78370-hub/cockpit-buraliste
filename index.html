@@ -727,6 +727,9 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
   const mm = avecGsap ? G.matchMedia() : null;
   const MOUV = '(prefers-reduced-motion: no-preference)';
   const debounce = (f, ms) => { let t; return () => { clearTimeout(t); t = setTimeout(f, ms); }; };
+  // au doigt, le défilement doit répondre tout de suite : scrub plus court, séquences épinglées moins longues
+  const tactile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  const petitEcran = () => window.innerWidth < 900;
 
   // courbe monotone (sans dépassement) à travers des points, comme dans le film
   const monotone = (pts) => {
@@ -906,7 +909,7 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
     const tl = G.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
-        trigger: '#haut', start: 'top top', end: '+=190%', scrub: 0.6, pin: true, anticipatePin: 1,
+        trigger: '#haut', start: 'top top', end: () => '+=' + (petitEcran() ? 130 : 190) + '%', scrub: tactile ? 0.25 : 0.6, pin: true, anticipatePin: 1,
         onUpdate: (s) => {
           const p = s.progress;
           const f = p > 0.3;
@@ -918,9 +921,10 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
         },
       },
     });
-    tl.to('#scene-pied', { autoAlpha: 0, y: 30, duration: 0.7, ease: 'power1.in' }, 0)
-      .to('#cam', { scale: 1.08, svgOrigin: '1300 760', duration: 7.2 }, 0)
-      .to('#rideau', { y: 246, duration: 2.6, ease: 'power1.inOut' }, 0.25)
+    tl.to('#scene-pied', { autoAlpha: 0, y: 30, duration: 0.7, ease: 'power1.in' }, 0);
+    // le lent zoom redessine toute la scène à chaque image : on le garde pour l'ordinateur
+    if (!tactile) tl.to('#cam', { scale: 1.08, svgOrigin: '1300 760', duration: 7.2 }, 0);
+    tl.to('#rideau', { y: 246, duration: 2.6, ease: 'power1.inOut' }, 0.25)
       .to('#reflet', { opacity: 0.1, duration: 2.2 }, 0.6)
       .to('#porte-lumiere', { opacity: 0.12, duration: 1.4 }, 1.6)
       .to('.l3 > span', { yPercent: 0, duration: 0.9, ease: 'power3.out' }, 2.6)
@@ -937,7 +941,8 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
   // =================================================================== 21 h 04 : le cockpit répond
   const etages = $$('.etage');
   const ajusterEtages = () => {
-    const vw = html.clientWidth, vh = window.innerHeight;
+    const cadre = $('.reponse-cadre');
+    const vw = html.clientWidth, vh = cadre ? cadre.clientHeight : window.innerHeight;
     const g = Math.min(48, Math.max(16, vw * 0.04));
     const haut = vw < 560 ? 76 : 84;
     etages.forEach((e) => {
@@ -968,7 +973,7 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
     if (legendes.length) G.set(legendes, { autoAlpha: 0, x: 30 });
     if (forte) G.set(forte, { autoAlpha: 0, y: forte.classList.contains('forte-m') ? 16 : 0, x: forte.classList.contains('forte-m') ? 0 : -30 });
     ecrire();
-    const tl = G.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '#cockpit', start: 'top top', end: '+=240%', scrub: 0.7, pin: true, anticipatePin: 1 } });
+    const tl = G.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '#cockpit', start: 'top top', end: () => '+=' + (petitEcran() ? 170 : 240) + '%', scrub: tactile ? 0.3 : 0.7, pin: true, anticipatePin: 1 } });
     sources.forEach((s, i) => {
       const t = i * 0.5;
       tl.to(s, { autoAlpha: 1, x: 0, y: 0, duration: 0.4, ease: 'power2.out' }, t)
@@ -1026,7 +1031,7 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
     G.set('#sem-trace', { drawSVG: '0%' });
     G.set('#sem-avion', { autoAlpha: 0 });
     G.set(fin, { autoAlpha: 0, y: 8 });
-    const tl = G.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '.sem-carte', start: 'top 80%', end: 'bottom 38%', scrub: 0.6, invalidateOnRefresh: true } });
+    const tl = G.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '.sem-carte', start: 'top 80%', end: 'bottom 38%', scrub: tactile ? 0.3 : 0.6, invalidateOnRefresh: true } });
     tl.to(barres, { scaleY: 1, duration: 0.5, stagger: 0.07, ease: 'power2.out' }, 0)
       .to(vals, { autoAlpha: 1, duration: 0.25, stagger: 0.07 }, 0.35)
       .to(sorties, { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.1 }, 0.5)
@@ -1488,7 +1493,13 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
   const quandPret = () => { if (policesPretes) return; policesPretes = true; apresPolices(); };
   if (D.fonts && D.fonts.ready) D.fonts.ready.then(quandPret); else window.addEventListener('load', quandPret);
   setTimeout(quandPret, 3000);
-  window.addEventListener('resize', debounce(() => { cadrerDecor(); ajusterEtages(); semTracer(); }, 120));
+  let largeurPrec = window.innerWidth;
+  window.addEventListener('resize', debounce(() => {
+    const l = window.innerWidth;
+    if (tactile && l === largeurPrec) return; // seule la hauteur a changé : c'est la barre d'adresse du téléphone
+    largeurPrec = l;
+    cadrerDecor(); ajusterEtages(); semTracer();
+  }, 120));
   if (avecGsap) ST.addEventListener('refreshInit', () => { ajusterEtages(); semTracer(); });
 })();
 
