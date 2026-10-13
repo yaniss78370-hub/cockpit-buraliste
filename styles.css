@@ -117,10 +117,13 @@ html:not(.anim) [data-rejouer]{display:none}
 .son[aria-pressed="true"] .eq i:nth-child(3){animation-delay:-.7s}
 .son[aria-pressed="true"] .eq i:nth-child(4){animation-delay:-.2s}
 @keyframes eq{0%,100%{height:25%}50%{height:100%}}
+.connexion{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:var(--lune);font:600 14px/1 var(--f-texte);text-decoration:none;white-space:nowrap;transition:border-color .2s,color .2s}
+.connexion:hover{border-color:rgba(255,181,71,.6);color:var(--ambre)}
+.connexion .ic{width:17px;height:17px}
 .cta-court{display:none}
 @media (max-width:1060px){.nav{display:none}.son{margin-left:auto}}
-@media (max-width:560px){.son-txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.son{padding:0 12px}.pilule{gap:8px;padding-left:12px}.marque{font-size:16px}}
-@media (max-width:479px){.horloge{display:none}.cta-long{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.cta-court{display:inline}}
+@media (max-width:560px){.son-txt,.connexion-txt{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.son,.connexion{padding:0 12px}.pilule{gap:8px;padding-left:12px}.marque{font-size:16px}}
+@media (max-width:479px){.horloge{display:none}.cta-long{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.cta-court{display:inline}.pilule{gap:6px;padding-left:10px}.son,.connexion{width:38px;height:38px;padding:0;justify-content:center}.tete .bouton-petit{padding:0 13px}.marque{font-size:15px;gap:7px}}
 
 /* ---------- 21 h : la scène d'ouverture */
 .scene{position:relative;z-index:1}
