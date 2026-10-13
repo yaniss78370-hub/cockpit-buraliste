@@ -85,7 +85,7 @@ function htmlConnexion() {
     '<form class="cx-form" id="cx-form" novalidate><label for="cx-id">Identifiant</label><input class="champ" id="cx-id" type="text" value="demo@cockpit-buraliste.fr" readonly>' +
     '<label for="cx-mdp">Mot de passe</label><input class="champ" id="cx-mdp" type="password" value="demonstration" readonly>' +
     '<button class="bouton plein cx-bouton" type="submit" id="cx-entrer">' + ic('cadenas') + '<span>Se connecter</span></button></form>' +
-    '<p class="cx-note">' + ic('info') + '<span>Compte de démonstration du tabac « Le Balto ». Les champs sont déjà remplis : vous ne saisissez rien, rien n’est envoyé. Les chiffres, les noms et les situations sont des exemples.</span></p>' +
+    '<p class="cx-note">' + ic('info') + '<span>Compte de démonstration du tabac « Le Balto ». Les champs sont déjà remplis : vous ne saisissez rien, rien n’est envoyé. Les chiffres, les noms et les situations sont des exemples.</span></p>' +
     '<a class="cx-lien" href="https://cockpit-buraliste.fr/#demo" target="_blank" rel="noopener">Pas encore client ? Demander une démonstration</a></div>';
 }
 function seConnecter() {
@@ -156,7 +156,7 @@ function aller(route, onglet) {
   rendre();
   if (change || onglet) window.scrollTo(0, 0);
 }
-function majDefile() { document.body.classList.toggle('defile', window.scrollY > 70); }
+function majDefile() { document.body.classList.toggle('page-defilee', window.scrollY > 70); }
 window.addEventListener('scroll', majDefile, { passive: true });
 let minuterieTaille = null;
 window.addEventListener('resize', () => { clearTimeout(minuterieTaille); minuterieTaille = setTimeout(() => peindreGraphes(document), 140); });
@@ -192,7 +192,7 @@ function menuExport() {
     ['mouvements', 'csv', 'Mouvements bancaires', 'Les trois comptes, du 8 juillet au 13 octobre, et la semaine prévue.'],
     ['factures', 'xlsx', 'Factures, ligne par ligne', 'Chaque facture et chacune de ses lignes, rangées par famille.'],
   ];
-  ouvrirModale('<h2>Exporter</h2><p class="discret">Les fichiers reprennent les données d’exemple du tabac « Le Balto ».</p><div class="liste-export">' +
+  ouvrirModale('<h2>Exporter</h2><p class="discret">Les fichiers reprennent les données d’exemple du tabac « Le Balto ».</p><div class="liste-export">' +
     items.map(([cle, f, t, d]) => '<button type="button" class="export-l" data-action="export" data-cle="' + cle + '" data-format="' + f + '"><span class="ic-pastille ' + (f === 'pdf' ? 'rouge' : f === 'csv' ? 'bleu' : 'vert') + '">' + ic(f === 'pdf' ? 'pdf' : f === 'csv' ? 'csv' : 'xlsx') + '</span><span class="el-txt"><b>' + t + '</b><span>' + d + '</span></span><span class="el-f">' + f.toUpperCase() + '</span></button>').join('') +
     '</div><div class="pied"><button class="bouton" type="button" data-action="fermer">Fermer</button></div>');
 }
@@ -245,7 +245,7 @@ function resultatsPalette(q) {
   return pages.filter(ok).concat(actions.filter(ok), INDEX.filter(ok).slice(0, 14));
 }
 function htmlResPalette() {
-  if (!PAL.length) return '<div class="pal-vide">Rien trouvé. Essayez « Logista », « Coca », « Fraise » ou un montant.</div>';
+  if (!PAL.length) return '<div class="pal-vide">Rien trouvé. Essayez « Logista », « Coca », « Fraise » ou un montant.</div>';
   let g = '';
   return PAL.map((x, i) => (x.g !== g ? '<div class="pal-groupe">' + (g = x.g) + '</div>' : '') + '<button type="button" class="pal-item' + (i === PAL_I ? ' actif' : '') + '" data-pal="' + i + '">' + ic(x.ic) + '<span>' + esc(x.lib) + '</span>' + (x.mt != null ? '<small>' + eur2(x.mt) + '</small>' : '<small></small>') + '</button>').join('');
 }
@@ -329,6 +329,24 @@ function majPlan() {
   ecrire();
   if (!majZonesPlan()) rendre(true);
 }
+function lireMontant(txt) {
+  const v = parseFloat(String(txt || '').replace(/[\s\u00a0\u202f€]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'));
+  return isFinite(v) ? Math.round(Math.abs(v)) : 0;
+}
+function ajouterMouvementPlan() {
+  const f = ETAT.planForm;
+  const lib = $('#mp-lib'), mt = $('#mp-montant');
+  if (lib) f.lib = lib.value;
+  if (mt) f.montant = mt.value;
+  const v = lireMontant(f.montant);
+  if (!v) { const er = $('#mp-erreur'); if (er) er.hidden = false; if (mt) mt.focus(); return; }
+  if (ETAT.plan.mouvements.length >= 8) return;
+  const nom = (f.lib || '').trim().slice(0, 40) || (f.sens === 'rentree' ? 'Rentrée d’argent' : 'Dépense');
+  ETAT.plan.mouvements.push({ id: 'm' + Date.now().toString(36), lib: nom, montant: f.sens === 'rentree' ? v : -v, mois: f.mois, freq: f.freq });
+  Object.assign(ETAT.planForm, { ouvert: false, lib: '', montant: '' });
+  majPlan();
+  toast('Ajouté au plan : ' + nom + ', ' + eur((f.sens === 'rentree' ? v : -v) * 100, false, true) + (f.freq === 'mois' ? ' par mois' : '') + '.');
+}
 document.addEventListener('click', (e) => {
   const pal = e.target.closest('[data-pal]');
   if (pal) { choisirPalette(+pal.dataset.pal); return; }
@@ -359,6 +377,27 @@ document.addEventListener('click', (e) => {
   }
   const lev = e.target.closest('[data-levier]');
   if (lev) { const k = lev.dataset.levier; ETAT.plan[k] = !ETAT.plan[k]; majPlan(); return; }
+  const ci = e.target.closest('#plan-graphe .cible');
+  if (ci && ci.dataset.i != null) {
+    ETAT.plan.lecture = +ci.dataset.i; ecrire();
+    const r = $('#plan-date'); if (r) r.value = ETAT.plan.lecture;
+    placerLecture(ETAT.plan.lecture);
+    return;
+  }
+  const pl = e.target.closest('[data-plan]');
+  if (pl) {
+    const v = pl.dataset.v;
+    ETAT.plan[pl.dataset.plan] = v === 'true' ? true : v === 'false' ? false : isNaN(+v) ? v : +v;
+    if (pl.dataset.plan === 'agencementMois' && ETAT.plan.aideMois <= ETAT.plan.agencementMois) ETAT.plan.aideMois = Math.min(6, ETAT.plan.agencementMois + 2);
+    majPlan();
+    return;
+  }
+  const pf = e.target.closest('[data-pf]');
+  if (pf) {
+    ETAT.planForm[pf.dataset.pf] = pf.dataset.pf === 'mois' ? +pf.dataset.v : pf.dataset.v;
+    const m = $('#plan-mvts'); if (m) { m.innerHTML = htmlMvtsPlan(); const n = $('[data-pf="' + pf.dataset.pf + '"][data-v="' + pf.dataset.v + '"]'); if (n) n.focus({ preventScroll: true }); }
+    return;
+  }
   const a = e.target.closest('[data-action]');
   if (!a) return;
   const act = a.dataset.action;
@@ -387,7 +426,37 @@ document.addEventListener('click', (e) => {
     case 'deconnexion': seDeconnecter(); break;
     case 'surveiller': if (a.dataset.ops) { ETAT.fdj.semaine = '2026-10-05'; ETAT.fdj.ops = true; ETAT.fdj.jour = null; } if (a.dataset.route === 'caisse') { ETAT.caisse.jour = '2026-10-10'; ETAT.caisse.annules = 'jour'; ETAT.detail.caisse = true; } aller(a.dataset.route); break;
     case 'plus-mvt': ETAT.mvt.n += 60; $('#zone-mvt').innerHTML = htmlTableMouvements(); break;
-    case 'plan-defaut': ETAT.plan = Object.assign({}, PLAN_DEFAUT); ecrire(); if (!majZonesPlan()) rendre(true); break;
+    case 'plan-scenario': {
+      const sc = SCENARIOS_PLAN.find((x) => x.id === a.dataset.id);
+      if (!sc) break;
+      ETAT.plan = planDe(sc); ETAT.planForm.ouvert = false; ecrire();
+      if (!majZonesPlan()) rendre(true);
+      toast('Scénario « ' + sc.lib + ' » : fin avril ' + eur(calculPlan().fin * 100) + '.');
+      break;
+    }
+    case 'plan-defaut': ETAT.plan = planDefaut(); ETAT.planForm.ouvert = false; ecrire(); if (!majZonesPlan()) rendre(true); toast('Plan de départ rétabli.'); break;
+    case 'plan-ajout': {
+      ETAT.planForm.ouvert = true;
+      const m = $('#plan-mvts'); if (m) m.innerHTML = htmlMvtsPlan();
+      const c = $('#mp-lib'); if (c) c.focus({ preventScroll: true });
+      break;
+    }
+    case 'plan-ajout-annuler': { ETAT.planForm.ouvert = false; const m = $('#plan-mvts'); if (m) m.innerHTML = htmlMvtsPlan(); break; }
+    case 'plan-idee': {
+      const x = IDEES_MVT[+a.dataset.i];
+      if (!x || ETAT.plan.mouvements.length >= 8) break;
+      ETAT.plan.mouvements.push(Object.assign({ id: 'm' + Date.now().toString(36) }, x));
+      majPlan();
+      toast('Ajouté au plan : ' + x.lib + '.');
+      break;
+    }
+    case 'plan-retirer': {
+      const m = ETAT.plan.mouvements.find((x) => x.id === a.dataset.id);
+      ETAT.plan.mouvements = ETAT.plan.mouvements.filter((x) => x.id !== a.dataset.id);
+      majPlan();
+      if (m) toast('Retiré du plan : ' + m.lib + '.');
+      break;
+    }
     case 'jour': {
       const i = Z.findIndex((z) => z.date === ETAT.caisse.jour);
       const p = +a.dataset.pas;
@@ -458,6 +527,8 @@ document.addEventListener('change', (e) => {
   }
   if (t.dataset.commande) { ETAT.commande[t.dataset.commande] = Math.max(0, Math.round(+t.value || 0)); ecrire(); rendre(true); return; }
   if (t.id === 'curseur-salaire') { ETAT.plan.salaire = +t.value; majPlan(); return; }
+  if (t.id === 'curseur-agencement') { ETAT.plan.agencementHT = +t.value; majPlan(); return; }
+  if (t.id === 'plan-date') { ETAT.plan.lecture = +t.value; ecrire(); return; }
   if (t.tagName === 'SELECT' && t.dataset.filtre) {
     const [o, k] = t.dataset.filtre.split('.');
     ETAT[o][k] = o === 'resultat' && k === 'mois' && /^\d+$/.test(t.value) ? +t.value : t.value;
@@ -474,9 +545,19 @@ document.addEventListener('input', (e) => {
     t.style.setProperty('--p', (ETAT.plan.salaire / 4000 * 100) + '%');
     const lib = $('#salaire-lib');
     if (lib) lib.textContent = ETAT.plan.salaire ? eur(ETAT.plan.salaire * 100) + ' par mois' : 'aucun salaire';
-    majZonesPlan();
+    majZonesPlan(false);
     return;
   }
+  if (t.id === 'curseur-agencement') {
+    ETAT.plan.agencementHT = +t.value;
+    t.style.setProperty('--p', ((ETAT.plan.agencementHT - 20000) / 400) + '%');
+    $$('.ag-ht').forEach((x) => { x.textContent = eur(ETAT.plan.agencementHT * 100); });
+    const n = $('#note-agencement'); if (n) n.innerHTML = noteAgencement(ETAT.plan);
+    majZonesPlan(false);
+    return;
+  }
+  if (t.id === 'plan-date') { ETAT.plan.lecture = +t.value; placerLecture(ETAT.plan.lecture); return; }
+  if (t.dataset && t.dataset.pfi) { ETAT.planForm[t.dataset.pfi] = t.value; const er = $('#mp-erreur'); if (er) er.hidden = true; return; }
   if (t.tagName === 'INPUT' && t.dataset.filtre) {
     const [o, k] = t.dataset.filtre.split('.');
     ETAT[o][k] = t.value;
@@ -488,6 +569,7 @@ document.addEventListener('input', (e) => {
 document.addEventListener('submit', (e) => {
   if (e.target.id === 'cx-form') { e.preventDefault(); seConnecter(); }
   if (e.target.id === 'form-compte') e.preventDefault();
+  if (e.target.id === 'form-plan-mvt') { e.preventDefault(); ajouterMouvementPlan(); }
   if (e.target.id === 'as-form') { e.preventDefault(); const q = $('#as-q'); if (q && q.value.trim()) { poserQuestion(q.value); q.value = ''; } }
 });
 try {

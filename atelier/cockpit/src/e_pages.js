@@ -1,7 +1,7 @@
 /* ==================================================================
    Les pages du cockpit, troisième génération.
    Chaque page s'ouvre sur sa réponse (une carte de nuit, un montant), puis ce qui l'explique
-   (des cartes « papier »), puis le détail pour qui le veut.
+   (des cartes « papier »), puis le détail pour qui le veut.
    ================================================================== */
 
 // le code QR de l'étiquette CBD (le même que sur le site)
@@ -29,7 +29,7 @@ const pct2 = (x) => F2.format(x) + NB + '%';
 const jourMoyen = (iso) => maj(dCourt(iso));
 const heureFr = (h) => h.replace(':', ' h ');
 
-/* ------------------------------------------------------------------ « où va la marge » : une barre, six parts */
+/* ------------------------------------------------------------------ « où va la marge » : une barre, six parts */
 const AUTRES_FRAIS_V3 = ['Énergie', 'Assurances', 'Honoraires', 'Banque et monétique', 'Logiciels et télécoms', 'Entretien et fournitures', 'Impôts et taxes', 'Démarque et écarts', 'Cotisations professionnelles', 'Publicité et divers'];
 function partsMarge(cle) {
   const x = pnlDe(cle), ch = x.charges, mt = margeTotale(x.produits);
@@ -463,27 +463,134 @@ function htmlEquationSemaine() {
 
 /* ================================================================== TRÉSORERIE : comptes, semaine, plan de vol */
 const ICONES_LEVIERS = { embauche: 'recrue', credit: 'coche-rond', salaire: 'personne', cbd: 'feuille', agencement: 'boite' };
-function annotationsPlan(p) {
-  const a = [];
-  if (p.embauche) a.push({ i: 2, txt: 'Nouvelle recrue, on ferme à 23\u00a0h', sous: 'dès novembre', ic: 'recrue' });
-  if (p.cbd) a.push({ i: 2, txt: 'Rayon CBD agrandi', sous: '6 000 € de stock en novembre', ic: 'feuille' });
-  if (p.credit) a.push({ i: 5, txt: 'Crédit soldé : 7 200 €', sous: 'fin décembre', ic: 'coche' });
-  if (p.salaire) a.push({ i: 6, txt: 'Vous vous versez ' + eur(p.salaire * 100), sous: 'par mois, dès janvier', ic: 'personne' });
-  if (p.agencement) a.push({ i: 8, txt: 'Agencement : 40 000 € HT', sous: 'en février', ic: 'boite' });
-  a.sort((u, v) => u.i - v.i);
-  return a;
+const moisChoix = (a, b) => MOIS_PLAN.slice(a, b + 1).map((l, j) => [a + j, l]);
+// une rangée de choix ; avec « effet », chaque puce montre ce que le choix donne au point bas
+function puces(cle, choix, val, lib, effet) {
+  return '<div class="lv-reglage"><span class="lv-r-lib">' + lib + (effet ? '<em>point bas</em>' : '') + '</span><div class="puces-m' + (effet ? ' a-effet' : '') + '" role="group" aria-label="' + esc(lib) + '">' +
+    choix.map(([v, l]) => {
+      const x = effet ? calculPlan(Object.assign({}, ETAT.plan, { [cle]: v })) : null;
+      return '<button type="button" class="pm" data-plan="' + cle + '" data-v="' + v + '" aria-pressed="' + (String(val) === String(v)) + '"' + (x ? ' aria-label="' + esc(l + ' : point bas ' + eur(x.bas * 100)) + '"' : '') + '>' + l +
+        (x ? '<small class="pm-e ' + x.niveau + '">' + keur(x.bas) + '</small>' : '') + '</button>';
+    }).join('') + '</div></div>';
+}
+// partir d'un scénario : vos mouvements et la date de lecture sont gardés
+const SCENARIOS_PLAN = [
+  { id: 'prudent', lib: 'Prudent', p: { embauche: false, credit: false, salaire: 1500, salaireMois: 3, cbd: false, agencement: false } },
+  { id: 'depart', lib: 'Plan de départ', p: {} },
+  { id: 'investir', lib: 'Investir', p: { cbd: true, cbdMois: 1, cbdStock: 6000, agencement: true, agencementMois: 4, agencementHT: 40000, agencementPret: true, aide: true, aideMois: 6 } },
+];
+const planDe = (sc) => Object.assign(planDefaut(), sc.p, { mouvements: ETAT.plan.mouvements, lecture: ETAT.plan.lecture });
+const CLES_PLAN = Object.keys(planDefaut()).filter((k) => k !== 'mouvements' && k !== 'lecture');
+function scenarioActif() {
+  const s = SCENARIOS_PLAN.find((sc) => { const q = planDe(sc); return CLES_PLAN.every((k) => q[k] === ETAT.plan[k]); });
+  return s ? s.id : null;
+}
+function htmlScenarios() {
+  const actif = scenarioActif();
+  return '<span class="lv-r-lib">Partir d’un scénario <em>fin avril</em></span><div class="scen" role="group" aria-label="Partir d’un scénario">' + SCENARIOS_PLAN.map((sc) => {
+    const r = calculPlan(planDe(sc));
+    return '<button type="button" class="sc" data-action="plan-scenario" data-id="' + sc.id + '" aria-pressed="' + (actif === sc.id) + '"><b>' + sc.lib + '</b><span class="sc-v ' + r.niveau + '">' + keur(r.fin) + '</span></button>';
+  }).join('') + '</div>' + (actif ? '' : '<p class="lv-note sc-perso">Votre scénario à vous : modifié à la main.</p>');
+}
+function sousLevier(cle, p) {
+  switch (cle) {
+    case 'embauche': return 'Dès ' + MOIS_PLAN_L[p.embaucheMois] + ' : salaire et charges, moins les ventes du soir';
+    case 'credit': return eur(capitalCredit(p.creditMois) * 100) + ', fin ' + MOIS_PLAN_L[p.creditMois] + ' ; 620 € par mois en moins ensuite';
+    case 'salaire': return 'Dès ' + MOIS_PLAN_L[p.salaireMois] + ' : <span id="salaire-lib" class="sal-v">' + (p.salaire ? eur(p.salaire * 100) + ' par mois' : 'aucun salaire') + '</span>';
+    case 'cbd': return eur(p.cbdStock * 100) + ' de stock en ' + MOIS_PLAN_L[p.cbdMois] + ', marge qui monte ensuite';
+    case 'agencement': return '<span class="ag-ht">' + eur(p.agencementHT * 100) + '</span> HT en ' + MOIS_PLAN_L[p.agencementMois] + (p.agencementPret ? ', prêt sur 5 ans' : ', payé comptant');
+  }
+  return '';
+}
+function noteAgencement(p) {
+  const ht = p.agencementHT, tva = tvaAgencement(ht), m = MOIS_PLAN_L[p.agencementMois], ma = moisAide(p);
+  const paye = p.agencementPret ? 'Apport de <b>' + eur(ht * 20) + '</b> et TVA en ' + m + ', puis <b>' + eur(Math.round(mensualitePret(ht * 0.8)) * 100) + ' par mois</b> pendant 5 ans.' : 'Vous payez <b>' + eur((ht + tva) * 100) + ' TTC</b> en ' + m + '.';
+  const tvaTxt = ' La TVA (' + eur(tva * 100) + ') vous revient ' + (p.agencementMois < 6 ? '<b>fin ' + MOIS_PLAN_L[p.agencementMois + 1] + '</b>' : 'en mai') + ', sur votre déclaration.';
+  const aide = p.aide ? (ma <= 6 ? ' L’aide (' + eur(aideAgencement(ht) * 100) + ') arrive <b>en ' + MOIS_PLAN_L[ma] + '</b>, si le dossier est accepté.' : ' L’aide arrivera après avril.') : '';
+  return '<p class="lv-note">' + paye + tvaTxt + aide + '</p>';
+}
+function reglagesLevier(cle, p) {
+  switch (cle) {
+    case 'embauche': return puces('embaucheMois', moisChoix(1, 5), p.embaucheMois, 'Début');
+    case 'credit': return puces('creditMois', moisChoix(1, 5), p.creditMois, 'Soldé fin');
+    case 'salaire': return puces('salaireMois', moisChoix(1, 6), p.salaireMois, 'À partir de');
+    case 'cbd': return puces('cbdStock', [[3000, '3 000 €'], [6000, '6 000 €'], [9000, '9 000 €']], p.cbdStock, 'Stock') + puces('cbdMois', moisChoix(1, 4), p.cbdMois, 'Achat en');
+    case 'agencement': {
+      const ht = p.agencementHT;
+      return '<div class="lv-reglage"><span class="lv-r-lib">Montant des travaux, HT</span><div class="lv-curseur"><input class="curseur" type="range" id="curseur-agencement" min="20000" max="60000" step="5000" value="' + ht + '" style="--p:' + ((ht - 20000) / 400) + '%" aria-label="Montant de l’agencement, hors taxes"><b class="ag-ht">' + eur(ht * 100) + '</b></div></div>' +
+        puces('agencementMois', moisChoix(2, 6), p.agencementMois, 'Travaux en', true) +
+        puces('agencementPret', [[false, 'Comptant'], [true, 'Prêt sur 5 ans']], p.agencementPret, 'Paiement', true) +
+        puces('aide', [[false, 'Sans'], [true, 'Avec l’aide de la douane']], p.aide, 'Aide à la transformation') +
+        (p.aide && p.agencementMois < 6 ? puces('aideMois', moisChoix(p.agencementMois + 1, 6), moisAide(p), 'Aide reçue en') : '') +
+        '<div id="note-agencement">' + noteAgencement(p) + '</div>';
+    }
+  }
+  return '';
+}
+function htmlLeviers() {
+  const p = ETAT.plan;
+  return LEVIERS.map((l) => {
+    const actif = l.cle === 'salaire' ? !!p.salaire : !!p[l.cle];
+    const tete = '<span class="lv-ic">' + ic(ICONES_LEVIERS[l.cle]) + '</span><b>' + l.titre + '</b><span class="lv-sous">' + sousLevier(l.cle, p) + '</span>';
+    if (l.cle === 'salaire') {
+      return '<div class="levier salaire' + (actif ? ' actif' : '') + '"><div class="lv-tete">' + tete + '</div>' +
+        '<input class="curseur" type="range" id="curseur-salaire" min="0" max="4000" step="250" value="' + p.salaire + '" style="--p:' + (p.salaire / 40) + '%" aria-label="Votre salaire de gérant, par mois">' +
+        (actif ? '<div class="lv-reglages">' + reglagesLevier('salaire', p) + '</div>' : '') + '</div>';
+    }
+    return '<div class="levier' + (actif ? ' actif' : '') + '"><div class="lv-tete" data-levier="' + l.cle + '">' + tete + '<button type="button" class="bascule" role="switch" aria-checked="' + actif + '" aria-label="' + esc(l.titre) + '"></button></div>' +
+      (actif ? '<div class="lv-reglages">' + reglagesLevier(l.cle, p) + '</div>' : '') + '</div>';
+  }).join('');
+}
+// vos mouvements : une dépense ou une rentrée connue, à son mois
+const IDEES_MVT = [
+  { lib: 'Prime de fin d’année', montant: -1500, mois: 2, freq: 'une' },
+  { lib: 'Remboursement d’assurance', montant: 3000, mois: 3, freq: 'une' },
+  { lib: 'Achat d’un véhicule', montant: -15000, mois: 5, freq: 'une' },
+];
+function htmlMvtsPlan() {
+  const p = ETAT.plan, f = ETAT.planForm;
+  const liste = p.mouvements.map((m) => '<div class="mp-l"><span class="mp-ic ' + (m.montant < 0 ? 'neg' : 'pos') + '">' + ic(m.montant < 0 ? 'baisse' : 'hausse') + '</span>' +
+    '<div class="mp-txt"><b>' + esc(m.lib) + '</b><span>' + (m.freq === 'mois' ? 'chaque mois, dès ' : 'en ') + MOIS_PLAN_L[m.mois] + '</span></div>' +
+    '<span class="mp-mt ' + (m.montant < 0 ? 'negatif' : 'positif') + '">' + eur(m.montant * 100, false, true) + (m.freq === 'mois' ? '<small>/mois</small>' : '') + '</span>' +
+    '<button type="button" class="mp-x" data-action="plan-retirer" data-id="' + esc(m.id) + '" aria-label="Retirer ' + esc(m.lib) + '">' + ic('croix') + '</button></div>').join('');
+  const form = '<form class="mp-form" id="form-plan-mvt" novalidate>' +
+    '<div class="mp-champs"><input class="champ" id="mp-lib" maxlength="40" autocomplete="off" placeholder="Ex. : remboursement d’assurance" value="' + esc(f.lib) + '" data-pfi="lib" aria-label="Ce que c’est">' +
+    '<div class="mp-montant"><input class="champ" id="mp-montant" inputmode="decimal" autocomplete="off" placeholder="Montant" value="' + esc(f.montant) + '" data-pfi="montant" aria-label="Montant, en euros"><span>€</span></div></div>' +
+    '<div class="lv-reglage"><div class="puces-m">' + [['depense', 'Une dépense'], ['rentree', 'Une rentrée']].map(([v, l]) => '<button type="button" class="pm" data-pf="sens" data-v="' + v + '" aria-pressed="' + (f.sens === v) + '">' + l + '</button>').join('') +
+    [['une', 'Une fois'], ['mois', 'Chaque mois']].map(([v, l]) => '<button type="button" class="pm" data-pf="freq" data-v="' + v + '" aria-pressed="' + (f.freq === v) + '">' + l + '</button>').join('') + '</div></div>' +
+    '<div class="lv-reglage"><span class="lv-r-lib">' + (f.freq === 'mois' ? 'À partir de' : 'En') + '</span><div class="puces-m">' + moisChoix(0, 6).map(([v, l]) => '<button type="button" class="pm" data-pf="mois" data-v="' + v + '" aria-pressed="' + (f.mois === v) + '">' + l + '</button>').join('') + '</div></div>' +
+    '<p class="mp-erreur" id="mp-erreur" hidden>Indiquez un montant, par exemple 1 500.</p>' +
+    '<div class="mp-boutons"><button class="bouton petit ambre" type="submit">' + ic('ajout') + '<span>Ajouter au plan</span></button><button class="bouton petit" type="button" data-action="plan-ajout-annuler">Annuler</button></div></form>';
+  const plus = p.mouvements.length >= 8 ? '<p class="lv-note">Huit mouvements au plus : retirez-en un pour en ajouter.</p>' :
+    '<div class="mp-actions"><button class="bouton petit" type="button" data-action="plan-ajout">' + ic('ajout') + '<span>Ajouter un mouvement</span></button></div>' +
+    '<div class="mp-idees"><span>Exemples :</span>' + IDEES_MVT.map((x, i) => '<button type="button" data-action="plan-idee" data-i="' + i + '">' + esc(x.lib) + ', ' + eur(x.montant * 100, false, true) + ' en ' + MOIS_PLAN[x.mois] + '</button>').join('') + '</div>';
+  return '<div class="mp-tete"><b>Vos mouvements</b><span>Une dépense ou une rentrée que vous connaissez déjà : ajoutez-la à son mois.</span></div>' +
+    (liste ? '<div class="mp-liste">' + liste + '</div>' : '') + (f.ouvert ? form : plus);
+}
+// l'étiquette du point bas se pose à côté du point quand un événement l'occupe déjà
+function marquePointBas(plan, ev) {
+  const coul = plan.niveau === 'ok' ? 'var(--bleu)' : 'var(--rouge)', lib = 'Point bas ' + keur(plan.bas);
+  if (plan.kb === 0) return { i: 0, lib, dy: 24, ancre: 'start', coul };
+  if (ev.some((x) => x.i === plan.kb)) return { i: plan.kb, lib, coul, eviter: true };
+  return { i: plan.kb, lib, dy: -14, ancre: 'middle', coul };
 }
 function svgPlan(pts, plan, w) {
   const etroitG = w < 560;
-  const ev = annotationsPlan(ETAT.plan);
-  return svgCourbe({ id: 'plan', titre: 'Trésorerie prévue de mi-octobre à fin avril', w, h: etroitG ? 260 : 330, pts: pts.map((v, i) => ({ v, lib: maj(SIM.quand[i]) + ' (' + dCourt(SIM.dates[i]) + ')' })), margeD: etroitG ? 16 : 92, margeH: etroitG ? 20 : 34, serie: 'Trésorerie prévue',
-    seuils: [{ v: SIM.seuil, lib: '1 facture Logista', cls: 'seuil-att', txtCls: 'att' }, { v: SIM.alerte, lib: 'Alerte 5 000 €', txtCls: 'ko' }], seuilsDedans: etroitG,
+  const ev = evenementsPlan(ETAT.plan);
+  const mg = { g: 54, d: etroitG ? 16 : 92 };
+  const ref = PLAN_REF.pts;
+  return svgCourbe({ id: 'plan', titre: 'Trésorerie prévue de mi-octobre à fin avril', w, h: etroitG ? 280 : 350, pts: pts.map((v, i) => ({ v, lib: maj(SIM.quand[i]) + ' (' + dCourt(SIM.dates[i]) + ')' })), margeG: mg.g, margeD: mg.d, margeH: ev.length ? 40 : (etroitG ? 20 : 34), serie: 'Avec vos décisions',
+    fantome: { vals: ref, lib: 'Sans rien changer' }, curseur: ETAT.plan.lecture,
+    seuils: [{ v: SIM.seuil, lib: '1 facture Logista', cls: 'seuil-att', txtCls: 'att' }, { v: SIM.alerte, lib: 'Alerte 5 000 €', txtCls: 'ko' }], seuilsDedans: etroitG, seuilsFin: etroitG,
     axeX: SIM.axe.map((l, k) => ({ i: k * 2, lib: l, ancre: k === 0 ? 'start' : 'middle' })),
-    marques: [{ i: plan.kb, lib: 'Point bas ' + keur(plan.bas), dy: plan.kb === 0 ? 24 : -14, ancre: plan.kb === 0 ? 'start' : 'middle', coul: plan.niveau === 'ok' ? 'var(--bleu)' : 'var(--rouge)' }],
+    marques: [marquePointBas(plan, ev)],
     finLib: etroitG ? false : keur(pts[pts.length - 1]) + ' fin avril', evenements: ev.map((x, k) => ({ i: x.i, n: k + 1 })) }) +
+    '<div class="plan-date" style="margin-left:' + (mg.g - 11) + 'px;margin-right:' + (mg.d - 11) + 'px"><input class="curseur date" type="range" id="plan-date" min="0" max="13" step="1" value="' + ETAT.plan.lecture + '" style="--p:' + (ETAT.plan.lecture / 13 * 100).toFixed(1) + '%" aria-label="Lire la trésorerie à une date" aria-valuetext="' + esc(maj(SIM.quand[ETAT.plan.lecture]) + ', ' + eur(pts[ETAT.plan.lecture] * 100)) + '"></div>' +
+    '<p class="plan-date-aide">' + ic('gauche') + 'Touchez la courbe ou glissez pour lire une date' + ic('droite') + '</p>' +
     (ev.length ? '<ol class="evts">' + ev.map((x, k) => '<li><span class="evt-n">' + (k + 1) + '</span><span><b>' + esc(x.txt) + '</b> <small>' + esc(x.sous) + '</small></span></li>').join('') + '</ol>' : '');
 }
 let PLAN_PTS = null;
+const rangeActif = () => !!(document.activeElement && document.activeElement.type === 'range');
 function dessinerPlan(anim) {
   const el = $('#plan-graphe');
   if (!el) return;
@@ -501,32 +608,51 @@ function dessinerPlan(anim) {
   };
   requestAnimationFrame(pas);
 }
-function htmlLeviers() {
-  const p = ETAT.plan;
-  return LEVIERS.map((l) => {
-    if (l.cle === 'salaire') {
-      return '<div class="levier salaire' + (p.salaire ? ' actif' : '') + '"><span class="lv-ic">' + ic(ICONES_LEVIERS.salaire) + '</span><b>' + l.titre + '</b><span>' + l.sous + ' : <span id="salaire-lib" class="sal-v">' + (p.salaire ? eur(p.salaire * 100) + ' par mois' : 'aucun salaire') + '</span></span>' +
-        '<input class="curseur" type="range" id="curseur-salaire" min="0" max="4000" step="250" value="' + p.salaire + '" style="--p:' + (p.salaire / 4000 * 100) + '%" aria-label="Votre salaire de gérant, par mois"></div>';
-    }
-    return '<div class="levier' + (p[l.cle] ? ' actif' : '') + '" data-levier="' + l.cle + '"><span class="lv-ic">' + ic(ICONES_LEVIERS[l.cle]) + '</span><b>' + l.titre + '</b><span>' + l.sous + '</span><button type="button" class="bascule" role="switch" aria-checked="' + !!p[l.cle] + '" aria-label="' + esc(l.titre) + '"></button></div>';
-  }).join('');
+// la lecture à une date : le chiffre et le curseur bougent, sans redessiner la courbe
+function placerLecture(i) {
+  const g = $('#plan-graphe .curseur-g');
+  if (g) {
+    const xs = g.dataset.xs.split(','), ys = g.dataset.ys.split(',');
+    const l = g.querySelector('line'), c = g.querySelector('circle');
+    l.setAttribute('x1', xs[i]); l.setAttribute('x2', xs[i]);
+    c.setAttribute('cx', xs[i]); c.setAttribute('cy', ys[i]);
+  }
+  const plan = calculPlan();
+  const k = $('#plan-kpis'); if (k) k.innerHTML = htmlKpisPlan(plan);
+  const r = $('#plan-date'); if (r) { r.setAttribute('aria-valuetext', maj(SIM.quand[i]) + ', ' + eur(plan.pts[i] * 100)); r.style.setProperty('--p', (i / 13 * 100).toFixed(1) + '%'); }
+}
+function ecartRef(v, r) {
+  const d = Math.round(v - r);
+  return Math.abs(d) < 1 ? 'comme sans rien changer' : '<b class="' + (d > 0 ? 'positif' : 'negatif') + '">' + eur(d * 100, false, true) + '</b> face à « sans rien changer »';
 }
 function htmlKpisPlan(plan) {
-  return '<div class="plan-kpi"><span>Fin avril</span><b>' + eur(plan.fin * 100) + '</b><small>avec vos décisions</small></div>' +
+  const i = ETAT.plan.lecture;
+  return '<div class="plan-kpi lecture-k"><span>' + maj(SIM.quand[i]) + ' <em>' + dCourt(SIM.dates[i]) + '</em></span><b>' + eur(plan.pts[i] * 100) + '</b><small>' + (i === 0 ? 'votre départ, après la facture Logista' : ecartRef(plan.pts[i], PLAN_REF.pts[i])) + '</small></div>' +
     '<div class="plan-kpi"><span>Point bas</span><b>' + eur(plan.bas * 100) + '</b><small>' + SIM.quand[plan.kb] + '</small></div>' +
     '<div class="plan-kpi"><span>Au point bas</span><b>' + F1.format(plan.bas / SIM.seuil) + '</b><small>facture Logista d’avance</small></div>';
 }
-function majZonesPlan() {
+function htmlResumePlan(plan) {
+  return '<span class="ciel-n ' + (plan.niveau === 'ok' ? '' : plan.niveau) + '">' + ic(plan.niveau === 'ok' ? 'soleil' : 'nuage') + plan.ciel + '</span><span>Fin avril <b>' + eur(plan.fin * 100) + '</b></span><span>Point bas <b>' + eur(plan.bas * 100) + '</b></span>';
+}
+function cielP(plan) { return '<span class="ciel ' + (plan.niveau === 'ok' ? '' : plan.niveau) + '">' + ic(plan.niveau === 'ok' ? 'soleil' : 'nuage') + plan.ciel + '</span>'; }
+function majZonesPlan(refaire = true) {
   const zone = $('#plan');
   if (!zone) return false;
   const plan = calculPlan();
+  if (refaire) {
+    const a = document.activeElement;
+    const cle = a && a.dataset ? (a.dataset.plan ? '[data-plan="' + a.dataset.plan + '"][data-v="' + a.dataset.v + '"]' : a.classList && a.classList.contains('bascule') && a.parentNode.dataset.levier ? '[data-levier="' + a.parentNode.dataset.levier + '"] .bascule' : '') : '';
+    const l = $('#leviers'); if (l) l.innerHTML = htmlLeviers();
+    const sc = $('#plan-scen'); if (sc) sc.innerHTML = htmlScenarios();
+    const m = $('#plan-mvts'); if (m) m.innerHTML = htmlMvtsPlan();
+    if (cle) { const n = $(cle); if (n) n.focus({ preventScroll: true }); }
+  }
   const k = $('#plan-kpis'); if (k) k.innerHTML = htmlKpisPlan(plan);
-  const c = $('#plan-ciel'); if (c) c.innerHTML = cielN(plan);
-  $$('.levier[data-levier]').forEach((el) => { const on = !!ETAT.plan[el.dataset.levier]; el.classList.toggle('actif', on); const b = el.querySelector('.bascule'); if (b) b.setAttribute('aria-checked', String(on)); });
-  const s = $('.levier.salaire'); if (s) s.classList.toggle('actif', !!ETAT.plan.salaire);
+  const c = $('#plan-ciel'); if (c) c.innerHTML = cielP(plan);
+  const r = $('#plan-resume'); if (r) r.innerHTML = htmlResumePlan(plan);
   const t = $('#plan-table'); if (t) t.innerHTML = htmlPlanTable(plan);
-  const a = $('#plan-aide'); if (a) a.innerHTML = htmlPlanAide(plan);
-  dessinerPlan(!(document.activeElement && document.activeElement.id === 'curseur-salaire'));
+  const ai = $('#plan-aide'); if (ai) ai.innerHTML = htmlPlanAide(plan);
+  dessinerPlan(!rangeActif());
   const ns = $('#plan-note'); if (ns) ns.innerHTML = notePlan(plan);
   return true;
 }
@@ -565,12 +691,15 @@ function vueTresorerieV3() {
     '<div class="s5">' + carteP('Vos comptes, ce soir', 'Lus à 21 h 02, en lecture seule', comptesHtml, { cls: 'grandit' }) + '</div></div>' +
     carteP('Votre semaine, soir après soir', 'Départ dimanche ' + eur(SEM[0].solde) + ', atterrissage lundi ' + eur(SEM[SEM.length - 1].solde), semaine +
       '<div class="legende"><span><i style="background:var(--bleu)"></i>Réel</span><span><i style="background:repeating-linear-gradient(45deg,var(--bleu) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px var(--bleu)"></i>Prévu</span><span><i style="background:var(--rouge)"></i>Atterrissage</span><span class="discret">Encaissements prévus : 5 090 € par jour, moyenne prudente des quatre dernières semaines</span></div>' + htmlEquationSemaine(), { actions: boutonsExport('semaine') }) +
-    secTete('Votre plan de vol, <em>sur six mois</em>', 'Chaque décision se voit avant d’être prise. Touchez les commandes : le cockpit recalcule les six prochains mois, quinzaine par quinzaine.', 'sec-plan') +
-    '<div class="plan anime" id="plan"><div class="verre"><div class="p-tete"><div><h2>Les commandes</h2><span class="p-sous">Vos décisions des six prochains mois</span></div></div><div class="leviers" id="leviers">' + htmlLeviers() + '</div>' +
-      '<div class="p-pied" style="border-top-color:var(--verre-bord)"><button class="bouton petit" type="button" data-action="plan-defaut">' + ic('retour') + '<span>Revenir au plan du film</span></button></div></div>' +
-    '<section class="papier"><div class="p-tete"><div><h2>Votre trésorerie, jusqu’à fin avril</h2><span class="p-sous" id="plan-note">' + notePlan(plan) + '</span></div><div class="p-actions" id="plan-ciel">' + cielN(plan) + '</div></div>' +
+    secTete('Votre plan de vol, <em>à vous de jouer</em>', 'Chaque décision, à sa date et à son montant. Ajoutez ce que vous savez déjà : le cockpit recalcule les six prochains mois, quinzaine par quinzaine.', 'sec-plan') +
+    '<div class="plan anime" id="plan"><div class="verre plan-cmd"><div class="p-tete"><div><h2>Vos décisions</h2><span class="p-sous">Partez d’un scénario, puis réglez chaque décision : son mois, son montant</span></div></div>' +
+      '<div class="lv-reglage plan-scen" id="plan-scen">' + htmlScenarios() + '</div><div class="leviers" id="leviers">' + htmlLeviers() + '</div>' +
+      '<div class="mp" id="plan-mvts">' + htmlMvtsPlan() + '</div>' +
+      '<div class="p-pied" style="border-top-color:var(--verre-bord)"><button class="bouton petit" type="button" data-action="plan-defaut">' + ic('retour') + '<span>Revenir au plan de départ</span></button></div>' +
+      '<div class="plan-resume" id="plan-resume" aria-live="polite">' + htmlResumePlan(plan) + '</div></div>' +
+    '<section class="papier plan-carte"><div class="p-tete"><div><h2>Votre trésorerie, jusqu’à fin avril</h2><span class="p-sous" id="plan-note">' + notePlan(plan) + '</span></div><div class="p-actions" id="plan-ciel">' + cielP(plan) + '</div></div>' +
       '<div class="plan-kpis" id="plan-kpis">' + htmlKpisPlan(plan) + '</div>' + graphe((w) => { PLAN_PTS = calculPlan().pts.slice(); return svgPlan(PLAN_PTS, calculPlan(), w); }).replace('class="graphe"', 'class="graphe" id="plan-graphe"') +
-      '<div class="legende"><span><i class="ligne-cle" style="background:var(--bleu)"></i>Trésorerie prévue</span><span><i class="ligne-cle" style="background:var(--ambre)"></i>Une facture Logista d’avance (29 330 €)</span><span><i class="ligne-cle" style="background:var(--rouge)"></i>Alerte à 5 000 €</span></div></section></div>' +
+      '<div class="legende"><span><i class="ligne-cle" style="background:var(--bleu)"></i>Avec vos décisions</span><span><i class="ligne-cle tirets"></i>Sans rien changer</span><span><i class="ligne-cle" style="background:var(--ambre)"></i>Une facture Logista d’avance (29 330 €)</span><span><i class="ligne-cle" style="background:var(--rouge)"></i>Alerte à 5 000 €</span></div></section></div>' +
     '<div id="plan-aide">' + htmlPlanAide(plan) + '</div>' +
     basculeDetail('Quinzaine par quinzaine, 14 semaines d’historique, mouvements bancaires, charges fixes.', detailTresorerieV3);
 }

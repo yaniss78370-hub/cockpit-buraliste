@@ -18,6 +18,11 @@ function chercherRef(q) {
   });
   return meilleur;
 }
+function phrasePlanAs() {
+  const pl = calculPlan();
+  return pl.niveau === 'ok' ? 'Ça passe : au plus bas des six prochains mois, il restera ' + F1.format(pl.bas / SIM.seuil) + ' facture Logista d’avance.'
+    : 'Lundi, ça passe. Mais avec votre plan de vol, ' + pl.ciel.charAt(0).toLowerCase() + pl.ciel.slice(1) + ' : ' + SIM.quand[pl.kb] + ', il resterait <b>' + eur(pl.bas * 100) + '</b>.';
+}
 function repondre(q) {
   const t = sansAccent(q);
   const a = (re) => re.test(t);
@@ -39,7 +44,7 @@ function repondre(q) {
       return '<b>' + esc(r.designation) + '</b> : ' + r.stock + ' en rayon. Ventes ' + pctS(r.tendance) + ' sur quatre semaines (' + r.v4 + ' vendus)' + (jours != null ? ', rupture dans environ ' + jours + ' jours' : '') + '. ' +
         (r.statut === 'À recommander' ? '<b>' + q4 + ' à commander jeudi</b>, pour trois semaines de ventes.' : r.statut === 'À arrêter' ? 'À arrêter : écoulez le stock restant.' : r.statut === 'À réduire' ? 'À réduire à la prochaine commande.' : 'Rien à commander cette semaine.') + lienAs('stock', 'Voir la commande de jeudi');
     }
-    return 'Je n’ai pas trouvé ce produit. Essayez avec son nom, par exemple « Fraise glacée » ou « Lemon Haze ».';
+    return 'Je n’ai pas trouvé ce produit. Essayez avec son nom, par exemple « Fraise glacée » ou « Lemon Haze ».';
   }
   if (a(/vire|virer|virement|alimenter|compte fdj/)) return 'Mercredi 14, la FDJ prélève <b>' + eur2(prochain.solde) + '</b> (relevé de la semaine ' + prochain.semaine + '). Le compte FDJ a ' + eur(D.comptes.fdj) + ' : <b>virez ' + eur(prochain.solde - D.comptes.fdj) + ' de la BNP avant mercredi</b>. Et ' + eur(3240000) + ' vers la Banque Populaire avant jeudi, pour les recharges et Logista.' + lienAs('tresorerie', 'Voir la semaine');
   if (a(/fdj|profession jeux|ecart|jeux|loto|grattage|prelev/)) {
@@ -50,7 +55,7 @@ function repondre(q) {
       'Atterrissage du prélèvement du mercredi 21 : <b>≈ ' + eur(s.atterrissage) + '</b>.<br>La semaine dernière, un écart de <b>' + eur2(-4500) + '</b> : jeudi 8 octobre à 14 h 31 min 08 s, trois tickets à gratter passés au terminal, absents de la caisse.' + lienAs('fdj', 'Voir la page FDJ');
   }
   if (a(/espece|liquide|collecte|tiroir|coffre|caisse contient|en caisse/)) return '<b>' + eur2(especes) + '</b> à avoir en caisse depuis la collecte du vendredi 9 octobre, 20 h 30, gains de jeux payés déduits. Collecte de vendredi 16 : <b>≈ ' + eur(COLLECTE_ENV) + '</b>.' + lienAs('caisse', 'Compter la caisse');
-  if (a(/atterri|lundi|tresorerie|logista|passe|banque|compte/)) return 'Lundi soir, après la facture Logista (' + eur(2933000) + ') : <b>' + eur(ATT.total) + '</b>, dont <b>' + eur(VAV.vraiment) + ' vraiment à vous</b>. Ça passe : au plus bas des six prochains mois, il restera ' + F1.format(calculPlan().bas / SIM.seuil) + ' facture Logista d’avance.' + lienAs('tresorerie', 'Voir la trésorerie');
+  if (a(/atterri|lundi|tresorerie|logista|passe|banque|compte/)) return 'Lundi soir, après la facture Logista (' + eur(2933000) + ') : <b>' + eur(ATT.total) + '</b>, dont <b>' + eur(VAV.vraiment) + ' vraiment à vous</b>. ' + phrasePlanAs() + lienAs('tresorerie', 'Voir la trésorerie');
   if (a(/resultat|benef|gagne|rentab|marge/)) {
     const att = pnlDe('att'), sep = pnlDe(9);
     const r = resultatDe(att), rs = resultatDe(sep);
@@ -67,7 +72,7 @@ function repondre(q) {
   if (a(/pmu|turf|course/)) { const r = D.releves.pmu[D.releves.pmu.length - 1]; return 'PMU, semaine ' + r.semaine + ' : <b>' + eur2(r.solde) + '</b> prélevés ' + dLong(r.prelevement) + '. Commission : ' + eur2(r.commission) + '.'; }
   if (a(/cafe|tasse/)) { const r9 = D.ratios[8]; return 'Café en septembre : <b>' + r9.tasses_kg + ' tasses par kilo</b> (' + nb(r9.tasses) + ' cafés pour ' + r9.cafe_kg + ' kg achetés). Environ 138 attendues : cafés offerts, réglage du moulin ou ventes oubliées en caisse.'; }
   if (a(/aujourd|on a fait|j.ai fait|ai fait|chiffre|ventes? (du jour|de ce soir)|\bz\b|journee|combien.*(vendu|encaisse)/)) return 'Aujourd’hui : <b>' + eur2(z.total) + '</b> de ventes, dont ' + eur(z.ventes.fdj) + ' de jeux FDJ et ' + eur(z.ventes.cbd) + ' de CBD. ' + nb(z.tickets) + ' tickets, panier moyen ' + eur2(Math.round(z.total / z.tickets)) + '. Marge du jour : <b>' + eur(MARGE_AUJ) + '</b>.' + lienAs('caisse', 'Voir la caisse');
-  return 'Je n’ai pas trouvé ça dans vos chiffres. Je réponds sur la caisse, la FDJ, la trésorerie, le stock, les factures et la boîte vocale. Essayez : « Combien on a fait aujourd’hui ? »';
+  return 'Je n’ai pas trouvé ça dans vos chiffres. Je réponds sur la caisse, la FDJ, la trésorerie, le stock, les factures et la boîte vocale. Essayez : « Combien on a fait aujourd’hui ? »';
 }
 function htmlFil() {
   return '<span class="as-jour">Aujourd’hui</span>' + AS.fil.map((m) => '<div class="bulle ' + m.qui + '">' + m.html + '<small>' + m.h + (m.qui === 'moi' ? ' ✓✓' : '') + '</small></div>').join('');

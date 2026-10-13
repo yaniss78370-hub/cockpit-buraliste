@@ -107,11 +107,30 @@ with sync_playwright() as pw:
     p.screenshot(path=os.path.join(OUT, 'b-fdj-detail.png'), full_page=True)
     # trésorerie : plan de vol (commandes) puis détail
     aller(p, 'tresorerie')
-    p.click('.levier[data-levier="agencement"]')
+    p.click('[data-levier="agencement"] .bascule')
     p.wait_for_timeout(700)
     ciel = p.inner_text('#plan-ciel')
     kpis_plan = p.inner_text('#plan-kpis')
     p.screenshot(path=os.path.join(OUT, 'b-plan-agencement.png'), full_page=True)
+    # les dates et les montants : prêt, mois des travaux, aide, un mouvement à soi, la lecture à une date
+    p.click('[data-plan="agencementPret"][data-v="true"]'); p.wait_for_timeout(300)
+    p.click('[data-plan="agencementMois"][data-v="3"]'); p.wait_for_timeout(300)
+    plan_pret = p.inner_text('#plan-kpis')
+    p.click('[data-action="plan-ajout"]'); p.wait_for_timeout(200)
+    p.fill('#mp-lib', 'Vitrine réfrigérée'); p.fill('#mp-montant', '4 800')
+    p.click('[data-pf="mois"][data-v="2"]'); p.click('#form-plan-mvt button[type="submit"]'); p.wait_for_timeout(400)
+    plan_mvts = p.locator('.mp-l').count()
+    plan_evts = p.locator('#plan-graphe .evts li').count()
+    d = p.locator('#plan-date'); d.focus()
+    for _ in range(4): p.keyboard.press('ArrowLeft')
+    p.wait_for_timeout(200)
+    plan_lecture = p.inner_text('#plan-kpis .lecture-k')
+    # un scénario d'un clic, puis la lecture en touchant la courbe
+    p.click('[data-action="plan-scenario"][data-id="investir"]'); p.wait_for_timeout(900)
+    plan_investir = p.inner_text('#plan-kpis')
+    plan_effet = p.inner_text('.lv-reglage:has([data-plan="agencementPret"])')
+    p.locator('#plan-graphe .cible[data-i="4"]').click(force=True); p.wait_for_timeout(300)
+    plan_toucher = p.inner_text('#plan-kpis .lecture-k')
     p.click('[data-action="plan-defaut"]')
     p.wait_for_timeout(700)
     ciel_defaut = p.inner_text('#plan-ciel')
@@ -255,7 +274,7 @@ with sync_playwright() as pw:
     b.close()
 
 print(json.dumps({'erreurs': erreurs[:30], 'nb_erreurs': len(erreurs), 'heros_anime_final': heros_final,
-                  'ciel_agencement': ciel, 'kpis_plan': kpis_plan, 'ciel_defaut': ciel_defaut, 'mouvements_logista': nb_logista,
+                  'ciel_agencement': ciel, 'plan_pret': plan_pret, 'plan_mvts': plan_mvts, 'plan_evts': plan_evts, 'plan_lecture': plan_lecture, 'plan_investir': plan_investir, 'plan_effet': plan_effet, 'plan_toucher': plan_toucher, 'kpis_plan': kpis_plan, 'ciel_defaut': ciel_defaut, 'mouvements_logista': nb_logista,
                   'resultats_coca': nres, 'route_apres_recherche': route_apres, 'notifs': nb_notifs, 'xlsx': res, 'telecharge': telecharge,
                   'largeur_mobile': largeur, 'largeurs': largeurs, 'largeurs_bureau': largeurs_bureau, 'geste_fait': geste_fait, 'route_tuile': route_tuile,
                   'caisse': {'a_avoir': a_avoir, 'manque': msg_manque, 'juste': msg_juste, 'jour_z': jour_z},

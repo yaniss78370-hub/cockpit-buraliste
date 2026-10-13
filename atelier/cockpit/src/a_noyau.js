@@ -54,14 +54,26 @@ function ecrire() { try { localStorage.setItem(CLE, JSON.stringify({ faits: ETAT
 const MEM = lire();
 
 /* ------------------------------------------------------------------ état */
-const PLAN_DEFAUT = { embauche: true, credit: true, salaire: 2000, cbd: false, agencement: false };
+// le plan de départ : chaque décision a sa date (mois 0 = octobre … 6 = avril) et son montant
+function planDefaut() {
+  return { embauche: true, embaucheMois: 1, credit: true, creditMois: 2, salaire: 2000, salaireMois: 3, cbd: false, cbdMois: 1, cbdStock: 6000,
+    agencement: false, agencementMois: 4, agencementHT: 40000, agencementPret: false, aide: true, aideMois: 6, mouvements: [], lecture: 13 };
+}
+function nettoyerPlan(m) {
+  const p = Object.assign(planDefaut(), m && typeof m === 'object' ? m : {});
+  p.mouvements = Array.isArray(p.mouvements) ? p.mouvements.filter((x) => x && typeof x.montant === 'number' && isFinite(x.montant) && x.mois >= 0 && x.mois <= 6).slice(0, 8) : [];
+  p.lecture = Math.max(0, Math.min(13, Math.round(+p.lecture || 0)));
+  return p;
+}
+const PLAN_DEFAUT = planDefaut();
 function lireSession() { try { return sessionStorage.getItem('cockpit-connecte') === '1'; } catch (e) { return false; } }
 const ETAT = {
   route: 'cockpit',
   connecte: lireSession(),
   faits: MEM.faits || {},
   traitees: MEM.traitees || {},
-  plan: Object.assign({}, PLAN_DEFAUT, MEM.plan || {}),
+  plan: nettoyerPlan(MEM.plan),
+  planForm: { ouvert: false, lib: '', montant: '', sens: 'depense', mois: 3, freq: 'une' },
   commande: MEM.commande || {},
   tabTreso: 'semaine',
   mvt: { compte: 'tous', cat: 'toutes', statut: 'tous', q: '', n: 60, tri: 'date', sens: -1 },
@@ -147,24 +159,60 @@ const SIM = {
   axe: ['oct.', 'nov.', 'déc.', 'janv.', 'févr.', 'mars', 'avr.'],
 };
 const LEVIERS = [
-  { cle: 'embauche', titre: 'Embaucher pour fermer à 23\u00a0h', sous: 'Dès novembre : salaire et charges, moins les ventes du soir' },
-  { cle: 'credit', titre: 'Solder le crédit restant', sous: '7 200 €, fin décembre ; 620 € par mois en moins ensuite' },
-  { cle: 'salaire', titre: 'Votre salaire de gérant', sous: 'Dès janvier' },
-  { cle: 'cbd', titre: 'Agrandir le rayon CBD', sous: '6 000 € de stock en novembre, marge qui monte ensuite' },
-  { cle: 'agencement', titre: 'Refaire l’agencement', sous: '40 000 € HT en février' },
+  { cle: 'embauche', titre: 'Embaucher pour fermer à 23\u00a0h' },
+  { cle: 'credit', titre: 'Solder le crédit restant' },
+  { cle: 'salaire', titre: 'Votre salaire de gérant' },
+  { cle: 'cbd', titre: 'Agrandir le rayon CBD' },
+  { cle: 'agencement', titre: 'Refaire l’agencement' },
 ];
+const MOIS_PLAN = ['oct.', 'nov.', 'déc.', 'janv.', 'févr.', 'mars', 'avr.'];
+const MOIS_PLAN_L = ['octobre', 'novembre', 'décembre', 'janvier', 'février', 'mars', 'avril'];
+const kMi = (m) => Math.max(1, 2 * m);   // la quinzaine du 15 du mois
+const kFin = (m) => 2 * m + 1;           // la quinzaine de fin de mois
+const RAMPE_CBD = [0, 0, 300, 450, 600, 750, 900, 1000, 1100];
+const FACTEUR_CBD = { 3000: 0.55, 6000: 1, 9000: 1.4 };
+const capitalCredit = (m) => 7200 - 600 * (m - 2);          // reste dû à la fin du mois m (7 200 € fin décembre)
+const tvaAgencement = (ht) => Math.round(ht * 0.2);
+const aideAgencement = (ht) => Math.min(33000, Math.round(ht * 0.3));
+const moisAide = (p) => Math.max(p.aideMois, p.agencementMois + 1);   // l'aide est versée après les travaux
+function mensualitePret(capital, taux = 0.045, mois = 60) { const i = taux / 12; return capital * i / (1 - Math.pow(1 + i, -mois)); }
+// ce que chaque décision ajoute ou retire à la quinzaine k : [famille, libellé, euros]
+function contributionsPlan(p, k) {
+  const L = [];
+  if (p.embauche) { const k0 = kMi(p.embaucheMois); if (k === k0 || k === k0 + 1) L.push(['embauche', 'Embauche', -600]); else if (k > k0 + 1) L.push(['embauche', 'Embauche', -150]); }
+  if (p.credit) { const kf = kFin(p.creditMois); if (k === kf) L.push(['credit', 'Crédit soldé', -capitalCredit(p.creditMois)]); else if (k > kf) L.push(['credit', 'Échéance de prêt en moins', 310]); }
+  if (p.salaire && k >= kMi(p.salaireMois)) L.push(['salaire', 'Votre salaire', -p.salaire / 2]);
+  if (p.cbd) {
+    const j = k - kMi(p.cbdMois), f = FACTEUR_CBD[p.cbdStock] || p.cbdStock / 6000;
+    if (j === 0) L.push(['cbd', 'Stock CBD', -p.cbdStock]);
+    else if (j >= 2) L.push(['cbd', 'Marge CBD en plus', Math.round(RAMPE_CBD[Math.min(j, RAMPE_CBD.length - 1)] * f)]);
+  }
+  if (p.agencement) {
+    const k0 = kMi(p.agencementMois), ht = p.agencementHT, tva = tvaAgencement(ht);
+    if (p.agencementPret) {
+      if (k === k0) L.push(['agencement', 'Agencement : apport et TVA', -(Math.round(ht * 0.2) + tva)]);
+      if (k >= k0 + 2) L.push(['agencement', 'Échéance du prêt', -Math.round(mensualitePret(ht * 0.8) / 2)]);
+    } else if (k === k0) L.push(['agencement', 'Agencement, TTC', -(ht + tva)]);
+    if (k === k0 + 3) L.push(['agencement', 'TVA récupérée', tva]);
+    if (k >= k0 + 2) L.push(['agencement', 'Ventes en plus après travaux', Math.round(200 * ht / 40000)]);
+    const ma = moisAide(p);
+    if (p.aide && ma <= 6 && k === kMi(ma)) L.push(['aide', 'Aide de la douane', aideAgencement(ht)]);
+  }
+  (p.mouvements || []).forEach((m) => {
+    const k0 = kMi(m.mois);
+    if (m.freq === 'mois' ? k >= k0 : k === k0) L.push(['mouvements', m.lib, m.freq === 'mois' ? m.montant / 2 : m.montant]);
+  });
+  return L;
+}
 function calculPlan(p = ETAT.plan) {
   const pts = [SIM.depart];
   const det = [];
   let v = SIM.depart;
   for (let k = 1; k <= 13; k++) {
-    const x = { base: SIM.base[k - 1], embauche: 0, credit: 0, salaire: 0, cbd: 0, agencement: 0 };
-    if (p.embauche) x.embauche = k === 2 || k === 3 ? -600 : k >= 4 ? -150 : 0;
-    if (p.credit) x.credit = k === 5 ? -7200 : k >= 6 ? 310 : 0;
-    if (k >= 6) x.salaire = -p.salaire / 2;
-    if (p.cbd) x.cbd = (k === 2 ? -6000 : 0) + SIM.cbd[k - 1];
-    if (p.agencement) x.agencement = k === 8 ? -40000 : k >= 10 ? 200 : 0;
-    const d = x.base + x.embauche + x.credit + x.salaire + x.cbd + x.agencement;
+    const lignes = contributionsPlan(p, k);
+    const x = { base: SIM.base[k - 1], embauche: 0, credit: 0, salaire: 0, cbd: 0, agencement: 0, aide: 0, mouvements: 0, lignes };
+    lignes.forEach((l) => { x[l[0]] += l[2]; });
+    const d = x.base + lignes.reduce((t, l) => t + l[2], 0);
     v += d;
     pts.push(v);
     det.push(Object.assign(x, { total: d, solde: v }));
@@ -175,6 +223,25 @@ function calculPlan(p = ETAT.plan) {
   const ciel = niveau === 'ok' ? 'Ciel dégagé jusqu’en avril' : (niveau === 'moyen' ? 'Turbulences en ' : 'Alerte en ') + SIM.mois[kb];
   const manque = Math.max(0, SIM.seuil - bas);
   return { pts, det, bas, kb, niveau, ciel, fin: pts[13], manque };
+}
+// la référence : sans rien changer (pas d'embauche, pas de salaire, crédit payé jusqu'au bout)
+const PLAN_REF = calculPlan(Object.assign(planDefaut(), { embauche: false, credit: false, salaire: 0, cbd: false, agencement: false }));
+// les événements posés sur la courbe, dans l'ordre du temps
+function evenementsPlan(p = ETAT.plan) {
+  const a = [];
+  if (p.embauche) a.push({ i: kMi(p.embaucheMois), txt: 'Nouvelle recrue, on ferme à 23\u00a0h', sous: 'dès ' + MOIS_PLAN_L[p.embaucheMois] });
+  if (p.cbd) a.push({ i: kMi(p.cbdMois), txt: 'Rayon CBD agrandi : ' + eur(p.cbdStock * 100) + ' de stock', sous: 'en ' + MOIS_PLAN_L[p.cbdMois] });
+  if (p.credit) a.push({ i: kFin(p.creditMois), txt: 'Crédit soldé : ' + eur(capitalCredit(p.creditMois) * 100), sous: 'fin ' + MOIS_PLAN_L[p.creditMois] });
+  if (p.salaire) a.push({ i: kMi(p.salaireMois), txt: 'Vous vous versez ' + eur(p.salaire * 100), sous: 'par mois, dès ' + MOIS_PLAN_L[p.salaireMois] });
+  if (p.agencement) {
+    const k0 = kMi(p.agencementMois), ht = p.agencementHT;
+    a.push({ i: k0, txt: 'Agencement : ' + eur(ht * 100) + ' HT', sous: 'en ' + MOIS_PLAN_L[p.agencementMois] + (p.agencementPret ? ', prêt sur 5 ans' : ', payé comptant') });
+    if (k0 + 3 <= 13) a.push({ i: k0 + 3, txt: 'TVA de l’agencement récupérée : ' + eur(tvaAgencement(ht) * 100), sous: 'fin ' + MOIS_PLAN_L[p.agencementMois + 1] });
+    const ma = moisAide(p);
+    if (p.aide && ma <= 6) a.push({ i: kMi(ma), txt: 'Aide de la douane reçue : ' + eur(aideAgencement(ht) * 100), sous: 'en ' + MOIS_PLAN_L[ma] });
+  }
+  (p.mouvements || []).forEach((m) => a.push({ i: kMi(m.mois), txt: m.lib + ' : ' + eur(m.montant * 100, false, true) + (m.freq === 'mois' ? ' par mois' : ''), sous: (m.freq === 'mois' ? 'dès ' : 'en ') + MOIS_PLAN_L[m.mois] }));
+  return a.sort((u, v) => u.i - v.i);
 }
 
 /* ------------------------------------------------------------------ indicateurs */
@@ -344,7 +411,7 @@ function svgCourbe(o) {
   const W = o.w || 760, H = o.h || 260;
   const mg = { g: o.margeG != null ? o.margeG : 54, d: o.margeD != null ? o.margeD : 74, h: o.margeH != null ? o.margeH : 20, b: o.margeB != null ? o.margeB : 30 };
   const vals = o.pts.map((p) => p.v);
-  const extra = (o.seuils || []).map((s) => s.v);
+  const extra = (o.seuils || []).map((s) => s.v).concat(o.fantome ? o.fantome.vals : []);
   const e = echelle(Math.min(o.min != null ? o.min : 0, ...vals, ...extra), Math.max(...vals, ...extra) * 1.06, o.nTicks || 4);
   const n = o.pts.length;
   const X = (i) => mg.g + (i / Math.max(1, n - 1)) * (W - mg.g - mg.d);
@@ -363,41 +430,58 @@ function svgCourbe(o) {
   (o.seuils || []).forEach((sl) => {
     s += '<line class="' + (sl.cls || 'seuil') + '" x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(sl.v)) + '" y2="' + f1(Y(sl.v)) + '"/>';
     s += o.seuilsDedans || mg.d < 70
-      ? '<text x="' + (mg.g + 8) + '" y="' + f1(Y(sl.v) + (sl.dessous ? 15 : -6)) + '" class="' + (sl.txtCls || 'moyen') + '">' + esc(sl.lib) + '</text>'
+      ? '<text x="' + (o.seuilsFin ? W - mg.d - 6 : mg.g + 8) + '" y="' + f1(Y(sl.v) + (sl.dessous ? 15 : -6)) + '"' + (o.seuilsFin ? ' text-anchor="end"' : '') + ' class="' + (sl.txtCls || 'moyen') + '">' + esc(sl.lib) + '</text>'
       : '<text x="' + (W - mg.d + 8) + '" y="' + f1(Y(sl.v) + 4) + '" class="' + (sl.txtCls || 'moyen') + '">' + esc(sl.lib) + '</text>';
   });
   if (o.aire !== false) {
     s += '<path class="g-aire" d="' + segment(P, T, 0, pf, lisse) + 'L' + f1(P[pf][0]) + ',' + f1(base) + 'L' + f1(P[0][0]) + ',' + f1(base) + 'Z" fill="url(#ga-' + id + ')"/>';
     if (pf < n - 1) s += '<path class="g-aire" d="' + segment(P, T, pf, n - 1, lisse) + 'L' + f1(P[n - 1][0]) + ',' + f1(base) + 'L' + f1(P[pf][0]) + ',' + f1(base) + 'Z" fill="url(#ga-' + id + ')" opacity=".45"/>';
   }
+  if (o.fantome) {
+    const PF = o.fantome.vals.map((v, i) => [X(i), Y(v)]);
+    s += '<path class="g-fondu fantome" d="' + segment(PF, tangentes(PF), 0, n - 1, lisse) + '" fill="none" stroke="var(--encre-4)" stroke-width="2" stroke-dasharray="5 5" stroke-linecap="round"/>';
+  }
   s += '<path class="g-trace" pathLength="1" d="' + segment(P, T, 0, pf, lisse) + '" fill="none" stroke="' + coul + '" stroke-width="' + (o.epaisseur || 2.6) + '" stroke-linejoin="round" stroke-linecap="round"/>';
   if (pf < n - 1) s += '<path class="g-fondu" d="' + segment(P, T, pf, n - 1, lisse) + '" fill="none" stroke="' + coul + '" stroke-width="' + (o.epaisseur || 2.6) + '" stroke-dasharray="6 5" stroke-linecap="round"/>';
   (o.axeX || []).forEach((a) => { s += '<text x="' + f1(X(a.i)) + '" y="' + (H - 9) + '" text-anchor="' + (a.ancre || 'middle') + '">' + esc(a.lib) + '</text>'; });
   (o.marques || []).forEach((m, k) => {
-    s += '<circle class="g-point" style="--d:' + (1.1 + k * 0.12) + 's" cx="' + f1(X(m.i)) + '" cy="' + f1(Y(o.pts[m.i].v)) + '" r="5" fill="' + (m.coul || coul) + '" stroke="var(--papier)" stroke-width="2.5"/>';
-    if (m.lib) s += '<text class="g-fondu ' + (m.cls || 'fort') + '" x="' + f1(X(m.i) + (m.dx || 0)) + '" y="' + f1(Y(o.pts[m.i].v) + (m.dy || -12)) + '" text-anchor="' + (m.ancre || 'middle') + '">' + esc(m.lib) + '</text>';
+    const ym = Y(o.pts[m.i].v);
+    if (m.eviter) {   // un événement occupe le dessus du point : l'étiquette passe dessous, ou sur le côté
+      if (ym + 24 < H - mg.b - 6) { m.dy = 20; m.dx = 0; m.ancre = m.i === 0 ? 'start' : m.i === n - 1 ? 'end' : 'middle'; }
+      else { m.dy = 4; m.dx = m.i >= n - 2 ? -12 : 12; m.ancre = m.i >= n - 2 ? 'end' : 'start'; }
+    }
+    s += '<circle class="g-point" style="--d:' + (1.1 + k * 0.12) + 's" cx="' + f1(X(m.i)) + '" cy="' + f1(ym) + '" r="5" fill="' + (m.coul || coul) + '" stroke="var(--papier)" stroke-width="2.5"/>';
+    if (m.lib) s += '<text class="g-fondu ' + (m.cls || 'fort') + '" x="' + f1(X(m.i) + (m.dx || 0)) + '" y="' + f1(ym + (m.dy || -12)) + '" text-anchor="' + (m.ancre || 'middle') + '">' + esc(m.lib) + '</text>';
   });
   const fin = n - 1;
   if (o.pointFinal !== false) {
     s += '<circle class="g-point" cx="' + f1(X(fin)) + '" cy="' + f1(Y(o.pts[fin].v)) + '" r="5.5" fill="' + coul + '" stroke="var(--papier)" stroke-width="2.5"/>';
     if (o.finLib !== false) s += '<text class="g-fondu fort grand" x="' + f1(X(fin) + 10) + '" y="' + f1(Y(o.pts[fin].v) + 4) + '">' + esc(o.finLib || keur(o.pts[fin].v)) + '</text>';
   }
-  // événements : une pastille numérotée posée sur la courbe, expliquée sous le graphique
-  const pile = {};
-  (o.evenements || []).forEach((ev, k) => {
-    const x = X(ev.i), y = Y(o.pts[ev.i].v), rang = pile[ev.i] || 0;
-    pile[ev.i] = rang + 1;
-    const yb = Math.max(14, y - 24 - rang * 27);
-    s += '<g class="g-point" style="--d:' + (1.15 + k * 0.14) + 's"><line x1="' + f1(x) + '" x2="' + f1(x) + '" y1="' + f1(y - 5) + '" y2="' + f1(yb + 10) + '" stroke="#111a33" stroke-width="1.6"/>' +
-      '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="4.5" fill="#111a33" stroke="var(--papier)" stroke-width="2"/>' +
-      '<circle cx="' + f1(x) + '" cy="' + f1(yb) + '" r="11" fill="#111a33" stroke="var(--papier)" stroke-width="2"/><text class="evt-n" x="' + f1(x) + '" y="' + f1(yb + 4) + '" text-anchor="middle">' + ev.n + '</text></g>';
-  });
+  // événements : des pastilles numérotées sur un rail au-dessus de la courbe, reliées à leur quinzaine
+  const evs = o.evenements || [];
+  if (evs.length) {
+    const R = 11, pasR = 2 * R + 3, yRail = Math.max(R + 2, mg.h - R - 5), maxX = W - mg.d + 6;
+    const xs = [];
+    evs.forEach((ev, k) => { let x = X(ev.i); if (k && x < xs[k - 1] + pasR) x = xs[k - 1] + pasR; xs.push(x); });
+    if (xs[xs.length - 1] > maxX) { xs[xs.length - 1] = maxX; for (let k = xs.length - 2; k >= 0; k--) xs[k] = Math.min(xs[k], xs[k + 1] - pasR); }
+    evs.forEach((ev, k) => {
+      const x = X(ev.i), y = Y(o.pts[ev.i].v);
+      s += '<g class="g-point evt" style="--d:' + (1.1 + k * 0.1) + 's"><path d="M' + f1(xs[k]) + ',' + f1(yRail + R) + 'L' + f1(x) + ',' + f1(y - 5) + '" stroke="#111a33" stroke-opacity=".35" stroke-width="1.3" stroke-dasharray="2 3" fill="none"/>' +
+        '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="4.5" fill="#111a33" stroke="var(--papier)" stroke-width="2"/>' +
+        '<circle cx="' + f1(xs[k]) + '" cy="' + f1(yRail) + '" r="' + R + '" fill="#111a33" stroke="var(--papier)" stroke-width="2"/><text class="evt-n" x="' + f1(xs[k]) + '" y="' + f1(yRail + 4) + '" text-anchor="middle">' + ev.n + '</text></g>';
+    });
+  }
   const bande = (W - mg.g - mg.d) / Math.max(1, n - 1);
   o.pts.forEach((p, i) => {
     s += '<g class="cible-g"><line class="viseur" x1="' + f1(X(i)) + '" x2="' + f1(X(i)) + '" y1="' + mg.h + '" y2="' + f1(H - mg.b) + '"/><circle class="viseur-pt" cx="' + f1(X(i)) + '" cy="' + f1(Y(p.v)) + '" r="5" fill="' + coul + '" stroke="var(--papier)" stroke-width="2.5"/>' +
-      '<rect class="cible" x="' + f1(X(i) - bande / 2) + '" y="' + mg.h + '" width="' + f1(bande) + '" height="' + f1(H - mg.h - mg.b) + '" fill="transparent"' +
-      tip('<b>' + esc(p.lib) + '</b>' + ligneTip(coul, o.serie || 'Trésorerie', eur(p.v * 100)) + (p.note ? '<div>' + esc(p.note) + '</div>' : '')) + '/></g>';
+      '<rect class="cible" data-i="' + i + '" x="' + f1(X(i) - bande / 2) + '" y="' + mg.h + '" width="' + f1(bande) + '" height="' + f1(H - mg.h - mg.b) + '" fill="transparent"' +
+      tip('<b>' + esc(p.lib) + '</b>' + ligneTip(coul, o.serie || 'Trésorerie', eur(p.v * 100)) + (o.fantome ? ligneTip('var(--encre-4)', o.fantome.lib, eur(o.fantome.vals[i] * 100)) : '') + (p.note ? '<div>' + esc(p.note) + '</div>' : '')) + '/></g>';
   });
+  if (o.curseur != null) {
+    const c = Math.max(0, Math.min(n - 1, o.curseur));
+    s += '<g class="curseur-g" data-xs="' + o.pts.map((p, i) => f1(X(i))).join(',') + '" data-ys="' + o.pts.map((p) => f1(Y(p.v))).join(',') + '"><line x1="' + f1(X(c)) + '" x2="' + f1(X(c)) + '" y1="' + (mg.h - 4) + '" y2="' + f1(H - mg.b) + '"/><circle cx="' + f1(X(c)) + '" cy="' + f1(Y(o.pts[c].v)) + '" r="7"/></g>';
+  }
   s += '</svg>';
   (o.annotations || []).forEach((a, k) => {
     s += '<div class="annot' + (a.cote ? ' ' + a.cote : '') + '" style="left:' + f1(X(a.i)) + 'px;top:' + f1(Y(o.pts[a.i].v) - (a.dy || 0)) + 'px;--d:' + (1.2 + k * 0.25) + 's">' + (a.ic ? ic(a.ic) : '') + '<span>' + esc(a.txt) + (a.sous ? '<small>' + esc(a.sous) + '</small>' : '') + '</span></div>';

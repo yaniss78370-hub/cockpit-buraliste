@@ -72,10 +72,10 @@ const SPECS = {
     const p = calculPlan();
     const L = ETAT.plan;
     return {
-      nom: 'Plan de vol', desc: 'Six mois, quinzaine par quinzaine. Scénario : ' + [L.embauche ? 'embauche' : '', L.credit ? 'crédit soldé' : '', L.salaire ? 'salaire ' + L.salaire + ' €' : '', L.cbd ? 'rayon CBD' : '', L.agencement ? 'agencement' : ''].filter(Boolean).join(', '),
-      cols: [{ lib: 'Quinzaine', t: 'txt', l: 14 }, { lib: 'Date', t: 'date' }, { lib: 'Activité courante', t: 'eur', l: 17 }, { lib: 'Embauche', t: 'eur' }, { lib: 'Crédit', t: 'eur' }, { lib: 'Salaire du gérant', t: 'eur', l: 16 }, { lib: 'Rayon CBD', t: 'eur' }, { lib: 'Agencement', t: 'eur' }, { lib: 'Mouvement net', t: 'eur', l: 15 }, { lib: 'Trésorerie', t: 'eur' }, { lib: 'Factures Logista d’avance', t: 'dec', l: 22 }],
-      rows: [['mi-octobre', SIM.dates[0], null, null, null, null, null, null, null, SIM.depart * 100, round1(SIM.depart / SIM.seuil)]].concat(p.det.map((x, i) =>
-        [SIM.quand[i + 1], SIM.dates[i + 1], x.base * 100, x.embauche * 100 || null, x.credit * 100 || null, x.salaire * 100 || null, x.cbd * 100 || null, x.agencement * 100 || null, x.total * 100, x.solde * 100, round1(x.solde / SIM.seuil)])),
+      nom: 'Plan de vol', desc: 'Six mois, quinzaine par quinzaine. Vos décisions : ' + (evenementsPlan(L).map((e) => e.txt + ' (' + e.sous + ')').join(' ; ') || 'aucune'),
+      cols: [{ lib: 'Quinzaine', t: 'txt', l: 14 }, { lib: 'Date', t: 'date' }, { lib: 'Activité courante', t: 'eur', l: 17 }, { lib: 'Embauche', t: 'eur' }, { lib: 'Crédit', t: 'eur' }, { lib: 'Salaire du gérant', t: 'eur', l: 16 }, { lib: 'Rayon CBD', t: 'eur' }, { lib: 'Agencement', t: 'eur' }, { lib: 'Aide de la douane', t: 'eur', l: 16 }, { lib: 'Vos mouvements', t: 'eur', l: 15 }, { lib: 'Mouvement net', t: 'eur', l: 15 }, { lib: 'Trésorerie', t: 'eur' }, { lib: 'Sans rien changer', t: 'eur', l: 16 }, { lib: 'Factures Logista d’avance', t: 'dec', l: 22 }],
+      rows: [['mi-octobre', SIM.dates[0], null, null, null, null, null, null, null, null, null, SIM.depart * 100, SIM.depart * 100, round1(SIM.depart / SIM.seuil)]].concat(p.det.map((x, i) =>
+        [SIM.quand[i + 1], SIM.dates[i + 1], x.base * 100, x.embauche * 100 || null, x.credit * 100 || null, x.salaire * 100 || null, x.cbd * 100 || null, x.agencement * 100 || null, x.aide * 100 || null, x.mouvements * 100 || null, x.total * 100, x.solde * 100, PLAN_REF.pts[i + 1] * 100, round1(x.solde / SIM.seuil)])),
     };
   },
   mouvements: () => ({

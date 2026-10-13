@@ -222,17 +222,12 @@ function htmlPlanGauche(plan) {
 }
 function htmlPlanAide(plan) {
   if (!ETAT.plan.agencement) return '';
-  return '<div class="encart ' + (plan.niveau === 'ok' ? 'info' : 'att') + '">' + ic('info') + '<div><b>Aide à la transformation des débits de tabac : 12 000 € pour cet agencement</b><br>30 % des dépenses HT (votre chiffre d’affaires tabac dépasse 500 000 €), dans la limite de 33 000 €. Elle est versée après les travaux, sur factures acquittées : elle ne comble pas le creux, elle le rembourse ensuite. Conditions : audit préalable, deux éléments rénovés à l’extérieur et deux à l’intérieur, aucun travaux avant la décision de la douane. ' +
+  return '<div class="encart ' + (plan.niveau === 'ok' ? 'info' : 'att') + '">' + ic('info') + '<div><b>Aide à la transformation des débits de tabac : ' + eur(aideAgencement(ETAT.plan.agencementHT) * 100) + ' pour cet agencement</b><br>30 % des dépenses HT (votre chiffre d’affaires tabac dépasse 500 000 €), dans la limite de 33 000 €. Elle est versée après les travaux, sur factures acquittées : elle ne comble pas le creux, elle le rembourse ensuite. Conditions : audit préalable, deux éléments rénovés à l’extérieur et deux à l’intérieur, aucun travaux avant la décision de la douane. ' +
     '<a href="https://www.douane.gouv.fr/fiche/aide-la-transformation-des-debits-de-tabac" target="_blank" rel="noopener">Fiche de la douane</a></div></div>';
 }
 function htmlPlanTable(plan) {
   const table = plan.det.map((x, i) => {
-    const ev = [];
-    if (x.embauche) ev.push('Embauche ' + eur(x.embauche * 100, false, true));
-    if (x.credit) ev.push((x.credit < 0 ? 'Crédit soldé ' : 'Échéance de prêt en moins ') + eur(x.credit * 100, false, true));
-    if (x.salaire) ev.push('Votre salaire ' + eur(x.salaire * 100, false, true));
-    if (x.cbd) ev.push('Rayon CBD ' + eur(x.cbd * 100, false, true));
-    if (x.agencement) ev.push((x.agencement < 0 ? 'Agencement ' : 'Ventes en plus après travaux ') + eur(x.agencement * 100, false, true));
+    const ev = (x.lignes || []).map((l) => esc(l[1]) + ' ' + eur(l[2] * 100, false, true));
     return '<tr' + (x.solde < SIM.seuil ? ' class="alerte"' : '') + '><td><b>' + maj(SIM.quand[i + 1]) + '</b><span class="sec">' + dCourt(SIM.dates[i + 1]) + '</span></td><td class="n">' + eur(x.base * 100, false, true) + '</td><td>' + (ev.join(' · ') || '—') + '</td><td class="n">' + eur(x.total * 100, false, true) + '</td><td class="n"><b>' + eur(x.solde * 100) + '</b></td><td class="n">' + F1.format(x.solde / SIM.seuil) + '</td></tr>';
   }).join('');
   return '<div class="defile"><table class="tableau"><thead><tr><th>Quinzaine</th><th class="n">Activité courante</th><th>Vos décisions</th><th class="n">Mouvement net</th><th class="n">Trésorerie</th><th class="n">Factures Logista d’avance</th></tr></thead><tbody><tr><td><b>Mi-octobre</b><span class="sec">lun. 19 oct., après Logista</span></td><td class="n">—</td><td>Départ</td><td class="n">—</td><td class="n"><b>' + eur(SIM.depart * 100) + '</b></td><td class="n">' + F1.format(SIM.depart / SIM.seuil) + '</td></tr>' + table + '</tbody></table></div>';
