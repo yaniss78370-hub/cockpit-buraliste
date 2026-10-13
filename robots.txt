@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /atelier/
 
 Sitemap: https://cockpit-buraliste.fr/sitemap.xml
