@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Essai local du cockpit : erreurs de console, navigation, interactions, exports, captures."""
-import base64, json, os, sys
+import base64, json, os, sys, tempfile
 from playwright.sync_api import sync_playwright
 
 ICI = os.path.dirname(os.path.abspath(__file__))
-import tempfile
 S = os.environ.get('ESSAI_SORTIE') or os.path.join(tempfile.gettempdir(), 'essai-cockpit')
 os.makedirs(S, exist_ok=True)
 JS = os.path.abspath(os.path.join(ICI, '..', '..', 'js'))
@@ -17,7 +16,6 @@ LIBS = {
 }
 URL = 'file://' + os.path.join(ICI, 'dist', 'test.html')
 ROUTES = ['cockpit', 'caisse', 'fdj', 'tresorerie', 'rentabilite', 'factures', 'stock', 'mise']
-MODE = sys.argv[1] if len(sys.argv) > 1 else 'tout'
 erreurs = []
 
 def route_cdn(route):
@@ -27,103 +25,70 @@ def route_cdn(route):
     else:
         route.abort()
 
-def page_neuve(b, w, h, sombre=False, mobile=False):
+def page_neuve(b, w, h, sombre=False, mobile=False, bouger=False):
     ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=1 if not mobile else 2,
-                        color_scheme='dark' if sombre else 'light', is_mobile=mobile, has_touch=mobile, accept_downloads=True)
+                        color_scheme='dark' if sombre else 'light', is_mobile=mobile, has_touch=mobile, accept_downloads=True,
+                        reduced_motion='no-preference' if bouger else 'reduce')
     p = ctx.new_page()
     p.route('https://cdnjs.cloudflare.com/**', route_cdn)
     p.on('console', lambda m: erreurs.append(('console', m.type, m.text)) if m.type in ('error', 'warning') else None)
     p.on('pageerror', lambda e: erreurs.append(('pageerror', str(e))))
     return ctx, p
 
+def aller(p, r, attente=300):
+    p.evaluate("r => { location.hash = r; }", r)
+    p.wait_for_timeout(attente)
+
 with sync_playwright() as pw:
     b = pw.chromium.launch()
+    # ---------------- animations (sans mouvement réduit) : aucune erreur, chiffres justes à la fin
+    ctx, p = page_neuve(b, 1440, 900, bouger=True)
+    p.goto(URL)
+    p.wait_for_timeout(300)
+    p.click('#cx-entrer')
+    p.wait_for_timeout(700)
+    p.screenshot(path=os.path.join(OUT, 'anim-1.png'))
+    p.wait_for_timeout(2600)
+    heros_final = p.inner_text('.heros .chiffre-xl')
+    p.screenshot(path=os.path.join(OUT, 'anim-2.png'))
+    for r in ROUTES[1:]:
+        aller(p, r, 2800)
+    ctx.close()
+
     # ---------------- bureau, clair
     ctx, p = page_neuve(b, 1440, 900)
     p.goto(URL)
-    p.wait_for_timeout(400)
+    p.wait_for_timeout(300)
     p.screenshot(path=os.path.join(OUT, 'b-connexion.png'))
     p.click('#cx-entrer')
-    p.wait_for_timeout(1000)
+    p.wait_for_timeout(900)
     for r in ROUTES:
-        p.evaluate("r => { location.hash = r; }", r)
-        p.wait_for_timeout(250)
-        p.screenshot(path=os.path.join(OUT, 'b-' + r + '.png'), full_page=(MODE == 'plein'))
-        if MODE == 'plein':
-            pass
-    # onglets de la trésorerie (dans le détail)
-    p.evaluate("() => { location.hash = 'tresorerie'; }")
-    p.wait_for_timeout(200)
-    p.click('[data-action="detail"]')
-    p.wait_for_timeout(300)
-    p.screenshot(path=os.path.join(OUT, 'b-treso-detail.png'))
-    for o in ['plan', 'quatorze', 'mouvements', 'fixes']:
-        p.click('[data-seg="treso"][data-val="' + o + '"]')
-        p.wait_for_timeout(200)
-        p.screenshot(path=os.path.join(OUT, 'b-treso-' + o + '.png'), full_page=True)
-    # plan : agencement
-    p.click('[data-seg="treso"][data-val="plan"]')
-    p.click('[data-levier="agencement"]')
-    p.wait_for_timeout(200)
-    p.screenshot(path=os.path.join(OUT, 'b-plan-agencement.png'), full_page=True)
-    ciel = p.inner_text('.barre .ciel')
-    p.click('[data-action="plan-defaut"]')
-    # mouvement : tiroir
-    p.click('[data-seg="treso"][data-val="mouvements"]')
-    p.fill('#q-mvt', 'logista')
-    p.wait_for_timeout(200)
-    nb_logista = p.locator('#zone-mvt tbody tr').count()
-    p.locator('#zone-mvt tbody tr').first.click()
-    p.wait_for_timeout(200)
-    p.screenshot(path=os.path.join(OUT, 'b-tiroir-mouvement.png'))
-    p.keyboard.press('Escape')
-    # recherche
-    p.fill('#recherche', 'coca')
-    p.wait_for_timeout(200)
-    nres = p.locator('#resultats [data-res]').count()
-    p.screenshot(path=os.path.join(OUT, 'b-recherche.png'))
-    p.keyboard.press('Enter')
-    p.wait_for_timeout(300)
-    route_apres = p.evaluate('location.hash')
-    # stock : onglets
-    p.evaluate("() => { location.hash = 'stock'; }")
-    p.wait_for_timeout(200)
-    if p.locator('[data-action="detail"][aria-expanded="false"]').count():
-        p.click('[data-action="detail"]'); p.wait_for_timeout(200)
-    for o in ['cbd', 'ecarts', 'commande']:
-        p.click('[data-seg="stockonglet"][data-val="' + o + '"]')
-        p.wait_for_timeout(150)
-        p.screenshot(path=os.path.join(OUT, 'b-stock-' + o + '.png'), full_page=True)
-    # rentabilité : année
-    p.evaluate("() => { location.hash = 'rentabilite'; }")
-    p.wait_for_timeout(200)
-    p.click('[data-action="detail"]'); p.wait_for_timeout(200)
-    p.click('[data-seg="resvue"][data-val="annee"]')
-    p.wait_for_timeout(150)
-    p.screenshot(path=os.path.join(OUT, 'b-rentabilite-annee.png'), full_page=True)
-    # caisse : comptage puis détail du Z
-    p.evaluate("() => { location.hash = 'caisse'; }")
-    p.wait_for_timeout(200)
-    a_avoir = p.inner_text('.reponse .rep-montant')
+        aller(p, r, 350)
+        p.screenshot(path=os.path.join(OUT, 'b-' + r + '.png'))
+        p.screenshot(path=os.path.join(OUT, 'b-' + r + '-plein.png'), full_page=True)
+    largeurs_bureau = {}
+    for r in ROUTES:
+        aller(p, r, 200)
+        largeurs_bureau[r] = p.evaluate('document.documentElement.scrollWidth')
+    # caisse : comptage
+    aller(p, 'caisse')
+    a_avoir = p.inner_text('.heros .chiffre-xl')
     p.fill('#compte-caisse', '5 000')
     p.wait_for_timeout(100)
     msg_manque = p.inner_text('#compte-res')
     p.fill('#compte-caisse', a_avoir.replace('€', '').strip())
     p.wait_for_timeout(100)
     msg_juste = p.inner_text('#compte-res')
-    p.screenshot(path=os.path.join(OUT, 'b-caisse-plein.png'), full_page=True)
     p.click('[data-action="detail"]')
-    p.wait_for_timeout(250)
+    p.wait_for_timeout(300)
     p.click('[data-action="jour"][data-pas="-1"]')
-    p.wait_for_timeout(200)
+    p.wait_for_timeout(250)
     jour_z = p.inner_text('.jour-nav b')
     p.screenshot(path=os.path.join(OUT, 'b-caisse-detail.png'), full_page=True)
-    # FDJ : semaine précédente, un jour, une ligne d'historique, les opérations
-    p.evaluate("() => { location.hash = 'fdj'; }")
-    p.wait_for_timeout(250)
-    fdj_prochain = p.inner_text('.reponse .rep-montant')
+    # FDJ
+    aller(p, 'fdj')
+    fdj_prochain = p.inner_text('.heros .chiffre-xl')
     fdj_atterrissage = p.inner_text('#fdj-semaine .rep-montant')
-    p.screenshot(path=os.path.join(OUT, 'b-fdj-plein.png'), full_page=True)
     p.click('[data-action="fdj-jour"][data-jour="2026-10-12"]')
     p.wait_for_timeout(150)
     fdj_jour = p.inner_text('#fdj-semaine .sem-droite .h3')
@@ -131,7 +96,6 @@ with sync_playwright() as pw:
     p.wait_for_timeout(150)
     fdj_sem_prec = p.inner_text('#fdj-semaine .sem-titre')
     fdj_calc_prec = p.inner_text('#fdj-semaine .calc')
-    p.screenshot(path=os.path.join(OUT, 'b-fdj-s41.png'), full_page=True)
     p.click('tr[data-action="fdj-semaine"]:nth-child(3)')
     p.wait_for_timeout(250)
     fdj_sem_ligne = p.inner_text('#fdj-semaine .sem-titre')
@@ -139,20 +103,95 @@ with sync_playwright() as pw:
     p.wait_for_timeout(150)
     nb_ops = p.locator('.explication tbody tr').count()
     p.click('[data-action="detail"]')
-    p.wait_for_timeout(250)
+    p.wait_for_timeout(300)
     p.screenshot(path=os.path.join(OUT, 'b-fdj-detail.png'), full_page=True)
-    # accueil : une tuile mène à sa page
-    p.evaluate("() => { location.hash = 'cockpit'; }")
+    # trésorerie : plan de vol (commandes) puis détail
+    aller(p, 'tresorerie')
+    p.click('.levier[data-levier="agencement"]')
+    p.wait_for_timeout(700)
+    ciel = p.inner_text('#plan-ciel')
+    kpis_plan = p.inner_text('#plan-kpis')
+    p.screenshot(path=os.path.join(OUT, 'b-plan-agencement.png'), full_page=True)
+    p.click('[data-action="plan-defaut"]')
+    p.wait_for_timeout(700)
+    ciel_defaut = p.inner_text('#plan-ciel')
+    p.click('[data-action="detail"]')
+    p.wait_for_timeout(300)
+    for o in ['plan', 'quatorze', 'mouvements', 'fixes']:
+        p.click('[data-seg="treso"][data-val="' + o + '"]')
+        p.wait_for_timeout(250)
+        p.screenshot(path=os.path.join(OUT, 'b-treso-' + o + '.png'), full_page=True)
+    p.click('[data-seg="treso"][data-val="mouvements"]')
+    p.fill('#q-mvt', 'logista')
     p.wait_for_timeout(200)
-    p.click('.tuile-rep[data-route="fdj"]')
+    nb_logista = p.locator('#zone-mvt tbody tr').count()
+    p.locator('#zone-mvt tbody tr').first.click()
+    p.wait_for_timeout(300)
+    p.screenshot(path=os.path.join(OUT, 'b-tiroir-mouvement.png'))
+    p.keyboard.press('Escape')
+    # export par le bouton de la semaine
+    with p.expect_download() as dl:
+        p.click('[data-action="export"][data-cle="semaine"][data-format="csv"]')
+    telecharge = dl.value.suggested_filename
+    # palette de recherche
+    p.click('.tete .chercher')
     p.wait_for_timeout(200)
+    p.fill('#pal-q', 'coca')
+    p.wait_for_timeout(200)
+    nres = p.locator('.pal-item').count()
+    p.screenshot(path=os.path.join(OUT, 'b-palette.png'))
+    p.keyboard.press('Enter')
+    p.wait_for_timeout(500)
+    route_apres = p.evaluate('location.hash')
+    p.screenshot(path=os.path.join(OUT, 'b-facture-ouverte.png'))
+    # notifications, sources, assistant
+    p.click('.tete [data-action="notifs"]')
+    p.wait_for_timeout(250)
+    nb_notifs = p.locator('.notif').count()
+    p.screenshot(path=os.path.join(OUT, 'b-notifs.png'))
+    p.keyboard.press('Escape')
+    p.click('.tete [data-action="sources"]')
+    p.wait_for_timeout(250)
+    p.screenshot(path=os.path.join(OUT, 'b-sources.png'))
+    p.keyboard.press('Escape')
+    p.click('.tete [data-action="assistant"]')
+    p.wait_for_timeout(250)
+    reponses = {}
+    for q in ['Combien on a fait aujourd’hui ?', 'Il reste combien de Fraise glacée ?', 'Le FDJ est juste cette semaine ?', 'Qui a appelé ce soir ?', 'Combien je vire à la FDJ ?', 'quel temps fait-il demain ?']:
+        p.fill('#as-q', q)
+        p.keyboard.press('Enter')
+        p.wait_for_timeout(200)
+        reponses[q] = p.locator('.bulle.lui').last.inner_text()
+    p.screenshot(path=os.path.join(OUT, 'b-assistant.png'))
+    p.keyboard.press('Escape')
+    # stock : onglets du détail
+    aller(p, 'stock')
+    p.click('[data-action="detail"]')
+    p.wait_for_timeout(250)
+    for o in ['cbd', 'ecarts', 'commande']:
+        p.click('[data-seg="stockonglet"][data-val="' + o + '"]')
+        p.wait_for_timeout(200)
+    p.screenshot(path=os.path.join(OUT, 'b-stock-detail.png'), full_page=True)
+    # résultat : l'année
+    aller(p, 'rentabilite')
+    p.click('[data-action="detail"]')
+    p.wait_for_timeout(250)
+    p.click('[data-seg="resvue"][data-val="annee"]')
+    p.wait_for_timeout(200)
+    p.screenshot(path=os.path.join(OUT, 'b-rentabilite-detail.png'), full_page=True)
+    # accueil : une tuile mène à sa page, un geste se coche
+    aller(p, 'cockpit')
+    p.click('.geste input[data-tache="fdj"] + .g-coche')
+    p.wait_for_timeout(200)
+    geste_fait = p.locator('.geste.faite').count()
+    p.click('.tuile-soir[data-route="fdj"]')
+    p.wait_for_timeout(300)
     route_tuile = p.evaluate('location.hash')
-    # menu exporter
-    p.click('.barre [data-action="menu-export"]')
-    p.wait_for_timeout(150)
+    # menu exporter et exports réels
+    p.click('.tete [data-action="menu-export"]')
+    p.wait_for_timeout(200)
     p.screenshot(path=os.path.join(OUT, 'b-menu-export.png'))
     p.keyboard.press('Escape')
-    # exports : fichiers réels
     res = {}
     for cle in ['classeur', 'factures', 'resultat']:
         b64 = p.evaluate("""async (cle) => { const blob = await window.__cockpitTest.construireClasseur(cle); const buf = new Uint8Array(await blob.arrayBuffer()); let s=''; for (let i=0;i<buf.length;i++) s+=String.fromCharCode(buf[i]); return btoa(s); }""", cle)
@@ -161,15 +200,6 @@ with sync_playwright() as pw:
         res[cle] = os.path.getsize(fic)
     b64 = p.evaluate("""async () => { const blob = await window.__cockpitTest.construirePack(); const buf = new Uint8Array(await blob.arrayBuffer()); let s=''; for (let i=0;i<buf.length;i++) s+=String.fromCharCode(buf[i]); return btoa(s); }""")
     open(os.path.join(S, 'pack.pdf'), 'wb').write(base64.b64decode(b64))
-    csv = p.evaluate("() => window.__cockpitTest.versCSV('mouvements')")
-    open(os.path.join(S, 'mouvements.csv'), 'w', encoding='utf-8').write(csv)
-    # export par le bouton (site : téléchargement classique)
-    p.evaluate("() => { location.hash = 'tresorerie'; }")
-    p.wait_for_timeout(150)
-    p.click('[data-seg="treso"][data-val="semaine"]')
-    with p.expect_download() as dl:
-        p.click('[data-action="export"][data-cle="semaine"][data-format="csv"]')
-    telecharge = dl.value.suggested_filename
     ctx.close()
 
     # ---------------- bureau, sombre
@@ -177,9 +207,8 @@ with sync_playwright() as pw:
     p.goto(URL)
     p.click('#cx-entrer')
     p.wait_for_timeout(900)
-    for r in ['cockpit', 'caisse', 'fdj', 'tresorerie', 'factures']:
-        p.evaluate("r => { location.hash = r; }", r)
-        p.wait_for_timeout(200)
+    for r in ['cockpit', 'caisse', 'fdj', 'tresorerie']:
+        aller(p, r, 250)
         p.screenshot(path=os.path.join(OUT, 's-' + r + '.png'), full_page=True)
     ctx.close()
 
@@ -189,10 +218,8 @@ with sync_playwright() as pw:
         p.goto(URL)
         p.click('#cx-entrer')
         p.wait_for_timeout(900)
-        p.screenshot(path=os.path.join(OUT, nom + '-cockpit.png'), full_page=True)
-        for r in ['caisse', 'fdj', 'factures']:
-            p.evaluate("r => { location.hash = r; }", r)
-            p.wait_for_timeout(200)
+        for r in ['cockpit', 'caisse', 'fdj', 'tresorerie', 'factures']:
+            aller(p, r, 250)
             p.screenshot(path=os.path.join(OUT, nom + '-' + r + '.png'), full_page=True)
         ctx.close()
 
@@ -203,38 +230,35 @@ with sync_playwright() as pw:
     p.screenshot(path=os.path.join(OUT, 'm-connexion.png'))
     p.click('#cx-entrer')
     p.wait_for_timeout(900)
-    for r in ROUTES:
-        p.evaluate("r => { location.hash = r; }", r)
-        p.wait_for_timeout(250)
-        p.screenshot(path=os.path.join(OUT, 'm-' + r + '.png'))
-        p.screenshot(path=os.path.join(OUT, 'm-' + r + '-plein.png'), full_page=True)
     largeurs = {}
     for r in ROUTES:
-        p.evaluate("r => { location.hash = r; }", r)
-        p.wait_for_timeout(150)
+        aller(p, r, 300)
         largeurs[r] = p.evaluate('document.documentElement.scrollWidth')
+        p.screenshot(path=os.path.join(OUT, 'm-' + r + '.png'))
+        p.screenshot(path=os.path.join(OUT, 'm-' + r + '-plein.png'), full_page=True)
     largeur = max(largeurs.values())
-    p.evaluate("() => { location.hash = 'fdj'; }")
-    p.wait_for_timeout(150)
-    p.click('[data-action="fdj-jour"][data-jour="2026-10-13"]')
-    p.wait_for_timeout(150)
-    p.screenshot(path=os.path.join(OUT, 'm-fdj-jour.png'), full_page=True)
     p.click('[data-action="plus"]')
-    p.wait_for_timeout(200)
+    p.wait_for_timeout(300)
     p.screenshot(path=os.path.join(OUT, 'm-plus.png'))
     p.keyboard.press('Escape')
-    p.evaluate("() => { location.hash = 'factures'; }")
-    p.wait_for_timeout(200)
-    p.locator('.bloc .ligne.cliquable').nth(2).click()
-    p.wait_for_timeout(250)
+    aller(p, 'factures')
+    p.locator('.facture-l').nth(2).click()
+    p.wait_for_timeout(350)
     p.screenshot(path=os.path.join(OUT, 'm-facture-tiroir.png'))
+    p.keyboard.press('Escape')
+    p.click('.tete [data-action="assistant"]')
+    p.wait_for_timeout(250)
+    p.click('.as-idees button >> nth=0')
+    p.wait_for_timeout(1000)
+    p.screenshot(path=os.path.join(OUT, 'm-assistant.png'))
     ctx.close()
     b.close()
 
-print(json.dumps({'erreurs': erreurs[:30], 'nb_erreurs': len(erreurs), 'ciel_agencement': ciel, 'mouvements_logista': nb_logista,
-                  'resultats_coca': nres, 'route_apres_recherche': route_apres, 'xlsx': res, 'telecharge': telecharge,
-                  'largeur_mobile': largeur, 'largeurs': largeurs,
+print(json.dumps({'erreurs': erreurs[:30], 'nb_erreurs': len(erreurs), 'heros_anime_final': heros_final,
+                  'ciel_agencement': ciel, 'kpis_plan': kpis_plan, 'ciel_defaut': ciel_defaut, 'mouvements_logista': nb_logista,
+                  'resultats_coca': nres, 'route_apres_recherche': route_apres, 'notifs': nb_notifs, 'xlsx': res, 'telecharge': telecharge,
+                  'largeur_mobile': largeur, 'largeurs': largeurs, 'largeurs_bureau': largeurs_bureau, 'geste_fait': geste_fait, 'route_tuile': route_tuile,
                   'caisse': {'a_avoir': a_avoir, 'manque': msg_manque, 'juste': msg_juste, 'jour_z': jour_z},
                   'fdj': {'prochain': fdj_prochain, 'atterrissage': fdj_atterrissage, 'jour': fdj_jour, 'sem_prec': fdj_sem_prec,
-                          'calc_prec': fdj_calc_prec, 'sem_ligne': fdj_sem_ligne, 'ops': nb_ops},
-                  'route_tuile': route_tuile}, ensure_ascii=False, indent=1))
+                          'sem_ligne': fdj_sem_ligne, 'ops': nb_ops},
+                  'assistant': reponses}, ensure_ascii=False, indent=1))

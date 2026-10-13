@@ -147,7 +147,7 @@ const SIM = {
   axe: ['oct.', 'nov.', 'déc.', 'janv.', 'févr.', 'mars', 'avr.'],
 };
 const LEVIERS = [
-  { cle: 'embauche', titre: 'Embaucher pour fermer à 23 h', sous: 'Dès novembre : salaire et charges, moins les ventes du soir' },
+  { cle: 'embauche', titre: 'Embaucher pour fermer à 23\u00a0h', sous: 'Dès novembre : salaire et charges, moins les ventes du soir' },
   { cle: 'credit', titre: 'Solder le crédit restant', sous: '7 200 €, fin décembre ; 620 € par mois en moins ensuite' },
   { cle: 'salaire', titre: 'Votre salaire de gérant', sous: 'Dès janvier' },
   { cle: 'cbd', titre: 'Agrandir le rayon CBD', sous: '6 000 € de stock en novembre, marge qui monte ensuite' },
@@ -275,7 +275,9 @@ const VOCAUX = [
 const SEM = D.semaine;
 const SORTIE_LIB = { Timbres: 'Timbres', PMU: 'PMU', FDJ: 'FDJ', Recharges: 'Recharges', URSSAF: 'URSSAF', Logista: 'Logista' };
 
-/* ------------------------------------------------------------------ échelles et graphiques SVG */
+/* ------------------------------------------------------------------ échelles et graphiques SVG
+   Chaque graphique est dessiné à la largeur réelle de son cadre (1 unité = 1 pixel) :
+   les textes gardent leur taille, du téléphone au grand écran. */
 function pasJoli(brut) {
   const p = Math.pow(10, Math.floor(Math.log10(Math.max(brut, 1e-9))));
   const f = brut / p;
@@ -291,145 +293,262 @@ function echelle(min, max, n = 4) {
 }
 const tip = (html) => ' data-tip="' + esc(html) + '"';
 const ligneTip = (coul, lib, val) => '<div class="il"><span>' + (coul ? '<i style="background:' + coul + '"></i>' : '') + esc(lib) + '</span><span>' + esc(val) + '</span></div>';
+let N_GRAPHE = 0;
+const idG = (o) => o.id ? o.id + '-' + (++N_GRAPHE) : 'g' + (++N_GRAPHE);
+const f1 = (x) => (Math.round(x * 10) / 10).toString();
 
-// courbe : points [{lib, v}] (valeurs en euros), options seuils, prévision (indice de départ des pointillés)
+// graphiques mesurés : le cadre est posé, puis dessiné à sa largeur
+const GRAPHES = [];
+function graphe(gen, cls = '') {
+  GRAPHES.push(gen);
+  return '<div class="graphe' + (cls ? ' ' + cls : '') + '" data-graphe="' + (GRAPHES.length - 1) + '"></div>';
+}
+function peindreGraphes(racine = document, force = false) {
+  $$('[data-graphe]', racine).forEach((el) => {
+    const gen = GRAPHES[+el.dataset.graphe];
+    if (!gen) return;
+    const w = Math.round(el.getBoundingClientRect().width);
+    if (!w) return;
+    if (!force && el._w === w && el.firstChild) return;
+    el._w = w;
+    el.innerHTML = gen(Math.max(200, w));
+  });
+}
+
+// courbe lissée sans dépassement (monotone)
+function tangentes(P) {
+  const n = P.length, m = [], t = new Array(n).fill(0);
+  if (n < 2) return t;
+  for (let i = 0; i < n - 1; i++) m[i] = (P[i + 1][1] - P[i][1]) / ((P[i + 1][0] - P[i][0]) || 1);
+  t[0] = m[0]; t[n - 1] = m[n - 2];
+  for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+    const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+  }
+  return t;
+}
+function segment(P, T, a, b, lisse = true) {
+  let d = 'M' + f1(P[a][0]) + ',' + f1(P[a][1]);
+  for (let i = a; i < b; i++) {
+    if (!lisse) { d += 'L' + f1(P[i + 1][0]) + ',' + f1(P[i + 1][1]); continue; }
+    const dx = P[i + 1][0] - P[i][0];
+    d += 'C' + f1(P[i][0] + dx / 3) + ',' + f1(P[i][1] + T[i] * dx / 3) + ' ' + f1(P[i + 1][0] - dx / 3) + ',' + f1(P[i + 1][1] - T[i + 1] * dx / 3) + ' ' + f1(P[i + 1][0]) + ',' + f1(P[i + 1][1]);
+  }
+  return d;
+}
+
+// courbe : points [{lib, v, note}] en euros ; seuils, prévision (indice où commencent les pointillés), marques, annotations
 function svgCourbe(o) {
-  const W = o.w || 760, H = o.h || 260, mg = { g: 54, d: o.margeD || 74, h: 14, b: 30 };
+  const W = o.w || 760, H = o.h || 260;
+  const mg = { g: o.margeG != null ? o.margeG : 54, d: o.margeD != null ? o.margeD : 74, h: o.margeH != null ? o.margeH : 20, b: o.margeB != null ? o.margeB : 30 };
   const vals = o.pts.map((p) => p.v);
   const extra = (o.seuils || []).map((s) => s.v);
-  const e = echelle(Math.min(0, ...vals, ...extra), Math.max(...vals, ...extra) * 1.04, 4);
-  const X = (i) => mg.g + (i / (o.pts.length - 1)) * (W - mg.g - mg.d);
+  const e = echelle(Math.min(o.min != null ? o.min : 0, ...vals, ...extra), Math.max(...vals, ...extra) * 1.06, o.nTicks || 4);
+  const n = o.pts.length;
+  const X = (i) => mg.g + (i / Math.max(1, n - 1)) * (W - mg.g - mg.d);
   const Y = (v) => mg.h + (1 - (v - e.min) / (e.max - e.min)) * (H - mg.h - mg.b);
-  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.titre || 'Graphique') + '">';
-  s += '<g class="grille">' + e.ticks.map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + Y(t) + '" y2="' + Y(t) + '"/>').join('') + '</g>';
-  s += e.ticks.map((t) => '<text x="' + (mg.g - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end">' + keurT(t) + '</text>').join('');
+  const id = idG(o);
+  const coul = o.couleur || 'var(--bleu)';
+  const P = o.pts.map((p, i) => [X(i), Y(p.v)]);
+  const T = tangentes(P);
+  const lisse = o.lisse !== false;
+  const pf = o.prevision == null ? n - 1 : Math.min(o.prevision, n - 1);
+  const base = Y(Math.max(e.min, 0));
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.titre || 'Graphique') + '">';
+  s += '<defs><linearGradient id="ga-' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + coul + '" stop-opacity="' + (o.opaciteAire || 0.28) + '"/><stop offset="1" stop-color="' + coul + '" stop-opacity="0"/></linearGradient></defs>';
+  s += '<g class="grille">' + e.ticks.map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(t)) + '" y2="' + f1(Y(t)) + '"' + (t === 0 ? ' class="zero"' : '') + '/>').join('') + '</g>';
+  s += e.ticks.map((t) => '<text x="' + (mg.g - 10) + '" y="' + f1(Y(t) + 4) + '" text-anchor="end">' + (o.fmtAxe ? o.fmtAxe(t) : keurT(t)) + '</text>').join('');
   (o.seuils || []).forEach((sl) => {
-    s += '<line class="' + (sl.cls || 'seuil') + '" x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + Y(sl.v) + '" y2="' + Y(sl.v) + '"/>';
-    s += o.seuilsDedans
-      ? '<text x="' + (mg.g + 6) + '" y="' + (Y(sl.v) + (sl.dessous ? 14 : -5)) + '" class="moyen">' + esc(sl.lib) + '</text>'
-      : '<text x="' + (W - mg.d + 6) + '" y="' + (Y(sl.v) + 4) + '" class="moyen">' + esc(sl.lib) + '</text>';
+    s += '<line class="' + (sl.cls || 'seuil') + '" x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(sl.v)) + '" y2="' + f1(Y(sl.v)) + '"/>';
+    s += o.seuilsDedans || mg.d < 70
+      ? '<text x="' + (mg.g + 8) + '" y="' + f1(Y(sl.v) + (sl.dessous ? 15 : -6)) + '" class="' + (sl.txtCls || 'moyen') + '">' + esc(sl.lib) + '</text>'
+      : '<text x="' + (W - mg.d + 8) + '" y="' + f1(Y(sl.v) + 4) + '" class="' + (sl.txtCls || 'moyen') + '">' + esc(sl.lib) + '</text>';
   });
-  const coul = o.couleur || 'var(--s1)';
-  const pf = o.prevision == null ? o.pts.length : o.prevision;
-  const chemin = (a, b) => o.pts.slice(a, b + 1).map((p, j) => (j ? 'L' : 'M') + X(a + j).toFixed(1) + ',' + Y(p.v).toFixed(1)).join('');
-  const reel = chemin(0, Math.min(pf, o.pts.length - 1));
-  s += '<path d="' + reel + 'L' + X(Math.min(pf, o.pts.length - 1)).toFixed(1) + ',' + Y(Math.max(e.min, 0)) + 'L' + X(0) + ',' + Y(Math.max(e.min, 0)) + 'Z" fill="' + coul + '" fill-opacity=".09" stroke="none"/>';
-  s += '<path d="' + reel + '" fill="none" stroke="' + coul + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
-  if (pf < o.pts.length - 1) s += '<path d="' + chemin(pf, o.pts.length - 1) + '" fill="none" stroke="' + coul + '" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>';
-  (o.axeX || []).forEach((a) => { s += '<text x="' + X(a.i) + '" y="' + (H - 8) + '" text-anchor="' + (a.ancre || 'middle') + '">' + esc(a.lib) + '</text>'; });
-  (o.marques || []).forEach((m) => {
-    s += '<circle cx="' + X(m.i) + '" cy="' + Y(o.pts[m.i].v) + '" r="4.5" fill="' + (m.coul || coul) + '" stroke="var(--surface)" stroke-width="2"/>';
-    if (m.lib) s += '<text x="' + (X(m.i) + (m.dx || 0)) + '" y="' + (Y(o.pts[m.i].v) + (m.dy || -10)) + '" text-anchor="' + (m.ancre || 'middle') + '" class="fort">' + esc(m.lib) + '</text>';
+  if (o.aire !== false) {
+    s += '<path class="g-aire" d="' + segment(P, T, 0, pf, lisse) + 'L' + f1(P[pf][0]) + ',' + f1(base) + 'L' + f1(P[0][0]) + ',' + f1(base) + 'Z" fill="url(#ga-' + id + ')"/>';
+    if (pf < n - 1) s += '<path class="g-aire" d="' + segment(P, T, pf, n - 1, lisse) + 'L' + f1(P[n - 1][0]) + ',' + f1(base) + 'L' + f1(P[pf][0]) + ',' + f1(base) + 'Z" fill="url(#ga-' + id + ')" opacity=".45"/>';
+  }
+  s += '<path class="g-trace" pathLength="1" d="' + segment(P, T, 0, pf, lisse) + '" fill="none" stroke="' + coul + '" stroke-width="' + (o.epaisseur || 2.6) + '" stroke-linejoin="round" stroke-linecap="round"/>';
+  if (pf < n - 1) s += '<path class="g-fondu" d="' + segment(P, T, pf, n - 1, lisse) + '" fill="none" stroke="' + coul + '" stroke-width="' + (o.epaisseur || 2.6) + '" stroke-dasharray="6 5" stroke-linecap="round"/>';
+  (o.axeX || []).forEach((a) => { s += '<text x="' + f1(X(a.i)) + '" y="' + (H - 9) + '" text-anchor="' + (a.ancre || 'middle') + '">' + esc(a.lib) + '</text>'; });
+  (o.marques || []).forEach((m, k) => {
+    s += '<circle class="g-point" style="--d:' + (1.1 + k * 0.12) + 's" cx="' + f1(X(m.i)) + '" cy="' + f1(Y(o.pts[m.i].v)) + '" r="5" fill="' + (m.coul || coul) + '" stroke="var(--papier)" stroke-width="2.5"/>';
+    if (m.lib) s += '<text class="g-fondu ' + (m.cls || 'fort') + '" x="' + f1(X(m.i) + (m.dx || 0)) + '" y="' + f1(Y(o.pts[m.i].v) + (m.dy || -12)) + '" text-anchor="' + (m.ancre || 'middle') + '">' + esc(m.lib) + '</text>';
   });
-  const fin = o.pts.length - 1;
-  s += '<circle cx="' + X(fin) + '" cy="' + Y(o.pts[fin].v) + '" r="4.5" fill="' + coul + '" stroke="var(--surface)" stroke-width="2"/>';
-  if (o.finLib !== false) s += '<text x="' + (X(fin) + 8) + '" y="' + (Y(o.pts[fin].v) + 4) + '" class="fort">' + esc(o.finLib || keur(o.pts[fin].v)) + '</text>';
-  // zones de survol
-  const bande = (W - mg.g - mg.d) / (o.pts.length - 1);
+  const fin = n - 1;
+  if (o.pointFinal !== false) {
+    s += '<circle class="g-point" cx="' + f1(X(fin)) + '" cy="' + f1(Y(o.pts[fin].v)) + '" r="5.5" fill="' + coul + '" stroke="var(--papier)" stroke-width="2.5"/>';
+    if (o.finLib !== false) s += '<text class="g-fondu fort grand" x="' + f1(X(fin) + 10) + '" y="' + f1(Y(o.pts[fin].v) + 4) + '">' + esc(o.finLib || keur(o.pts[fin].v)) + '</text>';
+  }
+  // événements : une pastille numérotée posée sur la courbe, expliquée sous le graphique
+  const pile = {};
+  (o.evenements || []).forEach((ev, k) => {
+    const x = X(ev.i), y = Y(o.pts[ev.i].v), rang = pile[ev.i] || 0;
+    pile[ev.i] = rang + 1;
+    const yb = Math.max(14, y - 24 - rang * 27);
+    s += '<g class="g-point" style="--d:' + (1.15 + k * 0.14) + 's"><line x1="' + f1(x) + '" x2="' + f1(x) + '" y1="' + f1(y - 5) + '" y2="' + f1(yb + 10) + '" stroke="#111a33" stroke-width="1.6"/>' +
+      '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="4.5" fill="#111a33" stroke="var(--papier)" stroke-width="2"/>' +
+      '<circle cx="' + f1(x) + '" cy="' + f1(yb) + '" r="11" fill="#111a33" stroke="var(--papier)" stroke-width="2"/><text class="evt-n" x="' + f1(x) + '" y="' + f1(yb + 4) + '" text-anchor="middle">' + ev.n + '</text></g>';
+  });
+  const bande = (W - mg.g - mg.d) / Math.max(1, n - 1);
   o.pts.forEach((p, i) => {
-    s += '<rect class="cible" x="' + (X(i) - bande / 2).toFixed(1) + '" y="' + mg.h + '" width="' + bande.toFixed(1) + '" height="' + (H - mg.h - mg.b) + '" fill="transparent"' +
-      tip('<b>' + esc(p.lib) + '</b>' + ligneTip(coul, o.serie || 'Trésorerie', eur(p.v * 100)) + (p.note ? '<div>' + esc(p.note) + '</div>' : '')) + '/>';
+    s += '<g class="cible-g"><line class="viseur" x1="' + f1(X(i)) + '" x2="' + f1(X(i)) + '" y1="' + mg.h + '" y2="' + f1(H - mg.b) + '"/><circle class="viseur-pt" cx="' + f1(X(i)) + '" cy="' + f1(Y(p.v)) + '" r="5" fill="' + coul + '" stroke="var(--papier)" stroke-width="2.5"/>' +
+      '<rect class="cible" x="' + f1(X(i) - bande / 2) + '" y="' + mg.h + '" width="' + f1(bande) + '" height="' + f1(H - mg.h - mg.b) + '" fill="transparent"' +
+      tip('<b>' + esc(p.lib) + '</b>' + ligneTip(coul, o.serie || 'Trésorerie', eur(p.v * 100)) + (p.note ? '<div>' + esc(p.note) + '</div>' : '')) + '/></g>';
   });
-  return s + '</svg>';
+  s += '</svg>';
+  (o.annotations || []).forEach((a, k) => {
+    s += '<div class="annot' + (a.cote ? ' ' + a.cote : '') + '" style="left:' + f1(X(a.i)) + 'px;top:' + f1(Y(o.pts[a.i].v) - (a.dy || 0)) + 'px;--d:' + (1.2 + k * 0.25) + 's">' + (a.ic ? ic(a.ic) : '') + '<span>' + esc(a.txt) + (a.sous ? '<small>' + esc(a.sous) + '</small>' : '') + '</span></div>';
+  });
+  return s;
 }
 
-// colonnes empilées : labels, séries [{lib, coul, vals}], options
+// colonnes empilées : labels, séries [{lib, coul, vals}]
 function svgEmpile(o) {
-  const W = o.w || 760, H = o.h || 270, mg = { g: 54, d: 12, h: 12, b: 30 };
+  const W = o.w || 760, H = o.h || 270, mg = { g: o.margeG || 54, d: 10, h: o.margeH || 20, b: 30 };
   const tot = o.labels.map((_, i) => o.series.reduce((s, se) => s + Math.max(0, se.vals[i]), 0));
-  const e = echelle(0, Math.max(...tot) * 1.05, 4);
+  const e = echelle(0, Math.max(...tot) * 1.06, 4);
   const n = o.labels.length;
   const bande = (W - mg.g - mg.d) / n;
-  const lb = Math.min(28, bande * 0.56);
+  const lb = Math.min(o.largeur || 40, bande * 0.58);
   const Y = (v) => mg.h + (1 - (v - e.min) / (e.max - e.min)) * (H - mg.h - mg.b);
-  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.titre || '') + '">';
-  if (o.hachure) s += '<defs><pattern id="hach-' + o.id + '" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--surface)" fill-opacity=".0"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--surface)" stroke-width="2.4" stroke-opacity=".55"/></pattern></defs>';
-  s += '<g class="grille">' + e.ticks.map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + Y(t) + '" y2="' + Y(t) + '"/>').join('') + '</g>';
-  s += e.ticks.map((t) => '<text x="' + (mg.g - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end">' + keurT(t) + '</text>').join('');
+  const id = idG(o);
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.titre || '') + '">';
+  s += '<defs><pattern id="hach-' + id + '" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="2.2" stroke-opacity=".5"/></pattern></defs>';
+  s += '<g class="grille">' + e.ticks.map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(t)) + '" y2="' + f1(Y(t)) + '"' + (t === 0 ? ' class="zero"' : '') + '/>').join('') + '</g>';
+  s += e.ticks.map((t) => '<text x="' + (mg.g - 10) + '" y="' + f1(Y(t) + 4) + '" text-anchor="end">' + keurT(t) + '</text>').join('');
   o.labels.forEach((lab, i) => {
     const x = mg.g + i * bande + (bande - lb) / 2;
-    let base = 0;
+    let cumul = 0;
     const segs = [];
-    o.series.forEach((se) => {
-      const v = Math.max(0, se.vals[i]);
-      const y1 = Y(base + v), y0 = Y(base);
-      const h = Math.max(0, y0 - y1 - 2);
-      if (h > 0) segs.push('<rect x="' + x.toFixed(1) + '" y="' + (y1 + 2).toFixed(1) + '" width="' + lb.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + se.coul + '"/>' +
-        (o.hachure && o.hachure(i) ? '<rect x="' + x.toFixed(1) + '" y="' + (y1 + 2).toFixed(1) + '" width="' + lb.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="url(#hach-' + o.id + ')"/>' : ''));
-      base += v;
+    const visibles = o.series.map((se) => Math.max(0, se.vals[i]));
+    const dernier = visibles.reduce((k, v, j) => (v > 0 ? j : k), -1);
+    o.series.forEach((se, j) => {
+      const v = visibles[j];
+      if (v <= 0) return;
+      const y0 = Y(cumul), y1 = Y(cumul + v) + (j < dernier ? 2 : 0);
+      if (y0 - y1 <= 0.5) { cumul += v; return; }
+      const top = j === dernier ? Math.min(6, lb / 2, y0 - y1) : 0;
+      const d = 'M' + f1(x) + ',' + f1(y0) + 'V' + f1(y1 + top) + (top ? 'Q' + f1(x) + ',' + f1(y1) + ' ' + f1(x + top) + ',' + f1(y1) + 'H' + f1(x + lb - top) + 'Q' + f1(x + lb) + ',' + f1(y1) + ' ' + f1(x + lb) + ',' + f1(y1 + top) : 'H' + f1(x + lb)) + 'V' + f1(y0) + 'Z';
+      segs.push('<path d="' + d + '" fill="' + se.coul + '"/>' + (o.hachure && o.hachure(i) ? '<path d="' + d + '" fill="url(#hach-' + id + ')"/>' : ''));
+      cumul += v;
     });
-    // haut arrondi : un capuchon sur le dernier segment
-    s += '<g>' + segs.join('') + '</g>';
-    if (!o.pasLabels || i % o.pasLabels === 0 || i === n - 1) s += '<text x="' + (x + lb / 2) + '" y="' + (H - 9) + '" text-anchor="middle">' + esc(lab) + '</text>';
-    const t = '<b>' + esc(o.titresX ? o.titresX[i] : lab) + '</b>' + o.series.slice().reverse().map((se) => ligneTip(se.coul, se.lib, eur(se.vals[i] * 100))).join('') + ligneTip('', o.libTotal || 'Total', eur(tot[i] * 100));
-    s += '<rect class="cible" x="' + (mg.g + i * bande).toFixed(1) + '" y="' + mg.h + '" width="' + bande.toFixed(1) + '" height="' + (H - mg.h - mg.b) + '" fill="transparent"' + tip(t) + '/>';
+    s += '<g class="g-barre" style="--k:' + i + '">' + segs.join('') + '</g>';
+    if (!o.pasLabels || i % o.pasLabels === 0 || i === n - 1) s += '<text x="' + f1(x + lb / 2) + '" y="' + (H - 9) + '" text-anchor="middle">' + esc(lab) + '</text>';
     if (o.etiquette && o.etiquette(i)) s += o.etiquetteNiveau
-      ? '<text x="' + (x + lb / 2) + '" y="' + (Y(o.etiquetteNiveau(i)) + 16) + '" text-anchor="middle" class="' + (o.etiquetteClasse || 'fort') + '">' + esc(o.etiquette(i)) + '</text>'
-      : '<text x="' + (x + lb / 2) + '" y="' + (Y(tot[i]) - 6) + '" text-anchor="middle" class="fort">' + esc(o.etiquette(i)) + '</text>';
+      ? '<text class="g-fondu ' + (o.etiquetteClasse || 'fort') + '" x="' + f1(x + lb / 2) + '" y="' + f1(Y(o.etiquetteNiveau(i)) + 16) + '" text-anchor="middle">' + esc(o.etiquette(i)) + '</text>'
+      : '<text class="g-fondu fort" x="' + f1(x + lb / 2) + '" y="' + f1(Y(tot[i]) - 8) + '" text-anchor="middle">' + esc(o.etiquette(i)) + '</text>';
+    const t = '<b>' + esc(o.titresX ? o.titresX[i] : lab) + '</b>' + o.series.slice().reverse().map((se) => ligneTip(se.coul, se.lib, eur(se.vals[i] * 100))).join('') + ligneTip('', o.libTotal || 'Total', eur(tot[i] * 100));
+    s += '<g class="cible-g"><rect class="survol" x="' + f1(mg.g + i * bande + 2) + '" y="' + mg.h + '" width="' + f1(bande - 4) + '" height="' + f1(H - mg.h - mg.b) + '" rx="8" fill="rgba(20,26,46,.05)"/><rect class="cible" x="' + f1(mg.g + i * bande) + '" y="' + mg.h + '" width="' + f1(bande) + '" height="' + f1(H - mg.h - mg.b) + '" fill="transparent"' + tip(t) + '/></g>';
   });
   return s + '</svg>';
 }
 
-// colonnes simples
+// colonnes simples : vals, labels ; prevu(i) hachuré ; couleurs ; étiquettes ; libellés sous l'axe
 function svgColonnes(o) {
-  const W = o.w || 760, H = o.h || 220, mg = { g: o.margeG || 50, d: 10, h: 16, b: o.basAxe || 28 };
+  const W = o.w || 760, H = o.h || 220;
+  const mg = { g: o.margeG != null ? o.margeG : 50, d: o.margeD || 8, h: o.margeH != null ? o.margeH : 24, b: o.basAxe || 28 };
   const vals = o.vals;
-  const e = echelle(Math.min(0, ...vals), o.max || Math.max(...vals) * 1.08, o.nTicks || 4);
+  const e = echelle(Math.min(0, ...vals), o.max || Math.max(...vals) * 1.1, o.nTicks || 4);
   const n = vals.length;
   const bande = (W - mg.g - mg.d) / n;
-  const lb = Math.min(o.largeur || 24, bande * 0.62);
+  const lb = Math.min(o.largeur || 36, bande * (o.remplissage || 0.64));
   const Y = (v) => mg.h + (1 - (v - e.min) / (e.max - e.min)) * (H - mg.h - mg.b);
-  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.titre || '') + '">';
-  s += '<defs><pattern id="hp-' + (o.id || 'c') + '" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="' + (o.couleur || 'var(--s1)') + '" stroke-width="2.2"/></pattern></defs>';
-  s += '<g class="grille">' + e.ticks.map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + Y(t) + '" y2="' + Y(t) + '"/>').join('') + '</g>';
-  s += e.ticks.map((t) => '<text x="' + (mg.g - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end">' + (o.fmtAxe ? o.fmtAxe(t) : keurT(t)) + '</text>').join('');
+  const id = idG(o);
+  const coulDe = (i) => (o.couleurs ? o.couleurs[i] : vals[i] < 0 ? 'var(--rouge)' : (o.couleur || 'var(--bleu)'));
+  const prevus = vals.map((_, i) => !!(o.prevu && o.prevu(i)));
+  const coulsPrev = Array.from(new Set(vals.map((_, i) => (prevus[i] ? coulDe(i) : null)).filter(Boolean)));
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.titre || '') + '">';
+  s += '<defs><linearGradient id="rf-' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+    coulsPrev.map((c, k) => '<pattern id="hp-' + id + '-' + k + '" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="' + c + '" fill-opacity=".14"/><line x1="0" y1="0" x2="0" y2="7" stroke="' + c + '" stroke-width="2.4" stroke-opacity=".75"/></pattern>').join('') + '</defs>';
+  s += '<g class="grille">' + e.ticks.map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(t)) + '" y2="' + f1(Y(t)) + '"' + (t === 0 ? ' class="zero"' : '') + '/>').join('') + '</g>';
+  if (o.axe !== false) s += e.ticks.map((t) => '<text x="' + (mg.g - 10) + '" y="' + f1(Y(t) + 4) + '" text-anchor="end">' + (o.fmtAxe ? o.fmtAxe(t) : keurT(t)) + '</text>').join('');
   vals.forEach((v, i) => {
     const x = mg.g + i * bande + (bande - lb) / 2;
     const y0 = Y(Math.max(0, e.min)), y1 = Y(v);
-    const haut = Math.min(y0, y1), h = Math.max(1, Math.abs(y0 - y1));
-    const r = Math.min(4, lb / 2, h);
+    const haut = Math.min(y0, y1), h = Math.max(1.5, Math.abs(y0 - y1));
+    const r = Math.min(o.arrondi != null ? o.arrondi : 6, lb / 2, h);
     const neg = v < 0;
-    const coul = o.couleurs ? o.couleurs[i] : neg ? 'var(--ko-plein)' : (o.couleur || 'var(--s1)');
-    const prevu = o.prevu && o.prevu(i);
-    // haut arrondi, base droite
-    const p = neg
-      ? 'M' + x + ',' + haut + 'h' + lb + 'v' + (h - r) + 'q0,' + r + ' -' + r + ',' + r + 'h-' + (lb - 2 * r) + 'q-' + r + ',0 -' + r + ',-' + r + 'z'
-      : 'M' + x + ',' + (haut + h) + 'v-' + (h - r) + 'q0,-' + r + ' ' + r + ',-' + r + 'h' + (lb - 2 * r) + 'q' + r + ',0 ' + r + ',' + r + 'v' + (h - r) + 'z';
-    s += prevu ? '<path d="' + p + '" fill="url(#hp-' + (o.id || 'c') + ')" stroke="' + coul + '" stroke-width="1.2"/>' : '<path d="' + p + '" fill="' + coul + '"/>';
-    if (o.labels && (!o.pasLabels || i % o.pasLabels === 0)) s += '<text x="' + (x + lb / 2) + '" y="' + (H - (o.basAxe ? o.basAxe - 16 : 10)) + '" text-anchor="middle">' + esc(o.labels[i]) + '</text>';
-    if (o.etiquette && o.etiquette(i)) s += '<text x="' + (x + lb / 2) + '" y="' + (neg ? y0 + h + 13 : haut - 6) + '" text-anchor="middle" class="' + (o.etiquetteClasse ? o.etiquetteClasse(i) : 'fort') + '">' + esc(o.etiquette(i)) + '</text>';
+    const coul = coulDe(i);
+    const d = neg
+      ? 'M' + f1(x) + ',' + f1(haut) + 'h' + f1(lb) + 'v' + f1(h - r) + 'q0,' + f1(r) + ' -' + f1(r) + ',' + f1(r) + 'h-' + f1(lb - 2 * r) + 'q-' + f1(r) + ',0 -' + f1(r) + ',-' + f1(r) + 'z'
+      : 'M' + f1(x) + ',' + f1(haut + h) + 'v-' + f1(h - r) + 'q0,-' + f1(r) + ' ' + f1(r) + ',-' + f1(r) + 'h' + f1(lb - 2 * r) + 'q' + f1(r) + ',0 ' + f1(r) + ',' + f1(r) + 'v' + f1(h - r) + 'z';
+    const cls = 'g-barre' + (neg ? ' bas' : '');
+    if (prevus[i]) s += '<path class="' + cls + '" style="--k:' + i + '" d="' + d + '" fill="url(#hp-' + id + '-' + coulsPrev.indexOf(coul) + ')" stroke="' + coul + '" stroke-width="1.4" stroke-opacity=".85"/>';
+    else s += '<g class="' + cls + '" style="--k:' + i + '"><path d="' + d + '" fill="' + coul + '"/><path d="' + d + '" fill="url(#rf-' + id + ')"/></g>';
+    if (o.labels && (!o.pasLabels || i % o.pasLabels === 0 || (o.dernierLabel && i === n - 1))) s += '<text x="' + f1(x + lb / 2) + '" y="' + f1(H - mg.b + 17) + '" text-anchor="middle"' + (o.labelClasse ? ' class="' + o.labelClasse(i) + '"' : '') + '>' + esc(o.labels[i]) + '</text>';
+    if (o.etiquette && o.etiquette(i)) s += '<text class="g-fondu ' + (o.etiquetteClasse ? o.etiquetteClasse(i) : 'fort') + '" x="' + f1(x + lb / 2) + '" y="' + f1(neg ? y0 + h + 15 : haut - 8) + '" text-anchor="middle">' + esc(o.etiquette(i)) + '</text>';
     if (o.sous && o.sous(i)) {
       const so = [].concat(o.sous(i));
-      s += '<text x="' + (x + lb / 2) + '" y="' + (H - 6 - (so.length - 1) * 13) + '" text-anchor="middle" class="moyen">' + so.map((t, k) => '<tspan x="' + (x + lb / 2) + '"' + (k ? ' dy="13"' : '') + (k ? ' class="fort"' : '') + '>' + esc(t) + '</tspan>').join('') + '</text>';
+      s += '<text x="' + f1(x + lb / 2) + '" y="' + f1(H - mg.b + 34) + '" text-anchor="middle" class="moyen">' + so.map((t, k) => '<tspan x="' + f1(x + lb / 2) + '"' + (k ? ' dy="14"' : '') + (k ? ' class="ko"' : '') + '>' + esc(t) + '</tspan>').join('') + '</text>';
     }
-    s += '<rect class="cible" x="' + (mg.g + i * bande).toFixed(1) + '" y="' + mg.h + '" width="' + bande.toFixed(1) + '" height="' + (H - mg.h - mg.b) + '" fill="transparent"' + (o.tips ? tip(o.tips(i)) : '') + '/>';
+    s += '<g class="cible-g"><rect class="survol" x="' + f1(mg.g + i * bande + 2) + '" y="' + f1(mg.h - 6) + '" width="' + f1(bande - 4) + '" height="' + f1(H - mg.h - mg.b + 6) + '" rx="9" fill="rgba(20,26,46,.05)"/><rect class="cible" x="' + f1(mg.g + i * bande) + '" y="' + f1(mg.h - 6) + '" width="' + f1(bande) + '" height="' + f1(H - mg.h - mg.b + 6) + '" fill="transparent"' + (o.tips ? tip(o.tips(i)) : '') + '/></g>';
   });
-  if (e.min < 0) s += '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="var(--axe)"/>';
+  if (e.min < 0) s += '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(0)) + '" y2="' + f1(Y(0)) + '" stroke="var(--axe)"/>';
   return s + '</svg>';
 }
 
-function svgEtincelle(vals, coul = 'var(--s1)', w = 160, h = 34) {
+function svgEtincelle(vals, coul = 'var(--bleu)', w = 160, h = 34) {
   const min = Math.min(...vals), max = Math.max(...vals);
-  const X = (i) => 2 + (i / (vals.length - 1)) * (w - 6);
-  const Y = (v) => 3 + (1 - (v - min) / (max - min || 1)) * (h - 8);
-  const d = vals.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join('');
-  return '<svg class="etincelle" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + 'L' + X(vals.length - 1) + ',' + h + 'L2,' + h + 'Z" fill="' + coul + '" fill-opacity=".1"/><path d="' + d + '" fill="none" stroke="' + coul + '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/><circle cx="' + X(vals.length - 1) + '" cy="' + Y(vals[vals.length - 1]) + '" r="3" fill="' + coul + '"/></svg>';
+  const X = (i) => 3 + (i / (vals.length - 1)) * (w - 8);
+  const Y = (v) => 4 + (1 - (v - min) / (max - min || 1)) * (h - 9);
+  const P = vals.map((v, i) => [X(i), Y(v)]);
+  const d = segment(P, tangentes(P), 0, P.length - 1, true);
+  const id = 'et' + (++N_GRAPHE);
+  return '<svg class="etincelle" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + coul + '" stop-opacity=".3"/><stop offset="1" stop-color="' + coul + '" stop-opacity="0"/></linearGradient></defs>' +
+    '<path class="g-aire" d="' + d + 'L' + f1(X(vals.length - 1)) + ',' + h + 'L3,' + h + 'Z" fill="url(#' + id + ')"/><path class="g-trace" pathLength="1" d="' + d + '" fill="none" stroke="' + coul + '" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>';
 }
 
-// jauge : nombre de factures Logista d'avance (0 → 3)
-function svgJauge(val, max = 3) {
-  const cx = 120, cy = 112, r = 88;
+// jauge : nombre de factures Logista d'avance au point bas (0 → 3)
+function svgJauge(val, max = 3, surNuit = false) {
+  const cx = 130, cy = 122, r = 98;
   const ang = (v) => Math.PI * (1 - Math.min(Math.max(v, 0), max) / max);
   const pt = (v, rr = r) => [cx + rr * Math.cos(ang(v)), cy - rr * Math.sin(ang(v))];
-  const arc = (a, b, coul, ep = 12) => { const p0 = pt(a), p1 = pt(b); return '<path d="M' + p0[0].toFixed(1) + ',' + p0[1].toFixed(1) + ' A' + r + ',' + r + ' 0 0 1 ' + p1[0].toFixed(1) + ',' + p1[1].toFixed(1) + '" fill="none" stroke="' + coul + '" stroke-width="' + ep + '" stroke-linecap="butt"/>'; };
+  const arc = (a, b, coul, ep = 15) => { const p0 = pt(a), p1 = pt(b); return '<path d="M' + f1(p0[0]) + ',' + f1(p0[1]) + ' A' + r + ',' + r + ' 0 0 1 ' + f1(p1[0]) + ',' + f1(p1[1]) + '" fill="none" stroke="' + coul + '" stroke-width="' + ep + '" stroke-linecap="round"/>'; };
   const z1 = SIM.alerte / SIM.seuil;
-  let s = '<svg viewBox="0 0 240 140" role="img" aria-label="' + esc(F1.format(val) + ' facture Logista d’avance au point bas') + '">';
-  s += arc(0, z1, 'var(--ko-plein)') + arc(z1 + 0.03, 1, 'var(--att-plein)') + arc(1.03, max, 'var(--ok-plein)');
-  [0, 1, 2, 3].forEach((t) => { const a = pt(t, r - 20); s += '<text x="' + a[0].toFixed(1) + '" y="' + (a[1] + 4).toFixed(1) + '" text-anchor="middle">' + t + '</text>'; });
-  const pn = pt(val, r - 6);
-  s += '<line x1="' + cx + '" y1="' + cy + '" x2="' + pn[0].toFixed(1) + '" y2="' + pn[1].toFixed(1) + '" stroke="var(--ko-plein)" stroke-width="4" stroke-linecap="round"/>';
-  s += '<circle cx="' + cx + '" cy="' + cy + '" r="8" fill="var(--encre)"/><circle cx="' + cx + '" cy="' + cy + '" r="3" fill="var(--surface)"/>';
+  let s = '<svg viewBox="0 0 260 150" role="img" aria-label="' + esc(F1.format(val) + ' facture Logista d’avance au point bas') + '">';
+  s += arc(0.02, max - 0.02, surNuit ? 'rgba(255,255,255,.08)' : 'var(--papier-3)', 15);
+  s += arc(0.02, z1 - 0.04, 'var(--rouge)') + arc(z1 + 0.06, 0.96, 'var(--ambre)') + arc(1.06, max - 0.02, 'var(--vert-vif)');
+  [0, 1, 2, 3].forEach((t) => { const a = pt(t, r - 26); s += '<text x="' + f1(a[0]) + '" y="' + f1(a[1] + 4) + '" text-anchor="middle"' + (surNuit ? ' style="fill:var(--lune-3)"' : '') + '>' + t + '</text>'; });
+  const pn = pt(val, r - 10);
+  const deg = (Math.PI - ang(val)) * 180 / Math.PI;
+  s += '<g class="g-aiguille" style="transform-box:view-box;transform-origin:' + cx + 'px ' + cy + 'px;--a0:-' + f1(deg) + 'deg"><line x1="' + cx + '" y1="' + cy + '" x2="' + f1(pn[0]) + '" y2="' + f1(pn[1]) + '" stroke="var(--rouge)" stroke-width="4.5" stroke-linecap="round"/></g>';
+  s += '<circle cx="' + cx + '" cy="' + cy + '" r="10" fill="' + (surNuit ? '#fff' : 'var(--encre)') + '"/><circle cx="' + cx + '" cy="' + cy + '" r="3.5" fill="' + (surNuit ? 'var(--nuit-2)' : 'var(--papier)') + '"/>';
   return s + '</svg>';
+}
+
+/* ------------------------------------------------------------------ chiffres qui s'animent */
+const fin = (s) => s.replace(/ (?=\d)/g, ' ');
+function grosMontant(c, centimes = true) {
+  if (!centimes) return esc(fin(eur(c)));
+  const s = fin(eur2(c));
+  const i = s.lastIndexOf(',');
+  return s.slice(0, i) + '<small>' + s.slice(i) + '</small>';
+}
+function fmtCompte(c, f) {
+  if (f === 'eur2') return eur2(c);
+  if (f === 'gros') return grosMontant(c, true);
+  if (f === 'grosE') return grosMontant(c, false);
+  if (f === 'nb') return nb(c);
+  if (f === 'eurS') return eur(c, false, true);
+  return eur(c);
+}
+function compte(c, f = 'eur') { return '<span class="chiffre-anim" data-v="' + Math.round(c) + '" data-f="' + f + '">' + fmtCompte(Math.round(c), f) + '</span>'; }
+const mouvementReduit = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+function lancerComptes(racine) {
+  const els = $$('.chiffre-anim', racine);
+  if (!els.length || mouvementReduit()) return;
+  els.forEach((el) => { el._v = +el.dataset.v; el._f = el.dataset.f; });
+  const t0 = performance.now() + 120, dur = 1300;
+  const pas = (t) => {
+    const k = Math.max(0, Math.min(1, (t - t0) / dur)), e = 1 - Math.pow(1 - k, 4);
+    els.forEach((el) => { el.innerHTML = fmtCompte(Math.round(el._v * (0.62 + 0.38 * e)), el._f); });
+    if (k < 1) requestAnimationFrame(pas);
+    else els.forEach((el) => { el.innerHTML = fmtCompte(el._v, el._f); });
+  };
+  requestAnimationFrame(pas);
 }
 
 /* ------------------------------------------------------------------ petits composants */
