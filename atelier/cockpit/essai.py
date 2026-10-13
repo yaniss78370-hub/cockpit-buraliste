@@ -14,7 +14,7 @@ LIBS = {
     'jspdf.umd.min.js': os.path.join(JS, 'jspdf.umd.min.js'),
     'jspdf.plugin.autotable.min.js': os.path.join(JS, 'jspdf.plugin.autotable.min.js'),
 }
-URL = 'file://' + os.path.join(ICI, 'dist', 'test.html')
+URL = 'file://' + os.path.join(ICI, 'dist', 'test.html') + '?sans-visite'   # la visite guidée a ses propres essais
 ROUTES = ['cockpit', 'caisse', 'fdj', 'tresorerie', 'rentabilite', 'factures', 'stock', 'mise']
 erreurs = []
 

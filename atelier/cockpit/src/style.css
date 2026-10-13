@@ -1402,3 +1402,101 @@ body.cx-depart .cx-boite{animation:partir .6s var(--ease) both}
   .page-tete h1{font-size:38px}
   .split-leg{gap:10px 12px}
 }
+
+/* ------------------------------------------------------------------ visite guidée : la voix prend la main une minute */
+.cote-visite{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border-radius:16px;background:var(--verre);border:1px solid var(--verre-bord);color:var(--lune);text-align:left;transition:background .15s,border-color .15s}
+.cote-visite:hover{background:var(--verre-2);border-color:var(--verre-bord-2)}
+.cote-visite .cv-ic{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:50%;background:var(--ambre);color:#1c1204;box-shadow:0 8px 18px -10px rgba(242,166,59,.9)}
+.cote-visite .cv-ic .ic{width:14px;height:14px;margin-left:2px}
+.cote-visite b{display:block;font-size:13px;font-weight:650;line-height:1.3}
+.cote-visite small{display:block;font-size:12px;color:var(--lune-3);line-height:1.35}
+.cx-visite{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:14px;background:rgba(242,166,59,.1);border:1px solid rgba(242,166,59,.24);font-size:13px;line-height:1.45;color:var(--lune-2)}
+.cx-visite .ic{width:17px;height:17px;margin-top:1px;color:var(--ambre-2)}
+
+body.en-visite{overflow-anchor:none}
+body.en-visite .toast{display:none}
+.vi-st-l{display:block}
+.visite{position:fixed;inset:0;z-index:200;pointer-events:none}
+.vi-capte{position:absolute;inset:0;pointer-events:auto;cursor:pointer;background:transparent;-webkit-tap-highlight-color:transparent}
+.vi-voile{position:absolute;left:0;top:0;width:0;height:0;border-radius:20px;pointer-events:none;box-shadow:0 0 0 200vmax rgba(3,7,18,.3);transition:box-shadow .6s var(--ease)}
+.vi-voile.on{box-shadow:0 0 0 200vmax rgba(3,7,18,.56)}
+.vi-voile::after{content:"";position:absolute;inset:-2px;border-radius:inherit;border:2px solid var(--ambre-2);opacity:0;transition:opacity .35s}
+.vi-voile.on::after{opacity:1;animation:vi-pouls 2.4s ease-in-out infinite}
+.visite.finie .vi-voile{box-shadow:0 0 0 200vmax rgba(3,7,18,.64)}
+.visite.finie .vi-voile::after{opacity:0}
+@keyframes vi-pouls{0%,100%{box-shadow:0 0 0 0 rgba(255,197,107,.42)}50%{box-shadow:0 0 0 9px rgba(255,197,107,0)}}
+
+.vi-bas{position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(900px,calc(100% - 32px));display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;animation:vi-monter .5s var(--ease) both}
+.visite.finie .vi-bas{display:none}
+.vi-st{max-width:100%;min-height:calc(1.38em + 25px);padding:12px 22px 13px;border-radius:16px;background:rgba(5,10,24,.8);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);color:#fff;font:600 clamp(17px,1.75vw,22px)/1.38 var(--f-texte);letter-spacing:-.006em;text-align:center;text-wrap:balance;box-shadow:0 24px 60px -24px rgba(0,0,0,.95);pointer-events:auto}
+.vi-st:empty{visibility:hidden}
+.vm{opacity:.38;transition:opacity .16s linear}
+.vm.dit{opacity:1}
+.vi-barre{display:flex;align-items:center;gap:4px;max-width:100%;padding:5px 5px 5px 14px;border-radius:999px;background:rgba(10,18,42,.92);border:1px solid var(--verre-bord-2);box-shadow:var(--ombre-verre);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);pointer-events:auto}
+.vi-nom{display:flex;align-items:center;gap:8px;margin-right:6px;font-size:12.5px;font-weight:650;color:var(--lune-2);white-space:nowrap}
+.vi-onde{display:flex;align-items:center;gap:2px;height:14px}
+.vi-onde i{display:block;width:3px;height:14px;border-radius:2px;background:var(--ambre-2);transform-origin:center;animation:vi-onde .9s ease-in-out infinite}
+.vi-onde i:nth-child(2){animation-delay:-.3s}
+.vi-onde i:nth-child(3){animation-delay:-.55s}
+.vi-onde i:nth-child(4){animation-delay:-.15s}
+.visite.pause .vi-onde i,.visite.muet .vi-onde i{animation-play-state:paused;transform:scaleY(.35)}
+@keyframes vi-onde{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.vi-btn{display:flex;align-items:center;justify-content:center;gap:7px;min-width:36px;height:36px;padding:0 9px;border-radius:999px;color:var(--lune);transition:background .15s,color .15s}
+.vi-btn:hover{background:var(--verre-3)}
+.vi-btn .ic{width:17px;height:17px}
+.vi-son-txt{display:none;font-size:12.5px;font-weight:650;white-space:nowrap}
+.visite.sans-son .vi-son{background:var(--ambre);color:#1c1204;padding:0 13px 0 11px}
+.visite.sans-son .vi-son-txt{display:inline}
+.vi-chaps{display:flex;gap:6px;margin:0 8px 0 6px}
+.vi-chap{display:flex;flex-direction:column;gap:5px;width:70px;font-size:11px;font-weight:650;line-height:1;color:var(--lune-4);white-space:nowrap;transition:color .25s}
+.vi-chap.on,.vi-chap.vu{color:var(--lune-2)}
+.vi-chap.on{color:#fff}
+.vi-chap b{display:block;height:3px;border-radius:2px;background:var(--verre-3);overflow:hidden}
+.vi-chap i{display:block;width:100%;height:100%;border-radius:inherit;background:var(--ambre-2);transform:scaleX(0);transform-origin:left center}
+.vi-fermer{display:flex;align-items:center;gap:6px;height:36px;padding:0 13px 0 15px;border-radius:999px;background:var(--lune);color:var(--encre);font-size:13px;font-weight:650;white-space:nowrap;transition:background .15s}
+.vi-fermer:hover{background:#fff}
+.vi-fermer .ic{width:15px;height:15px;stroke-width:2.2}
+.vi-reprise{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:12px;height:64px;padding:0 26px 0 20px;border-radius:999px;background:rgba(255,253,248,.96);color:var(--encre);font-size:16px;font-weight:650;pointer-events:auto;box-shadow:0 30px 70px -20px rgba(0,0,0,.85);animation:apparaitre .3s var(--ease) both}
+.vi-reprise .ic{width:24px;height:24px}
+.vi-clic{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:2px solid var(--ambre-2);background:rgba(255,197,107,.22);pointer-events:none;animation:vi-clic .85s var(--ease) both}
+@keyframes vi-clic{0%{transform:scale(.35);opacity:0}25%{opacity:1}100%{transform:scale(1.5);opacity:0}}
+@keyframes vi-monter{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+
+.vi-fin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(460px,calc(100% - 32px));padding:30px 28px 24px;border-radius:26px;background:var(--papier);color:var(--encre);text-align:center;pointer-events:auto;box-shadow:var(--ombre-haute);animation:apparaitre .45s var(--ease) both}
+.vi-fin-ic{display:grid;place-items:center;width:50px;height:50px;margin:0 auto 14px;border-radius:50%;background:var(--ok-fond);color:var(--ok)}
+.vi-fin-ic .ic{width:24px;height:24px;stroke-width:2.2}
+.vi-fin h2{font:400 40px/1.04 var(--f-titre);letter-spacing:-.01em}
+.vi-fin p{max-width:36ch;margin:10px auto 0;color:var(--encre-2);font-size:15px;line-height:1.5}
+.vi-fin-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px}
+.vi-fin-actions .bouton{height:46px;padding:0 18px}
+.vi-lien{display:inline-block;margin-top:18px;font-size:13.5px;font-weight:600;color:var(--lien);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+
+@media (min-width:761px){
+  .visite.bas-gauche .vi-bas{left:clamp(16px,2.4vw,32px);transform:none;width:min(760px,calc(100% - 500px));align-items:flex-start;animation:none}
+  .visite.bas-gauche .vi-st{text-align:left}
+}
+@media (max-width:1100px){
+  .vi-chap{width:54px}
+}
+@media (max-width:760px){
+  .vi-bas{bottom:calc(88px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);gap:8px}
+  .vi-st{min-height:calc(2.7em + 20px);display:flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:14px;font-size:16.5px;line-height:1.35}
+  .vi-barre{width:100%;padding:4px 4px 4px 12px;gap:2px}
+  .vi-nom{margin-right:2px}
+  .vi-nom-txt{display:none}
+  .vi-chaps{flex:1;min-width:0;gap:4px;margin:0 6px}
+  .vi-chap{flex:1;width:auto;min-width:0}
+  .vi-chap>span{display:none}
+  .visite.sans-son .vi-chaps{display:none}
+  .vi-fermer{padding:0 12px}
+  .vi-fin{padding:26px 20px 20px}
+  .vi-fin h2{font-size:36px}
+  .vi-fin-actions .bouton{flex:1 1 100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .vi-bas,.vi-fin,.vi-reprise{animation:none}
+  .vi-voile{transition:none}
+  .vi-voile.on::after{animation:none}
+  .vi-onde i{animation:none;transform:scaleY(.6)}
+  .vm{transition:none}
+}

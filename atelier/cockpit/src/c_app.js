@@ -48,6 +48,7 @@ function htmlCote() {
         return '<a href="#' + r.id + '" data-action="aller" data-route="' + r.id + '" title="' + r.titre + '"' + (ETAT.route === r.id ? ' aria-current="page"' : '') + '>' + ic(r.ic) + '<span>' + r.titre + '</span>' + (p ? '<b class="nav-pastille ' + p[0] + '">' + p[1] + '</b>' : '') + '</a>';
       }).join('') + '</div>').join('') + '</nav>' +
     '<div class="cote-pied">' +
+    (SANS_VISITE ? '' : '<button class="cote-visite" type="button" data-action="visite"><span class="cv-ic">' + ic('lecture') + '</span><span><b>Revoir la visite guidée</b><small>Une minute, avec la voix</small></span></button>') +
     '<div class="lecture">' + ic('calendrier') + '<div><b>Lecture d’octobre</b><span>Jeudi 5 novembre, 10 h, avec votre contrôleur de gestion</span></div></div>' +
     '<div class="cote-boutons"><button class="bouton" type="button" data-action="menu-export" title="Exporter">' + ic('export') + '<span>Exporter</span></button><button class="bouton" type="button" data-action="deconnexion" title="Se déconnecter">' + ic('sortie') + '<span>Quitter</span></button></div>' +
     '<p class="cote-mention">Les chiffres, les noms et les situations présentés sont des exemples. <a href="https://cockpit-buraliste.fr" target="_blank" rel="noopener">cockpit-buraliste.fr</a></p></div>';
@@ -85,10 +86,12 @@ function htmlConnexion() {
     '<form class="cx-form" id="cx-form" novalidate><label for="cx-id">Identifiant</label><input class="champ" id="cx-id" type="text" value="demo@cockpit-buraliste.fr" readonly>' +
     '<label for="cx-mdp">Mot de passe</label><input class="champ" id="cx-mdp" type="password" value="demonstration" readonly>' +
     '<button class="bouton plein cx-bouton" type="submit" id="cx-entrer">' + ic('cadenas') + '<span>Se connecter</span></button></form>' +
+    (SANS_VISITE ? '' : '<p class="cx-visite">' + ic('haut-parleur') + '<span>À la connexion, une visite guidée d’une minute démarre, avec la voix. Montez le son.</span></p>') +
     '<p class="cx-note">' + ic('info') + '<span>Compte de démonstration du tabac « Le Balto ». Les champs sont déjà remplis : vous ne saisissez rien, rien n’est envoyé. Les chiffres, les noms et les situations sont des exemples.</span></p>' +
     '<a class="cx-lien" href="https://cockpit-buraliste.fr/#demo" target="_blank" rel="noopener">Pas encore client ? Demander une démonstration</a></div>';
 }
 function seConnecter() {
+  preparerVisite();
   const b = $('#cx-entrer');
   if (b) { b.disabled = true; b.querySelector('span').textContent = 'Connexion…'; }
   document.body.classList.add('cx-depart');
@@ -98,9 +101,11 @@ function seConnecter() {
     document.body.classList.remove('cx-depart');
     ETAT.animer = true;
     afficher();
+    demarrerVisite({ depuisConnexion: true });
   }, 520);
 }
 function seDeconnecter() {
+  fermerVisite();
   ETAT.connecte = false;
   try { sessionStorage.removeItem('cockpit-connecte'); } catch (e) { /* session indisponible */ }
   fermerTout();
@@ -201,6 +206,7 @@ function feuillePlus() {
   const autres = ROUTES.filter((r) => !NAV_BAS.includes(r.id));
   document.body.insertAdjacentHTML('beforeend', voile() + '<div class="feuille" role="dialog" aria-modal="true" aria-label="Plus"><span class="poignee"></span><span class="feuille-titre">Le Balto</span>' +
     autres.map((r) => '<button type="button" data-action="aller" data-route="' + r.id + '">' + ic(r.ic) + '<span>' + r.titre + '</span>' + ic('droite') + '</button>').join('') +
+    (SANS_VISITE ? '' : '<button type="button" data-action="visite">' + ic('lecture') + '<span>Revoir la visite guidée</span>' + ic('droite') + '</button>') +
     '<button type="button" data-action="palette">' + ic('loupe') + '<span>Rechercher</span>' + ic('droite') + '</button>' +
     '<button type="button" data-action="sources">' + ic('source') + '<span>Vos sources, ce soir</span>' + ic('droite') + '</button>' +
     '<button type="button" data-action="menu-export">' + ic('export') + '<span>Exporter</span>' + ic('droite') + '</button>' +
@@ -225,6 +231,7 @@ const ACTIONS_PAL = [
   { lib: 'Atterrissage FDJ de la semaine', ic: 'ticket', go: () => aller('fdj') },
   { lib: 'La commande de jeudi', ic: 'camion', go: () => aller('stock') },
   { lib: 'Demander à l’assistant', ic: 'bulle', go: () => ouvrirAssistant() },
+  { lib: 'Revoir la visite guidée', ic: 'lecture', go: () => demarrerVisite() },
   { lib: 'Exporter tout le cockpit (Excel)', ic: 'xlsx', go: () => exporter('classeur', 'xlsx') },
   { lib: 'Pack de septembre pour le comptable (PDF)', ic: 'pdf', go: () => exporter('pack', 'pdf') },
 ];
@@ -424,6 +431,7 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'deconnexion': seDeconnecter(); break;
+    case 'visite': demarrerVisite(); break;
     case 'surveiller': if (a.dataset.ops) { ETAT.fdj.semaine = '2026-10-05'; ETAT.fdj.ops = true; ETAT.fdj.jour = null; } if (a.dataset.route === 'caisse') { ETAT.caisse.jour = '2026-10-10'; ETAT.caisse.annules = 'jour'; ETAT.detail.caisse = true; } aller(a.dataset.route); break;
     case 'plus-mvt': ETAT.mvt.n += 60; $('#zone-mvt').innerHTML = htmlTableMouvements(); break;
     case 'plan-scenario': {
@@ -499,6 +507,7 @@ document.addEventListener('click', (e) => {
   }
 });
 document.addEventListener('keydown', (e) => {
+  if (toucheVisite(e)) return;
   const k = e.key;
   if ((e.metaKey || e.ctrlKey) && k.toLowerCase() === 'k' && ETAT.connecte) { e.preventDefault(); ouvrirPalette(); return; }
   if (k === 'Escape') { fermerTout(); return; }

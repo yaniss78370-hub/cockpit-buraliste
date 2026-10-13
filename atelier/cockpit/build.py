@@ -36,13 +36,20 @@ def font_faces(integrees):
     return '\n'.join(out)
 
 css = lire('style.css')
-js = '\n'.join(lire(n) for n in ['a_noyau.js', 'b_vues.js', 'e_pages.js', 'h_assistant.js', 'c_app.js', 'd_export.js'])
+js = '\n'.join(lire(n) for n in ['a_noyau.js', 'b_vues.js', 'e_pages.js', 'h_assistant.js', 'i_visite.js', 'c_app.js', 'd_export.js'])
 js += "\nconst H0 = location.hash.slice(1);\nif (ROUTE[H0]) ETAT.route = H0;\nafficher();\n"
 corps = lire('corps.html')
 donnees = open(os.path.join(ICI, 'data.json'), encoding='utf-8').read()
 assert '</script' not in donnees
 script_donnees = '<script type="application/json" id="donnees">' + donnees + '</script>'
-script_app = '<script>\n(function () {\n' + js + '\n})();\n</script>'
+# la voix de la visite guidée : intégrée dans l'aperçu, servie par le site (dossier voix/)
+VOIX = os.path.join(SITE, 'voix')
+ETAPES = range(1, 10)
+assert js.count('/*VOIX*/{}') == 1
+voix_integree = {str(n): 'data:audio/mpeg;base64,' + base64.b64encode(open(os.path.join(VOIX, 'visite-%d.mp3' % n), 'rb').read()).decode() for n in ETAPES}
+voix_site = {str(n): 'voix/visite-%d.mp3' % n for n in ETAPES}
+js_apercu = js.replace('/*VOIX*/{}', json.dumps(voix_integree))
+script_app = '<script>\n(function () {\n' + js_apercu + '\n})();\n</script>'
 
 # ---- aperçu (Artifact) : <title> et <style> en tête, pas de squelette
 apercu = '<title>' + TITRE + '</title>\n<style>\n' + css.replace('/*POLICES*/', font_faces(True)) + '\n</style>\n' + corps + script_donnees + '\n' + script_app + '\n'
@@ -55,11 +62,12 @@ squelette = ('<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 open(os.path.join(DIST, 'test.html'), 'w', encoding='utf-8').write(squelette)
 
 # ---- version du site : liens internes, sans nouvel onglet
-js_site = js
+js_site = js.replace('/*VOIX*/{}', json.dumps(voix_site))
 for avant, apres in [
     ('<a class="marque" href="https://cockpit-buraliste.fr" target="_blank" rel="noopener">', '<a class="marque" href="./" aria-label="Retour au site Cockpit Buraliste">'),
     ('<a class="cx-lien" href="https://cockpit-buraliste.fr/#demo" target="_blank" rel="noopener">', '<a class="cx-lien" href="./#demo">'),
     ('<a href="https://cockpit-buraliste.fr" target="_blank" rel="noopener">cockpit-buraliste.fr</a>', '<a href="./">cockpit-buraliste.fr</a>'),
+    ('<a class="vi-lien" href="https://cockpit-buraliste.fr/#demo" target="_blank" rel="noopener">', '<a class="vi-lien" href="./#demo">'),
 ]:
     assert js_site.count(avant) == 1, avant
     js_site = js_site.replace(avant, apres)
