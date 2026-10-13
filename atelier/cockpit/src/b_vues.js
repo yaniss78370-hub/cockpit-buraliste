@@ -1,12 +1,13 @@
 /* ------------------------------------------------------------------ pages */
 const ROUTES = [
-  { id: 'cockpit', titre: 'Cockpit', ic: 'jauge', sous: () => 'Mardi 13 octobre · relevé de ' + HEURE.replace(':', ' h ') },
-  { id: 'tresorerie', titre: 'Trésorerie', ic: 'banque', sous: () => 'Banques lues ce soir à 21 h 02 · plan de vol à six mois' },
-  { id: 'caisse', titre: 'Caisse et jeux', ic: 'caisse', sous: () => 'Export Strator de ce soir, 21 h 00 · Profession Jeux du lundi 12' },
-  { id: 'factures', titre: 'Factures', ic: 'facture', sous: () => D.factures.length + ' factures depuis juillet, lues et rangées sans saisie' },
-  { id: 'stock', titre: 'Stock et références', ic: 'stock', sous: () => 'Stock théorique comparé à Strator chaque soir' },
-  { id: 'rentabilite', titre: 'Rentabilité', ic: 'resultat', sous: () => 'Marge par rayon, atterrissage d’octobre et ratios' },
-  { id: 'mise', titre: 'Mise en place', ic: 'source', sous: () => 'Sans aucun mot de passe · déploiement en quatre semaines' },
+  { id: 'cockpit', titre: 'Accueil', ic: 'jauge', groupe: '', sous: () => 'Mardi 13 octobre · relevé de ' + HEURE.replace(':', ' h ') },
+  { id: 'caisse', titre: 'Caisse', ic: 'billet', groupe: 'Chaque soir', sous: () => 'Ce que la caisse doit contenir depuis la dernière collecte' },
+  { id: 'fdj', titre: 'FDJ', ic: 'ticket', groupe: 'Chaque soir', sous: () => 'Le prélèvement de mercredi, puis l’atterrissage de la semaine en cours' },
+  { id: 'tresorerie', titre: 'Trésorerie', ic: 'banque', groupe: 'Chaque soir', sous: () => 'Banques lues ce soir à 21 h 02 · plan de vol à six mois' },
+  { id: 'rentabilite', titre: 'Résultat', ic: 'resultat', groupe: 'Chaque mois', sous: () => 'Ce que vous gagnez chaque mois, sans attendre le bilan' },
+  { id: 'factures', titre: 'Factures', ic: 'facture', groupe: 'Chaque mois', sous: () => D.factures.length + ' factures depuis juillet, lues et rangées sans saisie' },
+  { id: 'stock', titre: 'Stock', ic: 'stock', groupe: 'Chaque mois', sous: () => 'Stock théorique comparé à Strator chaque soir' },
+  { id: 'mise', titre: 'Mise en place', ic: 'source', groupe: 'Le service', sous: () => 'Sans aucun mot de passe · opérationnel en quatre semaines' },
 ];
 const ROUTE = Object.fromEntries(ROUTES.map((r) => [r.id, r]));
 
@@ -34,7 +35,7 @@ function htmlTaches(details = true) {
   return '<div class="taches">' + TACHES.map((t) => {
     const fait = !!ETAT.faits[t.id];
     return '<label class="tache' + (fait ? ' faite' : '') + '"><input type="checkbox" data-tache="' + t.id + '"' + (fait ? ' checked' : '') + '>' +
-      '<span class="t-lib">' + t.lib + '</span><span class="t-mt">' + eur(t.mt) + '</span>' +
+      '<span class="t-lib">' + t.lib + '</span><span class="t-mt">' + (t.environ ? '≈ ' : '') + eur(t.mt) + '</span>' +
       '<span class="t-quand">' + t.quand + (fait ? ' · fait' : '') + '</span>' + (details ? '<span class="t-pourquoi">' + t.pourquoi + '</span>' : '') + '</label>';
   }).join('') + '</div>';
 }
@@ -723,8 +724,8 @@ function htmlMargeRayons(cle, cleComp) {
   const tot = l.reduce((s, x) => s + x.m, 0);
   return '<div class="rayons">' + l.map((x) => {
     const evo = x.m0 ? (x.m - x.m0) / x.m0 * 100 : null;
-    return '<div class="ray-l"' + tip('<b>' + x.a.lib + '</b>' + ligneTip(x.a.coul, pnlDe(cle).lib, eur(x.m)) + (x.m0 != null ? ligneTip('', pnlDe(cleComp).lib, eur(x.m0)) : '') + ligneTip('', 'Part de la marge', pct(x.m / tot * 100, 0))) + '>' +
-      '<span class="ray-lib">' + x.a.lib + '</span><span class="ray-piste"><i style="width:' + (x.m / max * 100).toFixed(1) + '%;background:' + x.a.coul + '"></i></span>' +
+    return '<div class="ray-l"' + tip('<b>' + x.a.lib + '</b>' + ligneTip('var(--s1)', pnlDe(cle).lib, eur(x.m)) + (x.m0 != null ? ligneTip('', pnlDe(cleComp).lib, eur(x.m0)) : '') + ligneTip('', 'Part de la marge', pct(x.m / tot * 100, 0))) + '>' +
+      '<span class="ray-lib">' + x.a.lib + '</span><span class="ray-piste"><i style="width:' + (x.m / max * 100).toFixed(1) + '%;background:var(--s1)"></i></span>' +
       '<span class="ray-v">' + eur(x.m) + '</span><span class="ray-d">' + (evo != null ? delta(evo) : '') + '</span></div>';
   }).join('') +
     '<div class="ray-l total"><span class="ray-lib">Marge brute</span><span class="ray-piste vide"></span><span class="ray-v">' + eur(tot) + '</span><span class="ray-d">' + (p0 ? delta((tot - margeTotale(p0)) / margeTotale(p0) * 100) : '') + '</span></div></div>';
@@ -861,4 +862,4 @@ function vueMise() {
   });
 }
 
-const VUES = { cockpit: vueCockpit, tresorerie: vueTresorerie, caisse: vueCaisse, factures: vueFactures, stock: vueStock, rentabilite: vueRentabilite, mise: vueMise };
+const VUES = { cockpit: vueCockpit, tresorerie: vueTresorerie, caisse: vueCaisse, factures: vueFactures, stock: vueStock, rentabilite: vueRentabilite, mise: vueMise, fdj: vueCaisse };

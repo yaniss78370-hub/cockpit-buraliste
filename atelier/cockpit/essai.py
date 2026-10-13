@@ -16,7 +16,7 @@ LIBS = {
     'jspdf.plugin.autotable.min.js': os.path.join(JS, 'jspdf.plugin.autotable.min.js'),
 }
 URL = 'file://' + os.path.join(ICI, 'dist', 'test.html')
-ROUTES = ['cockpit', 'tresorerie', 'caisse', 'factures', 'stock', 'rentabilite', 'mise']
+ROUTES = ['cockpit', 'caisse', 'fdj', 'tresorerie', 'rentabilite', 'factures', 'stock', 'mise']
 MODE = sys.argv[1] if len(sys.argv) > 1 else 'tout'
 erreurs = []
 
@@ -101,10 +101,52 @@ with sync_playwright() as pw:
     p.click('[data-seg="resvue"][data-val="annee"]')
     p.wait_for_timeout(150)
     p.screenshot(path=os.path.join(OUT, 'b-rentabilite-annee.png'), full_page=True)
-    # caisse : jour précédent et semaine FDJ
+    # caisse : comptage puis détail du Z
     p.evaluate("() => { location.hash = 'caisse'; }")
     p.wait_for_timeout(200)
+    a_avoir = p.inner_text('.reponse .rep-montant')
+    p.fill('#compte-caisse', '5 000')
+    p.wait_for_timeout(100)
+    msg_manque = p.inner_text('#compte-res')
+    p.fill('#compte-caisse', a_avoir.replace('€', '').strip())
+    p.wait_for_timeout(100)
+    msg_juste = p.inner_text('#compte-res')
     p.screenshot(path=os.path.join(OUT, 'b-caisse-plein.png'), full_page=True)
+    p.click('[data-action="detail"]')
+    p.wait_for_timeout(250)
+    p.click('[data-action="jour"][data-pas="-1"]')
+    p.wait_for_timeout(200)
+    jour_z = p.inner_text('.jour-nav b')
+    p.screenshot(path=os.path.join(OUT, 'b-caisse-detail.png'), full_page=True)
+    # FDJ : semaine précédente, un jour, une ligne d'historique, les opérations
+    p.evaluate("() => { location.hash = 'fdj'; }")
+    p.wait_for_timeout(250)
+    fdj_prochain = p.inner_text('.reponse .rep-montant')
+    fdj_atterrissage = p.inner_text('#fdj-semaine .rep-montant')
+    p.screenshot(path=os.path.join(OUT, 'b-fdj-plein.png'), full_page=True)
+    p.click('[data-action="fdj-jour"][data-jour="2026-10-12"]')
+    p.wait_for_timeout(150)
+    fdj_jour = p.inner_text('#fdj-semaine .sem-droite .h3')
+    p.click('[data-action="fdj-sem"][data-pas="-1"]')
+    p.wait_for_timeout(150)
+    fdj_sem_prec = p.inner_text('#fdj-semaine .sem-titre')
+    fdj_calc_prec = p.inner_text('#fdj-semaine .calc')
+    p.screenshot(path=os.path.join(OUT, 'b-fdj-s41.png'), full_page=True)
+    p.click('tr[data-action="fdj-semaine"]:nth-child(3)')
+    p.wait_for_timeout(250)
+    fdj_sem_ligne = p.inner_text('#fdj-semaine .sem-titre')
+    p.click('[data-action="fdj-ops"]')
+    p.wait_for_timeout(150)
+    nb_ops = p.locator('.explication tbody tr').count()
+    p.click('[data-action="detail"]')
+    p.wait_for_timeout(250)
+    p.screenshot(path=os.path.join(OUT, 'b-fdj-detail.png'), full_page=True)
+    # accueil : une tuile mène à sa page
+    p.evaluate("() => { location.hash = 'cockpit'; }")
+    p.wait_for_timeout(200)
+    p.click('.tuile-rep[data-route="fdj"]')
+    p.wait_for_timeout(200)
+    route_tuile = p.evaluate('location.hash')
     # menu exporter
     p.click('.barre [data-action="menu-export"]')
     p.wait_for_timeout(150)
@@ -135,10 +177,10 @@ with sync_playwright() as pw:
     p.goto(URL)
     p.click('#cx-entrer')
     p.wait_for_timeout(900)
-    for r in ['cockpit', 'tresorerie', 'factures']:
+    for r in ['cockpit', 'caisse', 'fdj', 'tresorerie', 'factures']:
         p.evaluate("r => { location.hash = r; }", r)
         p.wait_for_timeout(200)
-        p.screenshot(path=os.path.join(OUT, 's-' + r + '.png'))
+        p.screenshot(path=os.path.join(OUT, 's-' + r + '.png'), full_page=True)
     ctx.close()
 
     # ---------------- portable 1180 et tablette 900
@@ -147,10 +189,11 @@ with sync_playwright() as pw:
         p.goto(URL)
         p.click('#cx-entrer')
         p.wait_for_timeout(900)
-        p.screenshot(path=os.path.join(OUT, nom + '-cockpit.png'))
-        p.evaluate("() => { location.hash = 'factures'; }")
-        p.wait_for_timeout(200)
-        p.screenshot(path=os.path.join(OUT, nom + '-factures.png'))
+        p.screenshot(path=os.path.join(OUT, nom + '-cockpit.png'), full_page=True)
+        for r in ['caisse', 'fdj', 'factures']:
+            p.evaluate("r => { location.hash = r; }", r)
+            p.wait_for_timeout(200)
+            p.screenshot(path=os.path.join(OUT, nom + '-' + r + '.png'), full_page=True)
         ctx.close()
 
     # ---------------- téléphone
@@ -165,14 +208,24 @@ with sync_playwright() as pw:
         p.wait_for_timeout(250)
         p.screenshot(path=os.path.join(OUT, 'm-' + r + '.png'))
         p.screenshot(path=os.path.join(OUT, 'm-' + r + '-plein.png'), full_page=True)
-    largeur = p.evaluate('document.documentElement.scrollWidth')
+    largeurs = {}
+    for r in ROUTES:
+        p.evaluate("r => { location.hash = r; }", r)
+        p.wait_for_timeout(150)
+        largeurs[r] = p.evaluate('document.documentElement.scrollWidth')
+    largeur = max(largeurs.values())
+    p.evaluate("() => { location.hash = 'fdj'; }")
+    p.wait_for_timeout(150)
+    p.click('[data-action="fdj-jour"][data-jour="2026-10-13"]')
+    p.wait_for_timeout(150)
+    p.screenshot(path=os.path.join(OUT, 'm-fdj-jour.png'), full_page=True)
     p.click('[data-action="plus"]')
     p.wait_for_timeout(200)
     p.screenshot(path=os.path.join(OUT, 'm-plus.png'))
     p.keyboard.press('Escape')
     p.evaluate("() => { location.hash = 'factures'; }")
     p.wait_for_timeout(200)
-    p.locator('.visuel-simple .ligne.cliquable').nth(2).click()
+    p.locator('.bloc .ligne.cliquable').nth(2).click()
     p.wait_for_timeout(250)
     p.screenshot(path=os.path.join(OUT, 'm-facture-tiroir.png'))
     ctx.close()
@@ -180,4 +233,8 @@ with sync_playwright() as pw:
 
 print(json.dumps({'erreurs': erreurs[:30], 'nb_erreurs': len(erreurs), 'ciel_agencement': ciel, 'mouvements_logista': nb_logista,
                   'resultats_coca': nres, 'route_apres_recherche': route_apres, 'xlsx': res, 'telecharge': telecharge,
-                  'largeur_mobile': largeur}, ensure_ascii=False, indent=1))
+                  'largeur_mobile': largeur, 'largeurs': largeurs,
+                  'caisse': {'a_avoir': a_avoir, 'manque': msg_manque, 'juste': msg_juste, 'jour_z': jour_z},
+                  'fdj': {'prochain': fdj_prochain, 'atterrissage': fdj_atterrissage, 'jour': fdj_jour, 'sem_prec': fdj_sem_prec,
+                          'calc_prec': fdj_calc_prec, 'sem_ligne': fdj_sem_ligne, 'ops': nb_ops},
+                  'route_tuile': route_tuile}, ensure_ascii=False, indent=1))

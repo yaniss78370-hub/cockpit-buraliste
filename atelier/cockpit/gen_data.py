@@ -136,6 +136,24 @@ STRATOR_FDJ = {k: v['fdj'] for k, v in VENTES.items()}
 STRATOR_FDJ['2026-10-08'] -= c(45)
 STRATOR_FDJ['2026-09-15'] += c(12)
 
+# Rubriques du CA Strator pour les jeux FDJ : « Jeux instantanés » (grattage) et « Loto » (tirages et paris sportifs).
+# Taux de commission calibrés sur les relevés FDJ (repris de l'outil Atterrissage FDJ) : 6,83 % et 4,11 %.
+R2 = random.Random(7707)          # générateur à part : les autres tirages restent identiques
+TAUX_FDJ = {'ji': 0.0683, 'loto': 0.0411}
+PART_JI = [0.70, 0.72, 0.69, 0.76, 0.70, 0.68, 0.78]   # lun → dim (Loto lun., mer., sam. ; EuroMillions mar., ven.)
+JI_PJ, LOTO_PJ = {}, {}
+for d in days(START, TODAY):
+    k = iso(d)
+    t = VENTES[k]['fdj']
+    JI_PJ[k] = round(t * (PART_JI[d.weekday()] + R2.uniform(-0.02, 0.02)))
+    LOTO_PJ[k] = t - JI_PJ[k]
+JI_ST, LOTO_ST = dict(JI_PJ), dict(LOTO_PJ)
+JI_ST['2026-10-08'] -= c(45)      # trois tickets à gratter passés au terminal FDJ, absents de la caisse
+LOTO_ST['2026-09-15'] += c(12)    # ticket Loto saisi deux fois en caisse
+def com_fdj(ji, lo):
+    return ji * TAUX_FDJ['ji'] + lo * TAUX_FDJ['loto']
+TAUX['fdj'] = round(com_fdj(sum(JI_PJ.values()), sum(LOTO_PJ.values())) / sum(JI_PJ[k] + LOTO_PJ[k] for k in JI_PJ), 4)
+
 # ---------------------------------------------------------------- gains payés (jeux), semaines FDJ / PMU
 GAINS_FDJ = {}
 GAINS_PMU = {}
@@ -174,7 +192,13 @@ for s in semaines():
         continue
     # FDJ
     ventes = somme(VENTES, s, fin, 'fdj')
-    com = c(ventes / 100 * TAUX['fdj'])
+    ji_w, lo_w = somme(JI_PJ, s, fin), somme(LOTO_PJ, s, fin)
+    ji_st, lo_st = somme(JI_ST, s, fin), somme(LOTO_ST, s, fin)
+    eps = c(R2.uniform(-35, 35))
+    if s == D(2026, 10, 5):
+        # S41 : l'estimation Strator doit finir 46,80 € sous le relevé (les 45 € de tickets absents, et l'arrondi de commission)
+        eps = round(-c(46.80) - ((ji_st + lo_st) - (ji_w + lo_w)) + (com_fdj(ji_st, lo_st) - com_fdj(ji_w, lo_w)))
+    com = round(com_fdj(ji_w, lo_w)) + eps
     gains = somme(GAINS_FDJ, s, fin)
     if s in FORCE_FDJ:
         cible = FORCE_FDJ[s]
@@ -183,7 +207,8 @@ for s in semaines():
         gains += delta
     solde = ventes - gains - com
     RELEVES['fdj'].append({'semaine': iso_semaine(s), 'du': iso(s), 'au': iso(fin), 'ventes': ventes, 'gains': gains,
-                           'commission': com, 'solde': solde, 'prelevement': iso(s + dt.timedelta(days=9))})
+                           'commission': com, 'solde': solde, 'prelevement': iso(s + dt.timedelta(days=9)),
+                           'ji': ji_w, 'loto': lo_w})
     # PMU
     enj = somme(VENTES, s, fin, 'pmu')
     comp = c(enj / 100 * TAUX['pmu'])
@@ -240,6 +265,11 @@ def ajuste_net(k, cible):
 
 ajuste_net('2026-10-12', c(5090))
 ajuste_net('2026-10-13', c(6330))
+RJ, RL = {}, {}
+for d in days(START, TODAY):
+    k = iso(d)
+    RL[k] = round(GAINS_FDJ[k] * R2.uniform(0.08, 0.14))
+    RJ[k] = GAINS_FDJ[k] - RL[k]
 # recalcule le relevé FDJ de la semaine en cours n'est pas nécessaire (semaine non close)
 
 CB = {}
@@ -334,6 +364,7 @@ def pnl_periode(a, b, prorata=1.0):
     for f in ('fdj', 'pmu', 'recharges', 'timbres', 'presse'):
         r[f + '_ventes'] = v[f]
         r[f + '_marge'] = round(v[f] * TAUX[f])
+    r['fdj_marge'] = round(com_fdj(somme(JI_PJ, a, min(b, TODAY)), somme(LOTO_PJ, a, min(b, TODAY))))
     for f in BOUTIQUE:
         ht = round(v[f] / (1 + TVA_VENTE[f]))
         r[f + '_ventes'] = ht
@@ -416,13 +447,19 @@ for d in days(D(2026, 6, 26), TODAY):
         if BANK_START <= dc <= TODAY:
             mv(dc, 'bnp', 'REMISE CB DU ' + d.strftime('%d/%m') + ' TPE 4471205', CB[k], 'Encaissements CB', 'Ventes par carte')
 
-# dépôts d'espèces : chaque vendredi ouvré (sinon jour ouvré suivant), sauf la semaine en cours
+# collectes : chaque vendredi à 20 h 30, après la fermeture ; les espèces comptées sont versées à la BNP.
+# Écart = compté − théorique (Z de caisse, gains de jeux payés déduits).
+ECART_COLLECTE = {'2026-07-17': -c(8.50), '2026-07-31': c(3.20), '2026-08-21': -c(12.40),
+                  '2026-09-11': -c(19.60), '2026-09-25': -c(12.40)}
+COLLECTES = []
 for d in days(BANK_START, TODAY):
     k = iso(d)
     caisse += ESP[k]
     if d.weekday() == 4 and d <= D(2026, 10, 9):
         jd = jour_ouvre_suivant(d)
-        mv(jd, 'bnp', 'VERSEMENT ESPECES AGENCE', caisse, 'Dépôt d’espèces', 'Caisse du tabac')
+        e = ECART_COLLECTE.get(k, 0)
+        mv(jd, 'bnp', 'VERSEMENT ESPECES AGENCE', caisse + e, 'Dépôt d’espèces', 'Caisse du tabac')
+        COLLECTES.append({'date': k, 'heure': '20:30', 'theorique': caisse, 'recupere': caisse + e, 'ecart': e, 'depot': iso(jd)})
         caisse = 0
 CAISSE_FIN = caisse
 assert CAISSE_FIN == c(5020), CAISSE_FIN
@@ -1051,7 +1088,7 @@ def soldes_quotidiens():
         cred = sum(x['montant'] for x in MOUV if x['date'] == k and x['categorie'] == 'Encaissements CB')
         attente += CB[k] - cred
         dep = sum(x['montant'] for x in MOUV if x['date'] == k and x['categorie'] == 'Dépôt d’espèces')
-        caisse += ESP[k] - dep
+        caisse += ESP[k] - dep + (ECART_COLLECTE.get(k, 0) if dep else 0)
         serie.append({'date': k, 'bnp': sol['bnp'], 'bp': sol['bp'], 'fdj': sol['fdj'], 'caisse': caisse, 'cb': attente,
                       'total': sol['bnp'] + sol['bp'] + sol['fdj'] + caisse + attente})
     return serie
@@ -1153,6 +1190,8 @@ for m in range(1, 10):
     if m == 9:
         marge_boissons_reelle = round(marge_boissons_theo - 2.1, 1)
     ecart_especes = c(R.choice([-12, -8, -4, 0, 3, 6, -18, -32])) if m != 9 else -c(32)
+    if m >= 7:
+        ecart_especes = sum(x['ecart'] for x in COLLECTES if int(x['date'][5:7]) == m)
     RATIOS.append({'mois': m, 'cafe_kg': kg, 'tasses': tasses, 'tasses_kg': round(tasses / kg),
                    'boissons_theo': marge_boissons_theo, 'boissons_reel': marge_boissons_reelle,
                    'especes_ecart': ecart_especes, 'tabac_marge': round(TAUX['tabac'] * 100 + R.uniform(-0.08, 0.06), 2)})
@@ -1248,6 +1287,9 @@ data = {
     'salaires': SALAIRES, 'salaires_brut': SALAIRES_BRUT, 'livraisons': [iso(x) for x in LIVRAISONS],
     'fact_tabac': {iso(k): v for k, v in FACT_TABAC.items()}, 'stock_tabac_debut': STOCK_TABAC_DEBUT,
     'pnl_att': PNL_ATT, 'fixes': FIXES, 'fixes_mois': ['%04d-%02d' % x for x in MOIS12], 'notes_fixes': NOTES_FIXES,
+    'fdj': {'taux': TAUX_FDJ, 'jours': {iso(d): [JI_PJ[iso(d)], LOTO_PJ[iso(d)], JI_ST[iso(d)], LOTO_ST[iso(d)], RJ[iso(d)], RL[iso(d)]]
+                                         for d in days(D(2026, 6, 1), TODAY)}},
+    'collectes': COLLECTES, 'caisse_depuis': {'date': '2026-10-09', 'heure': '20:30'},
 }
 json.dump(data, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data.json'), 'w'), ensure_ascii=False, separators=(',', ':'))
 

@@ -36,7 +36,7 @@ def font_faces(integrees):
     return '\n'.join(out)
 
 css = lire('style.css')
-js = '\n'.join(lire(n) for n in ['a_noyau.js', 'b_vues.js', 'c_app.js', 'd_export.js'])
+js = '\n'.join(lire(n) for n in ['a_noyau.js', 'b_vues.js', 'e_pages.js', 'c_app.js', 'd_export.js'])
 js += "\nconst H0 = location.hash.slice(1);\nif (ROUTE[H0]) ETAT.route = H0;\nafficher();\n"
 corps = lire('corps.html')
 donnees = open(os.path.join(ICI, 'data.json'), encoding='utf-8').read()

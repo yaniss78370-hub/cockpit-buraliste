@@ -1,10 +1,10 @@
 /* ------------------------------------------------------------------ coque : rail, barre, onglets du bas */
-const NAV_BAS = ['cockpit', 'tresorerie', 'caisse', 'factures'];
+const NAV_BAS = ['cockpit', 'caisse', 'fdj', 'tresorerie'];
 function htmlRail() {
   return '<a class="marque" href="#cockpit" data-action="aller" data-route="cockpit" aria-label="Cockpit Buraliste, vue d’ensemble">' + LOGO + '<span><b>Cockpit</b> Buraliste</span></a>' +
     '<div class="tabac"><span class="tabac-nom">' + esc(D.meta.tabac) + '</span><span class="tabac-sous">Tabac, presse, jeux · Julien, gérant</span><span class="tabac-test">' + ic('info') + 'Données d’exemple</span></div>' +
     '<nav class="nav" aria-label="Pages du cockpit"><div class="nav-groupe">' + ROUTES.map((r, i) =>
-      (i === 1 ? '</div><div class="nav-groupe"><span class="nav-titre">Les problématiques</span>' : '') + (i === 6 ? '</div><div class="nav-groupe"><span class="nav-titre">Le service</span>' : '') +
+      (i > 0 && r.groupe !== ROUTES[i - 1].groupe ? '</div><div class="nav-groupe"><span class="nav-titre">' + r.groupe + '</span>' : '') +
       '<a href="#' + r.id + '" data-action="aller" data-route="' + r.id + '"' + (ETAT.route === r.id ? ' aria-current="page"' : '') + '>' + ic(r.ic) + '<span>' + r.titre + '</span>' +
       '</a>').join('') + '</div></nav>' +
     '<div class="rail-pied"><button class="bouton" type="button" data-action="menu-export">' + ic('export') + '<span>Exporter</span></button>' +
@@ -22,7 +22,7 @@ function htmlBarre() {
 function htmlOngletsBas() {
   const tous = NAV_BAS.map((id) => ROUTE[id]);
   const plus = !NAV_BAS.includes(ETAT.route);
-  return tous.map((r) => '<button type="button" data-action="aller" data-route="' + r.id + '"' + (ETAT.route === r.id ? ' aria-current="page"' : '') + '>' + ic(r.ic) + '<span>' + (r.id === 'caisse' ? 'Caisse' : r.titre) + '</span></button>').join('') +
+  return tous.map((r) => '<button type="button" data-action="aller" data-route="' + r.id + '"' + (ETAT.route === r.id ? ' aria-current="page"' : '') + '>' + ic(r.ic) + '<span>' + r.titre + '</span></button>').join('') +
     '<button type="button" data-action="plus"' + (plus ? ' aria-current="page"' : '') + '>' + ic('plus') + '<span>Plus</span></button>';
 }
 const LOGO = '<svg class="jauge-logo" viewBox="0 0 40 40" aria-hidden="true"><path class="arc-fond" d="M8.5 26.5a11.5 11.5 0 0 1 23 0"/><path class="arc-vert" d="M8.5 26.5a11.5 11.5 0 0 1 7.4-10.75"/><path class="aiguille" d="M20 12.2l2.5 9.3-2.5 5-2.5-5z" transform="rotate(36 20 26.5)"/><circle class="moyeu" cx="20" cy="26.5" r="2.4"/></svg>';
@@ -271,7 +271,7 @@ document.addEventListener('click', (e) => {
       if (!al) break;
       if (al.facture) { ouvrirFacture(al.facture); break; }
       if (al.jour) { ETAT.caisse.jour = al.jour; ETAT.caisse.annules = 'jour'; }
-      if (al.id === 'fdj-ecart') ETAT.jeux.semaine = '2026-10-05';
+      if (al.id === 'fdj-ecart') { ETAT.jeux.semaine = '2026-10-05'; ETAT.fdj.semaine = '2026-10-05'; ETAT.fdj.ops = true; }
       if (al.id === 'fraise') ETAT.stock.onglet = 'commande';
       if (al.id === 'vanille') { ETAT.stock.onglet = 'vape'; ETAT.stock.statut = 'tous'; ETAT.stock.q = ''; }
       ETAT.detail[al.module] = true;
@@ -281,6 +281,15 @@ document.addEventListener('click', (e) => {
     case 'traiter': ETAT.traitees[a.dataset.id] = true; ecrire(); rendre(true); toast('Marqué comme traité.'); break;
     case 'export': fermerTout(); exporter(a.dataset.cle, a.dataset.format); break;
     case 'copier-commande': copierCommande(); break;
+    case 'fdj-sem': ETAT.fdj.semaine = ajoute(ETAT.fdj.semaine || lundiDe(AUJ), 7 * +a.dataset.pas); ETAT.fdj.jour = null; rendre(true); break;
+    case 'fdj-jour': ETAT.fdj.jour = a.dataset.jour || null; rendre(true); break;
+    case 'fdj-ops': ETAT.fdj.ops = !ETAT.fdj.ops; rendre(true); break;
+    case 'fdj-semaine': {
+      ETAT.fdj.semaine = a.dataset.semaine; ETAT.fdj.jour = null; rendre(true);
+      const b = $('#fdj-semaine');
+      if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      break;
+    }
     case 'detail': {
       ETAT.detail[ETAT.route] = !ETAT.detail[ETAT.route];
       rendre(true);
@@ -294,6 +303,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { fermerTout(); const b = $('#resultats'); if (b) b.hidden = true; }
   if (e.key === 'Enter' && e.target.id === 'recherche' && RES[0]) { e.preventDefault(); $('#resultats').hidden = true; RES[0].go(); e.target.value = ''; }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.facture-l')) { e.preventDefault(); ouvrirFacture(e.target.dataset.id); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('tr[data-action]')) { e.preventDefault(); e.target.click(); }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { const r = $('#recherche'); if (r) { e.preventDefault(); r.focus(); } }
 });
 document.addEventListener('change', (e) => {
@@ -311,6 +321,7 @@ document.addEventListener('change', (e) => {
 document.addEventListener('input', (e) => {
   const t = e.target;
   if (t.id === 'recherche') { chercher(t.value); return; }
+  if (t.id === 'compte-caisse') { majComptage(t.value); return; }
   if (t.id === 'curseur-salaire') {
     ETAT.plan.salaire = +t.value;
     const lib = $('#salaire-lib');
@@ -327,7 +338,10 @@ document.addEventListener('input', (e) => {
     if (o === 'stock') { const pos = t.selectionStart; rendre(true); const n = $('#q-vape'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }
   }
 });
-document.addEventListener('submit', (e) => { if (e.target.id === 'cx-form') { e.preventDefault(); seConnecter(); } });
+document.addEventListener('submit', (e) => {
+  if (e.target.id === 'cx-form') { e.preventDefault(); seConnecter(); }
+  if (e.target.id === 'form-compte') e.preventDefault();
+});
 try {
   const mqTel = window.matchMedia('(max-width: 760px)');
   const auChangement = () => { if (ETAT.connecte) rendre(true); };

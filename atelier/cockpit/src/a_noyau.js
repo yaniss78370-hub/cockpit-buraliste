@@ -7,9 +7,11 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 
 /* ------------------------------------------------------------------ formats */
 const NB = ' ';
-const F0 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
-const F1 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const F2 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// séparateur de milliers : espace insécable ordinaire, plus lisible que l'espace fine dans le texte courant
+const formatFr = (o) => { const f = new Intl.NumberFormat('fr-FR', o); return { format: (x) => f.format(x).replace(/[\u202f\u00a0]/g, NB) }; };
+const F0 = formatFr({ maximumFractionDigits: 0 });
+const F1 = formatFr({ minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const F2 = formatFr({ minimumFractionDigits: 2, maximumFractionDigits: 2 });
 function eur(c, dec = false, signe = false) {
   const v = c / 100;
   const neg = dec ? v < -0.004 : Math.round(v) < 0;
@@ -70,6 +72,8 @@ const ETAT = {
   stock: { onglet: 'vape', statut: 'tous', q: '', tri: 'statut', sens: 1 },
   alertes: 'a-traiter',
   detail: {},
+  fdj: { semaine: null, jour: null, ops: false },
+  compte: '',
   feuille: null,
 };
 
@@ -216,7 +220,7 @@ function construireAlertes() {
   const ach9 = D.vape_achats['9'] || 0, cout9 = D.pnl[8].produits.vape_cout;
   const att = (s) => s;
   const A = [
-    { id: 'fdj-ecart', niv: 'att', module: 'caisse', date: '2026-10-08', titre: 'Écart FDJ de ' + eur2(-4500) + ', jeudi 8 octobre à 14 h 31 min 08 s',
+    { id: 'fdj-ecart', niv: 'att', module: 'fdj', date: '2026-10-08', titre: 'Écart FDJ de ' + eur2(-4500) + ', jeudi 8 octobre à 14 h 31 min 08 s',
       texte: 'Trois tickets à gratter passés au terminal FDJ, absents de la caisse Strator. Le reste de la semaine est juste.', action: 'Voir le contrôle' },
     { id: 'vir-bp', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'Virer ' + eur(3240000) + ' de la BNP vers la Banque Populaire, avant jeudi',
       texte: 'Recharges de jeudi (3 470 €) et facture Logista de lundi (29 330 €), moins les 400 € déjà sur le compte.', action: 'Voir la semaine', tache: 'vir-bp', onglet: 'semaine' },
@@ -370,7 +374,7 @@ function svgEmpile(o) {
 function svgColonnes(o) {
   const W = o.w || 760, H = o.h || 220, mg = { g: o.margeG || 50, d: 10, h: 16, b: o.basAxe || 28 };
   const vals = o.vals;
-  const e = echelle(Math.min(0, ...vals), Math.max(...vals) * 1.08, o.nTicks || 4);
+  const e = echelle(Math.min(0, ...vals), o.max || Math.max(...vals) * 1.08, o.nTicks || 4);
   const n = vals.length;
   const bande = (W - mg.g - mg.d) / n;
   const lb = Math.min(o.largeur || 24, bande * 0.62);
@@ -393,7 +397,7 @@ function svgColonnes(o) {
       : 'M' + x + ',' + (haut + h) + 'v-' + (h - r) + 'q0,-' + r + ' ' + r + ',-' + r + 'h' + (lb - 2 * r) + 'q' + r + ',0 ' + r + ',' + r + 'v' + (h - r) + 'z';
     s += prevu ? '<path d="' + p + '" fill="url(#hp-' + (o.id || 'c') + ')" stroke="' + coul + '" stroke-width="1.2"/>' : '<path d="' + p + '" fill="' + coul + '"/>';
     if (o.labels && (!o.pasLabels || i % o.pasLabels === 0)) s += '<text x="' + (x + lb / 2) + '" y="' + (H - (o.basAxe ? o.basAxe - 16 : 10)) + '" text-anchor="middle">' + esc(o.labels[i]) + '</text>';
-    if (o.etiquette && o.etiquette(i)) s += '<text x="' + (x + lb / 2) + '" y="' + (neg ? y0 + h + 13 : haut - 6) + '" text-anchor="middle" class="fort">' + esc(o.etiquette(i)) + '</text>';
+    if (o.etiquette && o.etiquette(i)) s += '<text x="' + (x + lb / 2) + '" y="' + (neg ? y0 + h + 13 : haut - 6) + '" text-anchor="middle" class="' + (o.etiquetteClasse ? o.etiquetteClasse(i) : 'fort') + '">' + esc(o.etiquette(i)) + '</text>';
     if (o.sous && o.sous(i)) {
       const so = [].concat(o.sous(i));
       s += '<text x="' + (x + lb / 2) + '" y="' + (H - 6 - (so.length - 1) * 13) + '" text-anchor="middle" class="moyen">' + so.map((t, k) => '<tspan x="' + (x + lb / 2) + '"' + (k ? ' dy="13"' : '') + (k ? ' class="fort"' : '') + '>' + esc(t) + '</tspan>').join('') + '</text>';

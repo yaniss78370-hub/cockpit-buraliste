@@ -109,6 +109,28 @@ const SPECS = {
     cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Enjeux', t: 'eur' }, { lib: 'Gains payés', t: 'eur' }, { lib: 'Commission', t: 'eur' }, { lib: 'Solde prélevé', t: 'eur' }, { lib: 'Prélevé le', t: 'date' }],
     rows: D.releves.pmu.map((r) => [r.semaine, r.du, r.au, r.ventes, r.gains, r.commission, r.solde, r.prelevement]),
   }),
+  collectes: () => ({
+    nom: 'Collectes', desc: 'Collectes d’espèces : théorique selon la caisse, compté le soir même, versé à la BNP',
+    cols: [{ lib: 'Collecte', t: 'date' }, { lib: 'Heure', t: 'txt', l: 8 }, { lib: 'Théorique', t: 'eur' }, { lib: 'Compté et versé', t: 'eur', l: 16 }, { lib: 'Écart', t: 'eur' }, { lib: 'Versée le', t: 'date' }],
+    rows: D.collectes.map((c) => [c.date, c.heure, c.theorique, c.recupere, c.ecart, c.depot]),
+  }),
+  caisseDepuis: () => ({
+    nom: 'Depuis la collecte', desc: 'Espèces nettes jour par jour depuis la collecte du ' + dLong(D.caisse_depuis.date) + ' à ' + D.caisse_depuis.heure.replace(':', ' h '),
+    cols: [{ lib: 'Jour', t: 'date' }, { lib: 'Encaissé en espèces', t: 'eur', l: 18 }, { lib: 'Gains de jeux payés', t: 'eur', l: 18 }, { lib: 'Reste en caisse', t: 'eur', l: 16 }],
+    rows: joursDepuisCollecte().map((x) => [x.iso, x.esp, -x.gains, x.net]),
+  }),
+  fdjSemaines: () => ({
+    nom: 'FDJ semaine par semaine', desc: 'Prélèvement FDJ : estimation à partir des rubriques Strator (commission ' + pct2(FDJ_TX.ji * 100) + ' des jeux instantanés, ' + pct2(FDJ_TX.loto * 100) + ' du Loto) et relevé',
+    cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Prélevé le', t: 'date' }, { lib: 'Jeux instantanés', t: 'eur', l: 16 }, { lib: 'Loto', t: 'eur' },
+      { lib: 'Gains payés', t: 'eur' }, { lib: 'Commission estimée', t: 'eur', l: 18 }, { lib: 'Estimation (caisse)', t: 'eur', l: 18 }, { lib: 'Relevé FDJ', t: 'eur' }, { lib: 'Écart', t: 'eur' }],
+    rows: D.releves.fdj.filter((r) => r.du >= FDJ_PREMIERE).map((r) => { const x = fdjSemaineV2(r.du), t = x.tReel; return [r.semaine, r.du, r.au, r.prelevement, t.ji, t.loto, -t.gains, -Math.round(t.com), Math.round(t.total), r.solde, Math.round(t.total - r.solde)]; })
+      .concat([(() => { const x = fdjSemaineV2(lundiDe(AUJ)); return [D.releves.fdj[D.releves.fdj.length - 1].semaine + 1, x.lundi, ajoute(x.lundi, 6), x.prelev, x.tReel.ji, x.tReel.loto, -x.tReel.gains, -Math.round(x.tReel.com), Math.round(x.atterrissage), null, null]; })()]),
+  }),
+  fdjJours: () => ({
+    nom: 'FDJ jour par jour', desc: 'Rubriques du CA Strator pour les jeux FDJ, depuis le 6 juillet',
+    cols: [{ lib: 'Jour', t: 'date' }, { lib: 'Jeux instantanés', t: 'eur', l: 16 }, { lib: 'Loto', t: 'eur' }, { lib: 'Remboursement jeux', t: 'eur', l: 18 }, { lib: 'Remboursement loto', t: 'eur', l: 18 }, { lib: 'Commission estimée', t: 'eur', l: 18 }, { lib: 'À reverser', t: 'eur' }],
+    rows: Object.keys(FDJ_JR).filter((k) => k >= FDJ_PREMIERE).sort().map((k) => { const t = fdjCalcul([fdjRubriques(k)]); return [k, t.ji, t.loto, -t.rj, -t.rl, -Math.round(t.com), Math.round(t.total)]; }),
+  }),
   controleFdj: () => ({
     nom: 'Contrôle FDJ', desc: 'Ventes de jeux par jour : Profession Jeux face à Strator, depuis le 1er septembre',
     cols: [{ lib: 'Date', t: 'date' }, { lib: 'Profession Jeux', t: 'eur', l: 16 }, { lib: 'Strator', t: 'eur' }, { lib: 'Écart', t: 'eur' }, { lib: 'Commentaire', t: 'txt', l: 50 }],
@@ -184,13 +206,17 @@ const EXPORTS = {
   fixes: { nom: 'charges-fixes', specs: ['fixes'], titre: 'Charges fixes sur douze mois' },
   z: { nom: 'caisse', specs: ['z', 'annules'], titre: 'Caisse : Z quotidiens et tickets annulés' },
   fdj: { nom: 'jeux-fdj-pmu', specs: ['fdj', 'pmu', 'controleFdj'], titre: 'Jeux : relevés FDJ et PMU, contrôle quotidien' },
+  pmu: { nom: 'releves-pmu', specs: ['pmu'], titre: 'Relevés PMU' },
+  controleFdj: { nom: 'controle-fdj', specs: ['controleFdj'], titre: 'Contrôle FDJ : Profession Jeux face à Strator' },
+  collectes: { nom: 'caisse-collectes', specs: ['collectes', 'caisseDepuis'], titre: 'Caisse : collectes et espèces depuis la dernière collecte' },
+  fdjSemaines: { nom: 'fdj-estimations', specs: ['fdjSemaines', 'fdjJours'], titre: 'FDJ : estimations et relevés' },
   factures: { nom: 'factures', specs: ['factures', 'lignes'], titre: 'Factures, ligne par ligne' },
   vape: { nom: 'references-vape', specs: ['vape'], titre: 'Références vape' },
   cbd: { nom: 'cbd-lots', specs: ['cbd'], titre: 'CBD : lots et traçabilité' },
   commande: { nom: 'commande-jeudi', specs: ['commande'], titre: 'Commande de jeudi' },
   stock: { nom: 'stock', specs: ['stockFam', 'vape', 'cbd'], titre: 'Stock et références' },
   resultat: { nom: 'compte-de-resultat', specs: ['resultat', 'ventes', 'ratios'], titre: 'Compte de résultat et ratios' },
-  classeur: { nom: 'le-balto-complet', specs: ['resultat', 'ventes', 'semaine', 'plan', 'mouvements', 'fixes', 'factures', 'lignes', 'z', 'annules', 'controleFdj', 'fdj', 'pmu', 'stockFam', 'vape', 'cbd', 'ratios'], titre: 'Tout le cockpit' },
+  classeur: { nom: 'le-balto-complet', specs: ['resultat', 'ventes', 'semaine', 'plan', 'mouvements', 'fixes', 'caisseDepuis', 'collectes', 'z', 'annules', 'fdjSemaines', 'fdjJours', 'controleFdj', 'fdj', 'pmu', 'factures', 'lignes', 'stockFam', 'vape', 'cbd', 'ratios'], titre: 'Tout le cockpit' },
 };
 
 function valeurCsv(v, t) {
