@@ -121,9 +121,9 @@
           <p class="pitch">Cockpit Buraliste lit votre caisse, vos banques, la FDJ et Logista. Chaque soir, il vous dit où vous atterrirez lundi, après la facture tabac, et ce qui est vraiment à vous.</p>
           <div class="actions">
             <button class="bouton bouton-plein" type="button" data-film><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4c0 .8.9 1.3 1.6.9l11.3-7.2a1 1 0 0 0 0-1.8L8.6 3.9C7.9 3.5 7 4 7 4.8z" fill="currentColor" stroke="none"/></svg>Voir le film<span class="duree">2&nbsp;min</span></button>
-            <a class="bouton bouton-verre" href="#demo">Demander une démo</a>
+            <a class="bouton bouton-verre bouton-essai" href="cockpit.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4.2-5"/><path d="M12 16h.01" stroke-width="3"/></svg>Essayer le cockpit</a>
           </div>
-          <p class="defiler" aria-hidden="true"><i></i>Faites défiler</p>
+          <p class="defiler" aria-hidden="true"><i></i><b class="chevron"></b><span class="d-bureau">Faites défiler</span><span class="d-tel">Glissez vers le bas</span></p>
         </div>
       </div>
     </div>
@@ -688,6 +688,7 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
   </section>
 </main>
 
+<a class="cta-flottant" id="cta-flottant" href="cockpit.html"><span class="cf-ic"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4.2-5"/><path d="M12 16h.01" stroke-width="3"/></svg></span><span class="cf-txt"><b>Essayer le cockpit</b><small>Le tabac d’exemple, avec une visite guidée d’une minute</small></span><svg class="ic cf-fl" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
 <footer class="pied">
   <div class="cadre pied-in">
     <div class="pied-marque">
@@ -1482,6 +1483,16 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
   }
 
   // =================================================================== essayer : la vitrine du cockpit
+  const ctaF = $('#cta-flottant');
+  if (ctaF && 'IntersectionObserver' in window) {
+    const vus = new Set();
+    const io = new IntersectionObserver((es) => {
+      es.forEach((x) => { if (x.isIntersecting) vus.add(x.target); else vus.delete(x.target); });
+      ctaF.classList.toggle('on', vus.size === 0);
+    }, { threshold: 0 });
+    ['#haut', '#essayer', '#demo', '.pied'].forEach((sel) => { const z = $(sel); if (z) io.observe(z); });
+  }
+
   const vitrine = $('#vit-cockpit');
   if (vitrine) {
     const LEGENDES = {
