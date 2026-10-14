@@ -42,13 +42,15 @@ corps = lire('corps.html')
 donnees = open(os.path.join(ICI, 'data.json'), encoding='utf-8').read()
 assert '</script' not in donnees
 script_donnees = '<script type="application/json" id="donnees">' + donnees + '</script>'
-# la voix de la visite guidée : intégrée dans l'aperçu, servie par le site (dossier voix/)
-VOIX = os.path.join(SITE, 'voix')
-ETAPES = range(1, 10)
-assert js.count('/*VOIX*/{}') == 1
-voix_integree = {str(n): 'data:audio/mpeg;base64,' + base64.b64encode(open(os.path.join(VOIX, 'visite-%d.mp3' % n), 'rb').read()).decode() for n in ETAPES}
-voix_site = {str(n): 'voix/visite-%d.mp3' % n for n in ETAPES}
-js_apercu = js.replace('/*VOIX*/{}', json.dumps(voix_integree))
+# la voix de la visite guidée, une seule piste (voix_visite.py) : intégrée dans l'aperçu, servie par le site (voix/visite.mp3),
+# avec les temps de chaque mot pour caler sous-titres, pages et gestes
+PISTE = json.load(open(os.path.join(ICI, 'voix', 'visite-piste.json'), encoding='utf-8'))
+PISTE_MP3 = os.path.join(SITE, PISTE['piste'])
+assert js.count("/*VOIX*/''") == 1 and js.count('/*PISTE*/{ duree: 0, mots: [] }') == 1
+js = js.replace('/*PISTE*/{ duree: 0, mots: [] }', json.dumps({'duree': PISTE['duree'], 'mots': PISTE['mots']}, ensure_ascii=False, separators=(',', ':')))
+voix_integree = 'data:audio/mpeg;base64,' + base64.b64encode(open(PISTE_MP3, 'rb').read()).decode()
+voix_site = PISTE['piste']
+js_apercu = js.replace("/*VOIX*/''", json.dumps(voix_integree))
 script_app = '<script>\n(function () {\n' + js_apercu + '\n})();\n</script>'
 
 # ---- aperçu (Artifact) : <title> et <style> en tête, pas de squelette
@@ -62,7 +64,7 @@ squelette = ('<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 open(os.path.join(DIST, 'test.html'), 'w', encoding='utf-8').write(squelette)
 
 # ---- version du site : liens internes, sans nouvel onglet
-js_site = js.replace('/*VOIX*/{}', json.dumps(voix_site))
+js_site = js.replace("/*VOIX*/''", json.dumps(voix_site))
 for avant, apres in [
     ('<a class="marque" href="https://cockpit-buraliste.fr" target="_blank" rel="noopener">', '<a class="marque" href="./" aria-label="Retour au site Cockpit Buraliste">'),
     ('<a class="cx-lien" href="https://cockpit-buraliste.fr/#demo" target="_blank" rel="noopener">', '<a class="cx-lien" href="./#demo">'),

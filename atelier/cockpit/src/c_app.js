@@ -118,7 +118,7 @@ function afficher() {
   $('#connexion').hidden = ETAT.connecte;
   $('#app').hidden = !ETAT.connecte;
   $('#onglets-bas').hidden = !ETAT.connecte;
-  if (!ETAT.connecte) { $('#connexion').innerHTML = htmlConnexion(); return; }
+  if (!ETAT.connecte) { $('#connexion').innerHTML = htmlConnexion(); prechargerVisite(); return; }
   if (ETAT.animer == null) ETAT.animer = true;
   rendre();
 }
