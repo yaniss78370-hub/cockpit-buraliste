@@ -49,7 +49,7 @@ function repondre(q) {
   if (a(/vire|virer|virement|alimenter|compte fdj/)) return 'Mercredi 14, la FDJ prélève <b>' + eur2(prochain.solde) + '</b> (relevé de la semaine ' + prochain.semaine + '). Le compte FDJ a ' + eur(D.comptes.fdj) + ' : <b>virez ' + eur(prochain.solde - D.comptes.fdj) + ' de la BNP avant mercredi</b>. Et ' + eur(3240000) + ' vers la Banque Populaire avant jeudi, pour les recharges et Logista.' + lienAs('tresorerie', 'Voir la semaine');
   if (a(/\btva\b|ca3|dgfip|impot/)) {
     const t = TVA_SEPT;
-    return 'La TVA de septembre : <b>' + eur2(t.du) + '</b>, prélevée le mercredi 21 octobre. ' + eur2(t.coll) + ' collectés sur vos ventes de la boutique en caisse, moins ' + eur2(t.ded) + ' de TVA sur vos ' + t.n + ' factures d’achat. Elle est déjà dans votre plan de vol.' + lienAs('tresorerie', 'Voir la trésorerie');
+    return 'La TVA de septembre : <b>' + eur2(t.du) + '</b>, prélevée le mercredi 21 octobre. ' + eur2(t.coll) + ' collectés sur vos ventes de la boutique en caisse, moins ' + eur2(t.ded) + ' de TVA sur vos factures d’achat de septembre (' + t.n + ' avec TVA). Elle est déjà dans votre plan de vol.' + lienAs('tresorerie', 'Voir la trésorerie');
   }
   if (a(/ratio|histoire|propre|administration|controle fiscal|facture electronique/)) {
     const R = RATIOS_SEPT;
@@ -58,8 +58,8 @@ function repondre(q) {
   if (a(/fdj|profession jeux|ecart|jeux|loto|grattage|prelev|parions|carnet/)) {
     const s = fdjSemaineV2(lundiDe(AUJ));
     const C = CTRL_FDJ;
-    return 'Le contrôle à la semaine : la FDJ facture le grattage par carnet, donc chaque semaine a son petit écart. Sur septembre, ils se compensent : <b>' + eur2(ECART_SEPT_FDJ, true) + '</b>.' +
-      (C.pari ? '<br>La semaine 41 est sortie de la zone (' + eur2(C.pari.ecart, true) + ') : en isolant Parions Sport, un pari de <b>' + eur2(PARIONS.montant) + '</b> du jeudi 8 octobre à 14 h 31 min 08 s, absent de la caisse.' : '') +
+    return '<b>Le contrôle FDJ est bon, une fois un pari retrouvé.</b> La FDJ facture le grattage par carnet, donc chaque semaine a son petit écart ; sur septembre, ils se compensent (' + eur2(ECART_SEPT_FDJ, true) + ').' +
+      (C.pari ? '<br>La semaine 41 est sortie de la zone (' + eur2(C.pari.ecart, true) + '). En isolant Parions Sport, on retrouve un pari de <b>' + eur2(PARIONS.montant) + '</b> du jeudi 8 octobre à 14 h 31 min 08 s, absent de la caisse. Ticket ajouté : ' + eur2(C.apres, true) + ' sur la semaine, ' + eur2(C.cumulApres, true) + ' sur six semaines.' : '') +
       '<br>Atterrissage du prélèvement du mercredi 21 : <b>≈ ' + eur(s.atterrissage) + '</b>.' + lienAs('fdj', 'Voir le contrôle FDJ');
   }
   if (a(/espece|liquide|collecte|tiroir|coffre|caisse contient|en caisse/)) return '<b>' + eur2(especes) + '</b> à avoir en caisse depuis la collecte du vendredi 9 octobre, 20 h 30, gains de jeux payés déduits. Collecte de vendredi 16 : <b>≈ ' + eur(COLLECTE_ENV) + '</b>.' + lienAs('caisse', 'Compter la caisse');

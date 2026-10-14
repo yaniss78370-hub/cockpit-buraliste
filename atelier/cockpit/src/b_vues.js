@@ -609,7 +609,7 @@ function cartesRatios() {
   const tabacP = D.pnl.slice(0, 9).map((x) => x.produits);
   const tabac = svgColonnes({ id: 'tabac', titre: 'Remise tabac chaque mois', w: 340, h: 150, vals: tabacP.map((x) => x.tabac_marge / 100), labels: mois, pasLabels: 2, largeur: 16, margeG: 38,
     tips: (i) => '<b>' + maj(ML[i]) + '</b>' + ligneTip('', 'Ventes de tabac', eur(tabacP[i].tabac_ventes)) + ligneTip('', 'Remise', eur(tabacP[i].tabac_marge)) + ligneTip('', 'Taux', pct(tabacP[i].tabac_marge / tabacP[i].tabac_ventes * 100)) });
-  const fdjG = svgEcartsFdj({ w: 340, h: 160, sem: controleFdj(8).sem, titre: 'Écart FDJ chaque semaine, le théorique face au réel' });
+  const fdjG = svgEcartsFdj({ w: 340, h: 160, sem: controleFdj(6).sem, titre: 'Écart FDJ chaque semaine, le théorique face au réel' });
   const c = (titre, val, lib, graphe, verdict) => '<section class="carte ratio-c"><div class="carte-tete"><h3>' + titre + '</h3></div><div class="carte-corps ratio"><span class="rv">' + val + '</span><span class="rl">' + lib + '</span>' + (graphe ? '<div class="graphe">' + graphe + '</div>' : '') + verdict + '</div></section>';
   return '<div class="ratios">' +
     c('Café', r9.tasses_kg + ' tasses par kilo', 'en septembre : ' + nb(r9.tasses) + ' cafés vendus pour ' + r9.cafe_kg + ' kg achetés', cafe, '<div class="encart att">' + ic('alerte') + '<div>Environ 138 attendues. Cafés offerts, réglage du moulin ou ventes oubliées en caisse.</div></div>') +
@@ -617,7 +617,7 @@ function cartesRatios() {
     c('Espèces', eur(r9.especes_ecart), 'd’écart de caisse en septembre', esp, '<div class="encart ok">' + ic('coche') + '<div>Dans la tolérance. Dépôts bancaires rapprochés des espèces du Z, gains payés déduits.</div></div>') +
     c('Cigarette électronique', eur(vapeD[2] * 100, false, true), 'd’achats au-dessus du coût des ventes en septembre', vape, '<div class="encart ok">' + ic('coche') + '<div>Écart expliqué : 14 nouvelles références mises en rayon.</div></div>') +
     c('Tabac', pct(D.taux.tabac * 100), 'de remise sur les ventes, chaque mois depuis janvier', tabac, '<div class="encart ok">' + ic('coche') + '<div>Factures Logista cohérentes avec les ventes de la caisse, livraison après livraison.</div></div>') +
-    c('Jeux FDJ', eur2(ECART_SEPT_FDJ, true), 'd’écart sur septembre, le théorique de la caisse face au réel', fdjG, '<div class="encart ok">' + ic('coche') + '<div>Les semaines se compensent. La semaine 41, hors de la zone, est expliquée : un pari Parions Sport absent de la caisse.</div></div>') +
+    c('Jeux FDJ', eur2(ECART_SEPT_FDJ, true), 'd’écart sur septembre (semaines 36 à 39), le théorique de la caisse face au réel', fdjG, '<div class="encart ok">' + ic('coche') + '<div>Les semaines se compensent. La semaine 41, hors de la zone, est expliquée : un pari Parions Sport absent de la caisse.</div></div>') +
     '</div>';
 }
 function htmlBarresMarge(cle, note = true) {

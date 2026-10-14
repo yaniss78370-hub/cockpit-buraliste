@@ -265,7 +265,7 @@ function svgEcartsFdj(o) {
   s += '<rect x="' + mg.g + '" y="' + f1(Y(ZONE_FDJ)) + '" width="' + f1(W - mg.g - mg.d) + '" height="' + f1(Y(-ZONE_FDJ) - Y(ZONE_FDJ)) + '" rx="8" fill="var(--ok-fond)" opacity=".8"/>';
   s += '<g class="grille">' + [ZONE_FDJ, 0, -ZONE_FDJ].map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(t)) + '" y2="' + f1(Y(t)) + '"' + (t ? ' stroke-dasharray="3 4"' : ' class="zero"') + '/>').join('') + '</g>';
   s += [ZONE_FDJ, 0, -ZONE_FDJ].map((t) => '<text x="' + (mg.g - 8) + '" y="' + f1(Y(t) + 4) + '" text-anchor="end">' + (t ? eur(t, false, true) : '0') + '</text>').join('');
-  s += '<text class="ok" x="' + (W - mg.d - 8) + '" y="' + f1(Y(ZONE_FDJ) + 15) + '" text-anchor="end">zone normale</text>';
+  if (W >= 420) s += '<text class="ok" x="' + (W - mg.d - 8) + '" y="' + f1(Y(ZONE_FDJ) + 15) + '" text-anchor="end">zone normale</text>';
   sem.forEach((x, i) => {
     const cx = mg.g + i * bande + bande / 2, xg = cx - lb / 2, v = x.ecart;
     const y0 = Y(0), h = Math.max(2, Math.abs(Y(v) - y0)), r = Math.min(5, lb / 2, h);
@@ -283,9 +283,9 @@ function svgEcartsFdj(o) {
 }
 function lignesCalculFdj(t, sem) {
   const r = (lib, v, cls = '') => '<div class="calc-l ' + cls + '"><span>' + lib + '</span><span class="v">' + eur2(Math.round(v)) + '</span></div>';
-  let h = r('CA jeux (Strator)', t.ca, 'cl-tete') + r('Jeux instantanés', t.ji, 'sous') + r('Loto, tirages et Parions Sport', t.loto, 'sous') +
+  let h = r('CA jeux (Strator)', t.ca, 'cl-tete') + r('Jeux instantanés', t.ji, 'sous') + r('Loto et Parions Sport', t.loto, 'sous') +
     r('Gains payés au comptoir', -t.gains, 'cl-tete') + r('Remboursement jeux', -t.rj, 'sous') + r('Remboursement loto', -t.rl, 'sous') +
-    r('Votre commission (estimée)', -t.com, 'cl-tete') + r('Jeux instantanés, ' + pct2(FDJ_TX.ji * 100), -t.comJi, 'sous') + r('Loto, ' + pct2(FDJ_TX.loto * 100), -t.comLoto, 'sous');
+    r('Votre commission (estimée)', -t.com, 'cl-tete') + r('Jeux instantanés, ' + pct2(FDJ_TX.ji * 100), -t.comJi, 'sous') + r('Loto et Parions Sport, ' + pct2(FDJ_TX.loto * 100), -t.comLoto, 'sous');
   if (sem && !sem.complete && !ETAT.fdj.jour) {
     h += r('Jours joués, à reverser', t.total, 'total') + r('Jours restants, estimés', sem.tProj.total, 'proj') + r('Atterrissage', sem.atterrissage, 'total fort');
   } else if (sem && sem.rel && !ETAT.fdj.jour) {
@@ -308,7 +308,7 @@ function vueFdj() {
   const choisi = f.jour && sem.jours.find((j) => j.iso === f.jour && j.reel);
   const tCalc = choisi ? fdjCalcul([choisi.reel]) : sem.tReel;
   const releve = prochain ? '<div class="papier serre"><h3 class="h3">Le relevé de la semaine ' + prochain.semaine + ', reçu lundi</h3><div class="calc compact">' +
-    '<div class="calc-l"><span>Ventes de jeux</span><span class="v">' + eur2(prochain.ventes) + '</span></div>' +
+    '<div class="calc-l"><span>Ventes facturées</span><span class="v">' + eur2(prochain.ventes) + '</span></div>' +
     '<div class="calc-l"><span>Gains payés au comptoir</span><span class="v">' + eur2(-prochain.gains) + '</span></div>' +
     '<div class="calc-l"><span>Votre commission</span><span class="v">' + eur2(-prochain.commission) + '</span></div>' +
     '<div class="calc-l total fort"><span>Prélevé mercredi</span><span class="v">' + eur2(prochain.solde) + '</span></div></div></div>' : '';
@@ -343,10 +343,10 @@ function vueFdj() {
     '<tr class="total"><td><span class="cache-etroit">Six semaines</span><span class="seul-etroit">6 sem.</span></td><td class="n">' + deux(C.sem.reduce((t, x) => t + x.theo, 0)) + '</td><td class="n">' + deux(C.sem.reduce((t, x) => t + x.reel, 0)) + '</td><td class="n">' + eur2(C.cumul, true) + '</td></tr>';
   const grapheE = graphe((w) => svgEcartsFdj({ w, h: w < 420 ? 220 : 236, sem: C.sem })) +
     '<div class="legende"><span><i style="background:var(--bleu)"></i>Dans la zone normale</span><span><i style="background:var(--att-plein)"></i>Hors de la zone</span><span><i style="background:var(--ok-fond);box-shadow:inset 0 0 0 1px rgba(20,119,76,.3)"></i>Zone normale : ' + eur(-ZONE_FDJ, false, true) + ' à ' + eur(ZONE_FDJ, false, true) + '</span></div>';
-  const enquete = P ? '<div class="explication"><div class="encart att">' + ic('loupe') + '<div><b>Semaine ' + P.r.semaine + ' : ' + eur2(P.ecart, true) + ', hors de la zone.</b> On isole Parions Sport, ticket par ticket : un pari de ' + eur2(PARIONS.montant) + ' sorti du terminal <b>jeudi 8 octobre à 14 h 31 min 08 s</b>, absent de la caisse. Le ticket ajouté, la semaine revient à ' + eur2(C.apres, true) + ', et les six semaines à ' + eur2(C.cumulApres, true) + '.</div></div>' +
+  const enquete = P ? '<div class="explication"><div class="encart att">' + ic('loupe') + '<div><b>Semaine ' + P.r.semaine + ' : ' + eur2(P.ecart, true) + ', hors de la zone.</b> On isole Parions Sport, ticket par ticket : un pari de ' + eur2(PARIONS.montant) + ' sorti du terminal <b>jeudi 8 octobre à 14 h 31 min 08 s</b>, absent de la caisse. Le ticket ajouté, la semaine revient à ' + eur2(C.apres, true) + ', et les six semaines à ' + eur2(C.cumulApres, true) + '.</div></div>' +
     '<button class="lien-bouton" type="button" data-action="fdj-ops" aria-expanded="' + !!f.ops + '">' + (f.ops ? 'Masquer les paris' : 'Voir les paris Parions Sport de 14 h 25 à 14 h 40') + ' ' + ic('droite') + '</button>' +
-    (f.ops ? '<div class="defile"><table class="tableau compact"><thead><tr><th>Heure</th><th>Pari</th><th class="n">Montant</th><th>En caisse</th></tr></thead><tbody>' +
-      EXPORT_FDJ.map((o) => '<tr class="' + (o.ok ? '' : 'alerte') + '"><td class="mono">' + o.h + '</td><td>' + o.jeu + '</td><td class="n">' + eur2(o.mt) + '</td><td>' + (o.ok ? pastille('ok', 'Oui') : pastille('ko', 'Absent')) + '</td></tr>').join('') + '</tbody></table></div><p class="bloc-note">Chaque pari sort du terminal FDJ avec son heure : il se rapproche un à un des tickets scannés en caisse.</p>' : '') +
+    (f.ops ? '<div class="defile"><table class="tableau compact ctrl-fdj paris-fdj"><thead><tr><th>Heure</th><th>Pari</th><th class="n">Montant</th><th><span class="cache-etroit">En caisse</span><span class="seul-etroit">Caisse</span></th></tr></thead><tbody>' +
+      EXPORT_FDJ.map((o) => '<tr class="' + (o.ok ? '' : 'alerte') + '"><td class="mono">' + o.h + '</td><td>' + o.jeu + '</td><td class="n">' + eur2(o.mt) + '</td><td>' + (o.ok ? pastille('ok', 'Oui') : pastille('ko', 'Absent')) + '</td></tr>').join('') + '</tbody></table></div><p class="bloc-note">Chaque pari sort du terminal FDJ avec son heure : on le rapproche, un par un, des tickets scannés en caisse.</p>' : '') +
     '<p class="bloc-note">Si Parions Sport avait été juste, l’écart serait venu du grattage : on vous aiderait alors à entrer vos carnets dans Strator, pour suivre ce stock en temps réel.</p></div>' : '';
   return pageTete({ titre: 'FDJ', sous: 'Le prélèvement de mercredi, connu par le relevé. L’atterrissage de la semaine en cours, calculé chaque soir. Et le contrôle : le théorique de la caisse face au réel, sur six semaines.' }) +
     '<section class="heros anime"><div class="duo"><div class="duo-g">' +
@@ -357,7 +357,7 @@ function vueFdj() {
     '</div><div class="duo-d">' + releve + '</div></div></section>' +
     carteP('Semaine de jeux', 'Du lundi au dimanche, prélevée le mercredi suivant',
       '<div class="sem-nav"><button class="bouton petit" type="button" data-action="fdj-sem" data-pas="-1"' + (precedente ? '' : ' disabled') + ' aria-label="Semaine précédente">' + ic('gauche') + '</button>' +
-      '<div class="sem-titre"><b>Du ' + jour(sem.lundi).getDate() + ' au ' + dLong(ajoute(sem.lundi, 6)).replace(/^\S+ /, '') + '</b><span>' + (enCours ? 'semaine en cours' : 'semaine ' + (sem.rel ? sem.rel.semaine : '')) + '</span></div>' +
+      '<div class="sem-titre"><b>Du ' + (sem.lundi.slice(5, 7) === ajoute(sem.lundi, 6).slice(5, 7) ? jour(sem.lundi).getDate() : dLong(sem.lundi).replace(/^\S+ /, '')) + ' au ' + dLong(ajoute(sem.lundi, 6)).replace(/^\S+ /, '') + '</b><span>' + (enCours ? 'semaine en cours' : 'semaine ' + (sem.rel ? sem.rel.semaine : '')) + '</span></div>' +
       '<button class="bouton petit" type="button" data-action="fdj-sem" data-pas="1"' + (suivante ? '' : ' disabled') + ' aria-label="Semaine suivante">' + ic('droite') + '</button></div>' +
       '<div class="sem-corps"><div class="sem-gauche"><span class="rep-eyebrow">' + semTitre + '</span><span class="rep-montant">' + semMontant + '</span><p class="rep-ligne">' + semLigne + '</p>' + semBarre + puces7 +
       (f.jour ? '<button class="lien-bouton" type="button" data-action="fdj-jour" data-jour="">' + ic('retour') + 'Revenir à la semaine entière</button>' : '<p class="bloc-note">Touchez un jour pour voir ses rubriques Strator.</p>') + '</div>' +
@@ -702,7 +702,7 @@ function htmlTva() {
   const t = TVA_SEPT;
   return '<div class="tva-eq">' +
     '<div class="tva-b"><span>TVA collectée</span><b>' + eur2(t.coll) + '</b><small>sur ' + eur(t.ventes) + ' de ventes HT de la boutique, en caisse</small></div><span class="tva-op" aria-hidden="true">−</span>' +
-    '<div class="tva-b"><span>TVA déductible</span><b>' + eur2(t.ded) + '</b><small>sur vos ' + t.n + ' factures d’achat de septembre</small></div><span class="tva-op" aria-hidden="true">=</span>' +
+    '<div class="tva-b"><span>TVA déductible</span><b>' + eur2(t.ded) + '</b><small>sur vos factures d’achat de septembre (' + t.n + ' avec TVA)</small></div><span class="tva-op" aria-hidden="true">=</span>' +
     '<div class="tva-b fort"><span>À payer</span><b>' + eur2(t.du) + '</b><small>prélevés le ' + dLong(t.prelev) + '</small></div></div>';
 }
 function vueTresorerieV3() {
@@ -732,7 +732,7 @@ function vueTresorerieV3() {
       '<p class="h-ligne">Après ' + eur(4010000) + ' de prélèvements connus d’ici lundi, dont la facture Logista de ' + eur(2933000) + '. Au plus bas des six prochains mois : <b>' + F1.format(plan.bas / SIM.seuil) + ' facture Logista d’avance</b>.</p>' +
       '<div class="h-duo"><div class="h-mini ambre"><span class="chiffre-s">' + compte(3240000, 'grosE') + '</span><span>à virer de la BNP vers la Banque Populaire <b>avant jeudi</b>, pour les recharges et Logista</span></div>' +
       '<div class="h-mini"><span class="chiffre-s">' + compte(VAV.vraiment, 'grosE') + '</span><span><b>vraiment à vous</b> lundi soir, une fois les jeux, les recharges et les timbres mis de côté</span></div></div>' +
-      (prochainFdj ? '<div class="h-pied" style="margin-top:auto"><span class="pill n">' + ic('ticket') + 'Prélèvement FDJ ' + dCourt(prochainFdj.prelevement) + ' : ' + eur(prochainFdj.solde) + '</span><span class="pill n">' + ic('banque') + 'TVA ' + dCourt(TVA_SEPT.prelev) + ' : ' + eur(TVA_SEPT.du) + '</span><button class="lien-bouton" type="button" data-action="vers-plan">Votre plan de vol ' + ic('fleche') + '</button></div>' : '') + '</section>' +
+      (prochainFdj ? '<div class="h-pied" style="margin-top:auto"><span class="pill n">' + ic('ticket') + 'FDJ ' + dCourt(prochainFdj.prelevement) + ' : ' + eur(prochainFdj.solde) + '</span><span class="pill n">' + ic('banque') + 'TVA ' + dCourt(TVA_SEPT.prelev) + ' : ' + eur(TVA_SEPT.du) + '</span><button class="lien-bouton" type="button" data-action="vers-plan">Votre plan de vol ' + ic('fleche') + '</button></div>' : '') + '</section>' +
     '<div class="s5">' + carteP('Vos comptes, ce soir', 'Lus à 21 h 02, en lecture seule', comptesHtml, { cls: 'grandit' }) + '</div></div>' +
     carteP('Votre semaine, soir après soir', 'Départ dimanche ' + eur(SEM[0].solde) + ', atterrissage lundi ' + eur(SEM[SEM.length - 1].solde), semaine +
       '<div class="legende"><span><i style="background:var(--bleu)"></i>Réel</span><span><i style="background:repeating-linear-gradient(45deg,var(--bleu) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px var(--bleu)"></i>Prévu</span><span><i style="background:var(--rouge)"></i>Atterrissage</span><span class="discret">Encaissements prévus : 5 090 € par jour, moyenne prudente des quatre dernières semaines</span></div>' + htmlEquationSemaine(), { actions: boutonsExport('semaine') }) +
@@ -782,7 +782,7 @@ function ratiosDuMois() {
     { ic: 'feuille', lib: 'Tabac', val: pct(p9.tabac_marge / p9.tabac_ventes * 100, 1) + ' de remise', att: 'factures Logista et ventes en caisse concordent', ok: true },
     { ic: 'vape', lib: 'Vape', val: eur(vapeEcart, false, true) + ' d’achats en plus', att: '14 nouvelles références mises en rayon', ok: true },
     { ic: 'stock', lib: 'Stock', val: eur(STOCK_ECART) + ' d’écart, ' + pct(STOCK_ECART / D.stock_tot.theo * 100, 1), att: 'stock théorique face à Strator, ce soir', ok: true },
-    { ic: 'banque', lib: 'TVA', val: (tvaPayee ? eur2(-tvaPayee.montant) : '—') + ' payés le 21 septembre', att: 'ce que donnent vos ventes et vos factures d’août, vitrine comprise', ok: !!tvaPayee && -tvaPayee.montant === tvaAout.du },
+    { ic: 'banque', lib: 'TVA', val: (tvaPayee ? eur2(-tvaPayee.montant) : '—') + ' payés le 21 septembre', att: 'ce que donnent vos ventes et vos factures d’août, TVA de la vitrine CBD (900 €) récupérée', ok: !!tvaPayee && -tvaPayee.montant === tvaAout.du },
     { ic: 'caisse', lib: 'Annulations', val: annulSept ? annulSept + ' après paiement' : 'aucune après paiement', att: 'tickets annulés en septembre', ok: annulSept === 0 },
   ];
   return { liste: L, coherents: L.filter((x) => x.ok), aExpliquer: L.filter((x) => !x.ok) };
@@ -827,7 +827,7 @@ function vueResultatV3() {
     '<div class="grille">' +
     '<div class="s6">' + carteP('Ce que rapporte chaque rayon', 'Octobre, comparé à septembre', htmlRayons('att', 9), { cls: 'grandit' }) + '</div>' +
     '<div class="s6">' + carteP('Mois par mois, votre résultat', 'Ce qui reste une fois toutes les charges payées, avant votre rémunération', resMois + '<p class="bloc-note">Meilleur mois : ' + ML[iMax] + ', ' + eur(resV[iMax] * 100) + '. * Octobre : atterrissage.</p>', { cls: 'grandit' }) + '</div></div>' +
-    carteP('Vos ratios racontent-ils une histoire propre ?', 'Septembre. Vos achats passent déjà par la facture électronique, vos ventes suivront en septembre 2027 : chaque mois, le cockpit vérifie que les deux racontent la même histoire', htmlRatiosRevue(), { id: 'ratios' }) +
+    carteP('Vos ratios racontent‑ils une histoire propre ?', 'Septembre. Vos achats passent déjà par la facture électronique, vos ventes suivront en septembre 2027 : chaque mois, le cockpit vérifie que les deux racontent la même histoire', htmlRatiosRevue(), { id: 'ratios' }) +
     basculeDetail('Le compte de résultat mois par mois, rayon par rayon, tous les ratios, la facture électronique.', detailRentabilite);
 }
 

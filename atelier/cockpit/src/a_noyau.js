@@ -290,8 +290,6 @@ function construireAlertes() {
   const A = [
     { id: 'fdj-ecart', niv: 'att', module: 'fdj', date: '2026-10-08', titre: 'Contrôle FDJ, semaine 41 : ' + eur2(CTRL_FDJ.pari ? CTRL_FDJ.pari.ecart : 0, true) + ', hors de la zone normale',
       texte: 'Parions Sport isolé, ticket par ticket : un pari de ' + eur2(PARIONS.montant) + ' sorti du terminal jeudi 8 octobre à 14 h 31 min 08 s, absent de la caisse. Le ticket ajouté, la semaine revient à ' + eur2(CTRL_FDJ.apres || 0, true) + ', dans la zone.', action: 'Voir le contrôle' },
-    { id: 'tva', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'TVA de septembre : ' + eur2(TVA_SEPT.du) + ', prélevée le mercredi 21 octobre',
-      texte: eur2(TVA_SEPT.coll) + ' collectés sur les ventes de la boutique, moins ' + eur2(TVA_SEPT.ded) + ' de TVA sur les ' + TVA_SEPT.n + ' factures d’achat de septembre. Déjà dans le plan de vol.', action: 'Voir la trésorerie' },
     { id: 'vir-bp', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'Virer ' + eur(3240000) + ' de la BNP vers la Banque Populaire, avant jeudi',
       texte: 'Recharges de jeudi (3 470 €) et facture Logista de lundi (29 330 €), moins les 400 € déjà sur le compte.', action: 'Voir la semaine', tache: 'vir-bp', onglet: 'semaine' },
     { id: 'fdj-alim', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'Alimenter le compte FDJ : ' + eur(554000) + ' avant mercredi',

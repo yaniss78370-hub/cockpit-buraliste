@@ -1537,3 +1537,8 @@ body.en-visite .toast{display:none}
 @media (max-width:760px){
   .revue .ratio-l>.pastille{display:none}
 }
+@media (max-width:760px){
+  .tableau.paris-fdj td{font-size:13px}
+  .tableau.paris-fdj td.mono{font-size:12.5px}
+  .tableau.paris-fdj .pastille{padding:0 6px;font-size:12px}
+}

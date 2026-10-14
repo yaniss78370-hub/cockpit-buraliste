@@ -132,13 +132,14 @@ const SPECS = {
     rows: Object.keys(FDJ_JR).filter((k) => k >= FDJ_PREMIERE).sort().map((k) => { const t = fdjCalcul([fdjRubriques(k)]); return [k, t.ji, t.loto, -t.rj, -t.rl, -Math.round(t.com), Math.round(t.total)]; }),
   }),
   controleFdj: () => {
-    const C = controleFdj(30);
+    const C = controleFdj(6);
     let cumul = 0;
     return {
       nom: 'Contrôle FDJ', desc: 'Contrôle à la semaine : le prélèvement théorique (caisse Strator) face au prélèvement réel. Zone normale : ' + eur(-ZONE_FDJ, false, true) + ' à ' + eur(ZONE_FDJ, false, true) + ' par semaine ; les écarts doivent se compenser',
       cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Théorique (caisse)', t: 'eur', l: 18 }, { lib: 'Réel (FDJ)', t: 'eur' }, { lib: 'Écart', t: 'eur' }, { lib: 'Cumul', t: 'eur' }, { lib: 'Contrôle', t: 'txt', l: 70 }],
       rows: C.sem.map((x) => { cumul += x.ecart; return [x.r.semaine, x.r.du, x.r.au, x.theo, x.reel, x.ecart, cumul,
-        x.hors ? (x === C.pari ? 'Hors de la zone : Parions Sport isolé, un pari de 45 € du jeudi 8 octobre à 14:31:08 absent de la caisse. Ticket ajouté : ' + eur2(C.apres, true) : 'Hors de la zone : à rechercher') : 'Dans la zone']; }),
+        x.hors ? (x === C.pari ? 'Hors de la zone : Parions Sport isolé, un pari de 45 € du jeudi 8 octobre à 14:31:08, absent de la caisse. Ticket ajouté : ' + eur2(C.apres, true) : 'Hors de la zone : à rechercher') : 'Dans la zone']; })
+        .concat([['Six semaines', C.sem[0].r.du, C.sem[C.sem.length - 1].r.au, C.sem.reduce((t, x) => t + x.theo, 0), C.sem.reduce((t, x) => t + x.reel, 0), C.cumul, C.cumul, 'Une fois le pari ajouté : ' + eur2(C.cumulApres, true) + ', les six semaines se compensent']]),
     };
   },
   parionsSport: () => ({
@@ -369,7 +370,7 @@ async function construirePack() {
     ['Point bas du mois', eur(basSep.total) + ' (' + dCourt(basSep.date) + ')'],
     ['Factures reçues, lues et rangées', factSep.length + ' factures, ' + factSep.reduce((s, f) => s + f.lignes.length, 0) + ' lignes'],
     ['Contrôle FDJ', 'Les semaines se compensent : ' + eur2(ECART_SEPT_FDJ, true) + ' sur le mois, chaque semaine dans la zone normale'],
-    ['TVA de septembre', eur2(TVA_SEPT.du) + ', prélevée le 21 octobre (collectée ' + eur2(TVA_SEPT.coll) + ', déductible ' + eur2(TVA_SEPT.ded) + ')'],
+    ['TVA de septembre', eur2(TVA_SEPT.du) + ' à payer le 21 octobre'],
     ['Ratios', RATIOS_SEPT.liste.length + ' passés en revue : ' + RATIOS_SEPT.coherents.length + ' cohérents, ' + RATIOS_SEPT.aExpliquer.length + ' à expliquer (' + RATIOS_SEPT.aExpliquer.map((x) => x.nom).join(', ') + ')'],
     ['Café', D.ratios[8].tasses_kg + ' tasses par kilo, environ 138 attendues : à vérifier'],
   ], { columnStyles: { 1: { halign: 'right', cellWidth: 74 } } });
@@ -394,7 +395,7 @@ async function construirePack() {
     .concat(plan.det.map((x, i) => [maj(SIM.quand[i + 1]), dNumA(SIM.dates[i + 1]), eur(x.total * 100, false, true), eur(x.solde * 100), F1.format(x.solde / SIM.seuil)])),
   { columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right', fontStyle: 'bold' }, 4: { halign: 'right' } } });
   titre('Points d’attention');
-  table(['Point', 'Détail'], construireAlertes().filter((a) => !a.traitee).map((a) => [a.titre, a.texte]), { columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } } });
+  table(['Point', 'Détail'], construireAlertes().filter((a) => !a.traitee).map((a) => [a.titre, a.texte]), { rowPageBreak: 'avoid', columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } } });
   const n = doc.getNumberOfPages();
   for (let i = 1; i <= n; i++) {
     doc.setPage(i);
