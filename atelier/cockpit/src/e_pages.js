@@ -235,16 +235,63 @@ function fdjSemaineV2(lundi) {
   return { lundi, jours, tReel, tProj, atterrissage: tReel.total + tProj.total, rel, prelev: rel ? rel.prelevement : ajoute(lundi, 9), complete: tProj.n === 0 };
 }
 const FDJ_PREMIERE = '2026-07-06';
+/* ------------------------------------------------------------------ le contrôle FDJ, à la semaine
+   La FDJ facture le grattage par carnet, selon sa propre règle, pas ticket par ticket : semaine par semaine, le prélèvement
+   réel ne tombe jamais juste face au théorique de la caisse. On lit six semaines : les écarts doivent se compenser.
+   Quand une semaine sort de la zone normale, on isole Parions Sport, ticket par ticket. */
+const ZONE_FDJ = 4000;                                                        // écart normal par semaine, réglé sur l'historique du tabac
+const PARIONS = { lundi: '2026-10-05', iso: '2026-10-08', heure: '14:31:08', montant: 4500 };   // le pari retrouvé en isolant Parions Sport
+const PARIONS_NET = Math.round(PARIONS.montant * (1 - FDJ_TX.loto));          // ce que ce pari change au théorique, votre commission déduite
+function controleFdj(n = 6) {
+  const sem = D.releves.fdj.filter((r) => r.du >= FDJ_PREMIERE).slice(-n).map((r) => {
+    const theo = Math.round(fdjSemaineV2(r.du).tReel.total);
+    return { r, theo, reel: r.solde, ecart: theo - r.solde, hors: Math.abs(theo - r.solde) > ZONE_FDJ };
+  });
+  const cumul = sem.reduce((t, x) => t + x.ecart, 0);
+  const pari = sem.find((x) => x.r.du === PARIONS.lundi && x.hors) || null;
+  return { sem, cumul, pari, apres: pari ? pari.ecart + PARIONS_NET : null, cumulApres: cumul + (pari ? PARIONS_NET : 0) };
+}
+const CTRL_FDJ = controleFdj();
+// septembre : les semaines dont le jeudi tombe en septembre (S36 à S39)
+const ECART_SEPT_FDJ = controleFdj(30).sem.filter((x) => ajoute(x.r.du, 3).slice(0, 7) === '2026-09').reduce((t, x) => t + x.ecart, 0);
+// les écarts des dernières semaines, de part et d'autre de zéro, avec la zone normale
+function svgEcartsFdj(o) {
+  const W = o.w, H = o.h, sem = o.sem, n = sem.length;
+  const mg = { g: W < 420 ? 44 : 52, d: 8, h: 18, b: 28 };
+  const lim = Math.ceil(Math.max(ZONE_FDJ, ...sem.map((x) => Math.abs(x.ecart))) * 1.3 / 1000) * 1000;
+  const Y = (v) => mg.h + (lim - v) / (2 * lim) * (H - mg.h - mg.b);
+  const bande = (W - mg.g - mg.d) / n, lb = Math.min(38, bande * 0.5);
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.titre || 'Écart entre le prélèvement théorique et le prélèvement réel, semaine par semaine') + '">';
+  s += '<rect x="' + mg.g + '" y="' + f1(Y(ZONE_FDJ)) + '" width="' + f1(W - mg.g - mg.d) + '" height="' + f1(Y(-ZONE_FDJ) - Y(ZONE_FDJ)) + '" rx="8" fill="var(--ok-fond)" opacity=".8"/>';
+  s += '<g class="grille">' + [ZONE_FDJ, 0, -ZONE_FDJ].map((t) => '<line x1="' + mg.g + '" x2="' + (W - mg.d) + '" y1="' + f1(Y(t)) + '" y2="' + f1(Y(t)) + '"' + (t ? ' stroke-dasharray="3 4"' : ' class="zero"') + '/>').join('') + '</g>';
+  s += [ZONE_FDJ, 0, -ZONE_FDJ].map((t) => '<text x="' + (mg.g - 8) + '" y="' + f1(Y(t) + 4) + '" text-anchor="end">' + (t ? eur(t, false, true) : '0') + '</text>').join('');
+  s += '<text class="ok" x="' + (W - mg.d - 8) + '" y="' + f1(Y(ZONE_FDJ) + 15) + '" text-anchor="end">zone normale</text>';
+  sem.forEach((x, i) => {
+    const cx = mg.g + i * bande + bande / 2, xg = cx - lb / 2, v = x.ecart;
+    const y0 = Y(0), h = Math.max(2, Math.abs(Y(v) - y0)), r = Math.min(5, lb / 2, h);
+    const d = v < 0
+      ? 'M' + f1(xg) + ',' + f1(y0) + 'h' + f1(lb) + 'v' + f1(h - r) + 'q0,' + f1(r) + ' -' + f1(r) + ',' + f1(r) + 'h-' + f1(lb - 2 * r) + 'q-' + f1(r) + ',0 -' + f1(r) + ',-' + f1(r) + 'z'
+      : 'M' + f1(xg) + ',' + f1(y0) + 'v-' + f1(h - r) + 'q0,-' + f1(r) + ' ' + f1(r) + ',-' + f1(r) + 'h' + f1(lb - 2 * r) + 'q' + f1(r) + ',0 ' + f1(r) + ',' + f1(r) + 'v' + f1(h - r) + 'z';
+    s += '<g class="g-barre' + (v < 0 ? ' bas' : '') + '" style="--k:' + i + '"><path d="' + d + '" fill="' + (x.hors ? 'var(--att-plein)' : 'var(--bleu)') + '"/></g>';
+    s += '<text class="g-fondu ' + (x.hors ? 'att' : 'fort') + '" x="' + f1(cx) + '" y="' + f1(v < 0 ? y0 + h + 14 : y0 - h - 7) + '" text-anchor="middle">' + eur(v, false, true) + '</text>';
+    s += '<text x="' + f1(cx) + '" y="' + (H - 8) + '" text-anchor="middle"' + (x.hors ? ' class="att"' : '') + '>S' + x.r.semaine + '</text>';
+    s += '<g class="cible-g"><rect class="survol" x="' + f1(mg.g + i * bande + 2) + '" y="' + (mg.h - 6) + '" width="' + f1(bande - 4) + '" height="' + f1(H - mg.h - mg.b + 6) + '" rx="9" fill="rgba(20,26,46,.05)"/>' +
+      '<rect class="cible" x="' + f1(mg.g + i * bande) + '" y="' + (mg.h - 6) + '" width="' + f1(bande) + '" height="' + f1(H - mg.h - mg.b + 6) + '" fill="transparent" style="cursor:pointer" data-action="fdj-semaine" data-semaine="' + x.r.du + '"' +
+      tip('<b>Semaine ' + x.r.semaine + ', du ' + dNum(x.r.du) + ' au ' + dNum(x.r.au) + '</b>' + ligneTip('', 'Théorique (caisse)', eur2(x.theo)) + ligneTip('', 'Réel (FDJ)', eur2(x.reel)) + ligneTip('', 'Écart', eur2(x.ecart, true))) + '/></g>';
+  });
+  return s + '</svg>';
+}
 function lignesCalculFdj(t, sem) {
   const r = (lib, v, cls = '') => '<div class="calc-l ' + cls + '"><span>' + lib + '</span><span class="v">' + eur2(Math.round(v)) + '</span></div>';
-  let h = r('CA jeux (Strator)', t.ca, 'cl-tete') + r('Jeux instantanés', t.ji, 'sous') + r('Loto, tirages et paris sportifs', t.loto, 'sous') +
+  let h = r('CA jeux (Strator)', t.ca, 'cl-tete') + r('Jeux instantanés', t.ji, 'sous') + r('Loto, tirages et Parions Sport', t.loto, 'sous') +
     r('Gains payés au comptoir', -t.gains, 'cl-tete') + r('Remboursement jeux', -t.rj, 'sous') + r('Remboursement loto', -t.rl, 'sous') +
     r('Votre commission (estimée)', -t.com, 'cl-tete') + r('Jeux instantanés, ' + pct2(FDJ_TX.ji * 100), -t.comJi, 'sous') + r('Loto, ' + pct2(FDJ_TX.loto * 100), -t.comLoto, 'sous');
   if (sem && !sem.complete && !ETAT.fdj.jour) {
     h += r('Jours joués, à reverser', t.total, 'total') + r('Jours restants, estimés', sem.tProj.total, 'proj') + r('Atterrissage', sem.atterrissage, 'total fort');
   } else if (sem && sem.rel && !ETAT.fdj.jour) {
-    h += r('Estimation à partir de la caisse', t.total, 'total') + r('Relevé FDJ (Profession Jeux)', sem.rel.solde, 'total fort') +
-      '<div class="calc-l ecart"><span>Écart entre la caisse et le relevé</span><span class="v">' + eur2(Math.round(t.total - sem.rel.solde), true) + '</span></div>';
+    const e = Math.round(t.total - sem.rel.solde);
+    h += r('Prélèvement théorique (caisse)', t.total, 'total') + r('Prélèvement réel (FDJ)', sem.rel.solde, 'total fort') +
+      '<div class="calc-l ecart' + (Math.abs(e) > ZONE_FDJ ? '' : ' dans') + '"><span>Écart, ' + (Math.abs(e) > ZONE_FDJ ? 'hors de la zone normale' : 'dans la zone normale') + '</span><span class="v">' + eur2(e, true) + '</span></div>';
   } else {
     h += r(ETAT.fdj.jour ? 'À reverser pour ce jour' : 'Prélèvement estimé', t.total, 'total fort');
   }
@@ -269,7 +316,8 @@ function vueFdj() {
   if (sem.rel && sem.complete) {
     semTitre = (sem.prelev < AUJ ? 'Prélevé le ' : 'Sera prélevé le ') + dLong(sem.prelev);
     semMontant = grosMontant(sem.rel.solde);
-    semLigne = 'Relevé FDJ de la semaine ' + sem.rel.semaine + '. Estimé à partir de la caisse : <b>' + eur2(Math.round(sem.tReel.total)) + '</b>, soit un écart de ' + eur2(Math.round(sem.tReel.total - sem.rel.solde), true) + '.';
+    const e = Math.round(sem.tReel.total - sem.rel.solde);
+    semLigne = 'Prélèvement réel de la semaine ' + sem.rel.semaine + '. Théorique, à partir de la caisse : <b>' + eur2(Math.round(sem.tReel.total)) + '</b>, soit un écart de ' + eur2(e, true) + (Math.abs(e) > ZONE_FDJ ? ', hors de la zone normale.' : ', dans la zone normale.');
   } else {
     semTitre = 'Atterrissage du prélèvement du ' + dLong(sem.prelev);
     semMontant = '<span class="environ">≈</span>' + grosMontant(Math.round(sem.atterrissage / 100) * 100, false);
@@ -285,32 +333,22 @@ function vueFdj() {
       '<span class="j7-j">' + maj(J[jour(j.iso).getDay()]).replace('.', '') + '</span><b>' + jour(j.iso).getDate() + '</b><span class="j7-v">' + (j.reel ? '' : '≈') + eurJour(j.net) + '</span></button>';
   }).join('') + '</div>';
   const precedente = ajoute(sem.lundi, -7) >= FDJ_PREMIERE, suivante = ajoute(sem.lundi, 7) <= lundiDe(AUJ);
-  const hist = D.releves.fdj.filter((r) => r.du >= FDJ_PREMIERE).slice(-9).map((r) => ({ r, s: fdjSemaineV2(r.du) }));
-  const ecartFort = (x) => Math.abs(x.s.tReel.total - x.r.solde) > 4000;
-  const lignesHist = hist.slice().reverse().map((x) => {
-    const e = Math.round(x.s.tReel.total - x.r.solde);
-    return '<tr class="' + (ecartFort(x) ? 'signal' : '') + (x.r.du === sem.lundi ? ' choisie' : '') + '" data-action="fdj-semaine" data-semaine="' + x.r.du + '" tabindex="0"><td class="lib"><b>Semaine ' + x.r.semaine + '</b><span class="sec">' + dNum(x.r.du) + ' au ' + dNum(x.r.au) + '<span class="cache-etroit"> · prélevée le ' + dNum(x.r.prelevement) + '</span></span></td>' +
-      '<td class="n cache-etroit">' + eur2(Math.round(x.s.tReel.total)) + '</td><td class="n"><b>' + eur2(x.r.solde) + '</b></td>' +
-      '<td class="n">' + (ecartFort(x) ? pastille('att', eur2(e, true)) : '<span class="ecart-petit">' + eur2(e, true) + '</span>') + '</td></tr>';
-  }).join('');
-  const h8 = hist.slice(-8);
-  const moy = h8.reduce((s, x) => s + x.r.solde, 0) / h8.length;
-  const ecartMoy = h8.reduce((s, x) => s + Math.abs(x.s.tReel.total - x.r.solde), 0) / h8.length;
-  const atterEnCours = fdjSemaineV2(lundiDe(AUJ)).atterrissage;
-  const grapheVals = hist.map((x) => x.r.solde / 100).concat([atterEnCours / 100]);
-  const grapheLabels = hist.map((x) => 'S' + x.r.semaine).concat(['S' + (hist[hist.length - 1].r.semaine + 1)]);
-  const nG = grapheVals.length;
-  const grapheH = graphe((w) => svgColonnes({ id: 'fdjh', titre: 'Prélèvements FDJ des dernières semaines', w, h: 240, vals: grapheVals, labels: grapheLabels, largeur: 30, pasLabels: w < 400 ? 2 : 0, dernierLabel: true, margeG: 44,
-    prevu: (i) => i === nG - 1, couleur: 'var(--orange)', etiquette: (i) => (i === nG - 1 ? '≈ ' + F1.format(grapheVals[i] / 1000) + NB + 'k€' : ''),
-    tips: (i) => '<b>' + grapheLabels[i] + (i === nG - 1 ? ', semaine en cours' : '') + '</b>' + ligneTip('', i === nG - 1 ? 'Atterrissage' : 'Prélevé', eur(grapheVals[i] * 100)) })) +
-    '<div class="legende"><span><i style="background:var(--orange)"></i>Prélevé</span><span><i style="background:repeating-linear-gradient(45deg,var(--orange) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px var(--orange)"></i>Atterrissage de la semaine en cours</span></div>';
-  const s41 = hist.find(ecartFort);
-  const explication = s41 ? '<div class="explication"><div class="encart att">' + ic('alerte') + '<div><b>Semaine ' + s41.r.semaine + ' : la caisse finit ' + eur2(Math.round(s41.r.solde - s41.s.tReel.total)) + ' sous le relevé.</b> ' +
-    eur2(4500) + ' viennent du <b>jeudi 8 octobre à 14 h 31 min 08 s</b> : trois tickets à gratter passés au terminal FDJ, absents de la caisse. Le reste, c’est l’arrondi de la commission.</div></div>' +
-    '<button class="lien-bouton" type="button" data-action="fdj-ops" aria-expanded="' + !!f.ops + '">' + (f.ops ? 'Masquer les opérations' : 'Voir les opérations de 14 h 25 à 14 h 40') + ' ' + ic('droite') + '</button>' +
-    (f.ops ? '<div class="defile"><table class="tableau compact"><thead><tr><th>Heure</th><th>Jeu</th><th class="n">Montant</th><th>En caisse</th></tr></thead><tbody>' +
-      EXPORT_FDJ.map((o) => '<tr class="' + (o.ok ? '' : 'alerte') + '"><td class="mono">' + o.h + '</td><td>' + o.jeu + '</td><td class="n">' + eur2(o.mt) + '</td><td>' + (o.ok ? pastille('ok', 'Oui') : pastille('ko', 'Absent')) + '</td></tr>').join('') + '</tbody></table></div><p class="bloc-note">Export détaillé obtenu avec la collaboration de la FDJ, opération par opération.</p>' : '') + '</div>' : '';
-  return pageTete({ titre: 'FDJ', sous: 'Le prélèvement de mercredi, connu par le relevé. Puis l’atterrissage de la semaine en cours, calculé chaque soir à partir des rubriques de la caisse.' }) +
+  // le contrôle : six semaines, le théorique de la caisse face au réel
+  const C = CTRL_FDJ, P = C.pari;
+  const deux = (c) => '<span class="cache-etroit">' + eur2(c) + '</span><span class="seul-etroit">' + eur(c) + '</span>';   // sur téléphone, à l'euro
+  const lignesC = C.sem.slice().reverse().map((x) => '<tr class="' + (x.hors ? 'signal' : '') + (x.r.du === sem.lundi ? ' choisie' : '') + '" data-action="fdj-semaine" data-semaine="' + x.r.du + '" tabindex="0">' +
+    '<td class="lib"><b><span class="cache-etroit">Semaine </span><span class="seul-etroit">S</span>' + x.r.semaine + '</b><span class="sec cache-etroit">' + dNum(x.r.du) + ' au ' + dNum(x.r.au) + '</span></td>' +
+    '<td class="n">' + deux(x.theo) + '</td><td class="n"><b>' + deux(x.reel) + '</b></td>' +
+    '<td class="n">' + (x.hors ? pastille('att', eur2(x.ecart, true)) : '<span class="ecart-petit">' + eur2(x.ecart, true) + '</span>') + '</td></tr>').join('') +
+    '<tr class="total"><td><span class="cache-etroit">Six semaines</span><span class="seul-etroit">6 sem.</span></td><td class="n">' + deux(C.sem.reduce((t, x) => t + x.theo, 0)) + '</td><td class="n">' + deux(C.sem.reduce((t, x) => t + x.reel, 0)) + '</td><td class="n">' + eur2(C.cumul, true) + '</td></tr>';
+  const grapheE = graphe((w) => svgEcartsFdj({ w, h: w < 420 ? 220 : 236, sem: C.sem })) +
+    '<div class="legende"><span><i style="background:var(--bleu)"></i>Dans la zone normale</span><span><i style="background:var(--att-plein)"></i>Hors de la zone</span><span><i style="background:var(--ok-fond);box-shadow:inset 0 0 0 1px rgba(20,119,76,.3)"></i>Zone normale : ' + eur(-ZONE_FDJ, false, true) + ' à ' + eur(ZONE_FDJ, false, true) + '</span></div>';
+  const enquete = P ? '<div class="explication"><div class="encart att">' + ic('loupe') + '<div><b>Semaine ' + P.r.semaine + ' : ' + eur2(P.ecart, true) + ', hors de la zone.</b> On isole Parions Sport, ticket par ticket : un pari de ' + eur2(PARIONS.montant) + ' sorti du terminal <b>jeudi 8 octobre à 14 h 31 min 08 s</b>, absent de la caisse. Le ticket ajouté, la semaine revient à ' + eur2(C.apres, true) + ', et les six semaines à ' + eur2(C.cumulApres, true) + '.</div></div>' +
+    '<button class="lien-bouton" type="button" data-action="fdj-ops" aria-expanded="' + !!f.ops + '">' + (f.ops ? 'Masquer les paris' : 'Voir les paris Parions Sport de 14 h 25 à 14 h 40') + ' ' + ic('droite') + '</button>' +
+    (f.ops ? '<div class="defile"><table class="tableau compact"><thead><tr><th>Heure</th><th>Pari</th><th class="n">Montant</th><th>En caisse</th></tr></thead><tbody>' +
+      EXPORT_FDJ.map((o) => '<tr class="' + (o.ok ? '' : 'alerte') + '"><td class="mono">' + o.h + '</td><td>' + o.jeu + '</td><td class="n">' + eur2(o.mt) + '</td><td>' + (o.ok ? pastille('ok', 'Oui') : pastille('ko', 'Absent')) + '</td></tr>').join('') + '</tbody></table></div><p class="bloc-note">Chaque pari sort du terminal FDJ avec son heure : il se rapproche un à un des tickets scannés en caisse.</p>' : '') +
+    '<p class="bloc-note">Si Parions Sport avait été juste, l’écart serait venu du grattage : on vous aiderait alors à entrer vos carnets dans Strator, pour suivre ce stock en temps réel.</p></div>' : '';
+  return pageTete({ titre: 'FDJ', sous: 'Le prélèvement de mercredi, connu par le relevé. L’atterrissage de la semaine en cours, calculé chaque soir. Et le contrôle : le théorique de la caisse face au réel, sur six semaines.' }) +
     '<section class="heros anime"><div class="duo"><div class="duo-g">' +
       '<div class="h-eyebrow">' + ic('ticket') + 'Prochain prélèvement FDJ</div>' +
       '<div class="h-montant"><span class="chiffre-xl">' + (prochain ? compte(prochain.solde, 'gros') : '—') + '</span></div>' +
@@ -324,29 +362,19 @@ function vueFdj() {
       '<div class="sem-corps"><div class="sem-gauche"><span class="rep-eyebrow">' + semTitre + '</span><span class="rep-montant">' + semMontant + '</span><p class="rep-ligne">' + semLigne + '</p>' + semBarre + puces7 +
       (f.jour ? '<button class="lien-bouton" type="button" data-action="fdj-jour" data-jour="">' + ic('retour') + 'Revenir à la semaine entière</button>' : '<p class="bloc-note">Touchez un jour pour voir ses rubriques Strator.</p>') + '</div>' +
       '<div class="sem-droite"><h3 class="h3">' + (choisi ? 'Rubriques Strator du ' + dLong(choisi.iso) : 'Le calcul, rubrique par rubrique') + '</h3>' + lignesCalculFdj(tCalc, choisi ? null : sem) + '</div></div>', { id: 'fdj-semaine' }) +
-    carteP('La caisse face aux relevés FDJ', 'L’estimation tombe en moyenne à ' + eur(ecartMoy) + ' du relevé',
-      '<div class="grille"><div class="s5 pile">' + grapheH + explication + '</div>' +
-      '<div class="s7"><div class="defile"><table class="tableau large cliquables"><thead><tr><th>Semaine</th><th class="n cache-etroit">Estimé (caisse)</th><th class="n">Relevé FDJ</th><th class="n">Écart</th></tr></thead><tbody>' + lignesHist + '</tbody></table></div>' +
-      '<p class="bloc-note" style="margin-top:12px">Taux de commission calibrés sur les relevés : ' + pct2(FDJ_TX.ji * 100) + ' des jeux instantanés, ' + pct2(FDJ_TX.loto * 100) + ' du Loto. En moyenne sur huit semaines : ' + eur(moy) + ' prélevés par semaine.</p></div></div>',
-      { actions: boutonsExport('fdjSemaines', ['xlsx', 'csv']) }) +
-    basculeDetail('Profession Jeux face à Strator jour par jour, relevés FDJ et PMU.', detailJeux);
+    carteP('Le contrôle FDJ, sur six semaines', 'La FDJ facture le grattage par carnet, pas ticket par ticket : chaque semaine a son petit écart, et ils se compensent',
+      '<div class="grille"><div class="s5 pile">' + grapheE +
+      '<p class="bloc-note">Une semaine au-dessus, une semaine en dessous : sur septembre, les écarts font ' + eur2(ECART_SEPT_FDJ, true) + '. Un écart qui sort de la zone, ou qui ne se compense pas, se cherche.</p>' + enquete + '</div>' +
+      '<div class="s7"><div class="defile"><table class="tableau large cliquables ctrl-fdj"><thead><tr><th><span class="cache-etroit">Semaine</span><span class="seul-etroit">Sem.</span></th><th class="n">Théorique<span class="cache-etroit"> (caisse)</span></th><th class="n">Réel<span class="cache-etroit"> (FDJ)</span></th><th class="n">Écart</th></tr></thead><tbody>' + lignesC + '</tbody></table></div>' +
+      '<p class="bloc-note" style="margin-top:12px">Théorique : les rubriques de votre caisse Strator, moins les gains payés et votre commission (' + pct2(FDJ_TX.ji * 100) + ' des jeux instantanés, ' + pct2(FDJ_TX.loto * 100) + ' du Loto et des paris). Zone normale réglée sur l’historique du tabac. Touchez une semaine pour voir son calcul.</p></div></div>',
+      { id: 'fdj-controle', actions: boutonsExport('controleFdj', ['xlsx', 'csv']) }) +
+    basculeDetail('Les relevés FDJ et PMU, semaine par semaine.', detailJeux);
 }
 function detailJeux() {
-  const sem = ETAT.jeux.semaine;
-  const fdj = fdjSemaine(sem);
-  const totPJ = fdj.reduce((s, x) => s + x.pj, 0), totST = fdj.reduce((s, x) => s + x.st, 0);
-  const fdjRows = fdj.map((x) => {
-    let etat = pastille('ok', 'Juste');
-    if (x.ecart) etat = x.iso === '2026-09-15' ? pastille('ok', 'Expliqué : ticket Loto saisi deux fois') : pastille('ko', 'Écart');
-    return '<tr class="' + (x.ecart && x.iso !== '2026-09-15' ? 'alerte' : '') + '"><td><b>' + maj(dCourt(x.iso)) + '</b></td><td class="n">' + eur2(x.pj) + '</td><td class="n">' + eur2(x.st) + '</td><td class="n">' + (x.ecart ? eur2(x.ecart, true) : '—') + '</td><td>' + etat + '</td></tr>';
-  }).join('');
   const jPrel = (iso) => J[jour(iso).getDay()] + ' ' + dNum(iso);
   const rel = D.releves.fdj.slice(-8).reverse().map((r) => '<tr><td class="nw"><b>S' + r.semaine + '</b><span class="sec">' + dNum(r.du) + ' au ' + dNum(r.au) + '</span></td><td class="n">' + eur2(r.ventes) + '</td><td class="n">' + eur2(r.gains) + '</td><td class="n positif">' + eur2(r.commission) + '</td><td class="n"><b>' + eur2(r.solde) + '</b><span class="sec">' + jPrel(r.prelevement) + '</span></td></tr>').join('');
   const relP = D.releves.pmu.slice(-8).reverse().map((r) => '<tr><td class="nw"><b>S' + r.semaine + '</b><span class="sec">' + dNum(r.du) + ' au ' + dNum(r.au) + '</span></td><td class="n">' + eur2(r.ventes) + '</td><td class="n">' + eur2(r.gains) + '</td><td class="n positif">' + eur2(r.commission) + '</td><td class="n"><b>' + eur2(r.solde) + '</b><span class="sec">' + jPrel(r.prelevement) + '</span></td></tr>').join('');
-  return carte('Profession Jeux face à Strator, jour par jour', '<div class="defile"><table class="tableau"><thead><tr><th>Jour</th><th class="n">Profession Jeux</th><th class="n">Strator</th><th class="n">Écart</th><th>État</th></tr></thead><tbody>' + fdjRows +
-      '<tr class="total"><td>Semaine</td><td class="n">' + eur2(totPJ) + '</td><td class="n">' + eur2(totST) + '</td><td class="n">' + (totST - totPJ ? eur2(totST - totPJ, true) : '—') + '</td><td></td></tr></tbody></table></div>',
-      { meta: 'Les ventes de jeux selon la FDJ et selon la caisse', actions: seg('fdjsem', SEMAINES_FDJ.map((d) => [d, 'S' + D.releves.fdj.find((r) => r.du === d).semaine]), sem) + boutonsExport('controleFdj', ['xlsx']) }) +
-    '<div class="g"><div class="c12">' + carte('Relevés FDJ', '<div class="defile"><table class="tableau compact"><thead><tr><th>Semaine</th><th class="n">Ventes</th><th class="n">Gains payés</th><th class="n">Commission</th><th class="n">Prélevé le</th></tr></thead><tbody>' + rel + '</tbody></table></div>', { meta: 'Prélèvement chaque mercredi', actions: boutonsExport('fdj') }) + '</div>' +
+  return '<div class="g"><div class="c12">' + carte('Relevés FDJ', '<div class="defile"><table class="tableau compact"><thead><tr><th>Semaine</th><th class="n">Ventes facturées</th><th class="n">Gains payés</th><th class="n">Commission</th><th class="n">Prélevé le</th></tr></thead><tbody>' + rel + '</tbody></table></div>', { meta: 'Prélèvement chaque mercredi. Le grattage y est facturé par carnet.', actions: boutonsExport('fdj') }) + '</div>' +
     '<div class="c12">' + carte('Relevés PMU', '<div class="defile"><table class="tableau compact"><thead><tr><th>Semaine</th><th class="n">Enjeux</th><th class="n">Gains payés</th><th class="n">Commission</th><th class="n">Prélevé le</th></tr></thead><tbody>' + relP + '</tbody></table></div>', { meta: 'Prélèvement chaque mardi', actions: boutonsExport('pmu') }) + '</div></div>';
 }
 
@@ -399,9 +427,9 @@ function vueAccueil() {
       tips: (i) => '<b>' + maj(dLong(SEM[i].date)) + (SEM[i].statut === 'prévu' ? ' (prévu)' : i === iSoir ? ' (ce soir)' : '') + '</b>' + ligneTip('', 'Solde à 21 h', eur(SEM[i].solde)) + (SEM[i].entrees ? ligneTip('', 'Encaissements nets', '+' + eur(SEM[i].entrees)) : '') + SEM[i].sorties.map((s) => ligneTip('', s[0], eur(-s[1]))).join('') });
   });
   const surveiller = [
-    { route: 'fdj', ops: true, ic: 'ticket', niv: 'ko', t: 'Écart FDJ : ' + eur2(-4500), s: 'Jeudi 8 octobre, 14 h 31 min 08 s : trois tickets absents de la caisse' },
+    { route: 'fdj', ops: true, vers: '#fdj-controle', ic: 'ticket', niv: 'ko', t: 'Contrôle FDJ : un pari absent de la caisse', s: 'Parions Sport, ' + eur2(PARIONS.montant) + ', jeudi 8 octobre à 14 h 31 min 08 s' },
     { facture: FACT_METRO && FACT_METRO.id, ic: 'facture', niv: 'att', t: 'Coca-Cola : +6,8 % chez Metro', s: 'Prix de vente inchangé : la marge du produit baisse de 3 points' },
-    { route: 'rentabilite', ic: 'tasse', niv: 'att', t: 'Café : ' + D.ratios[8].tasses_kg + ' tasses par kilo', s: 'Environ 138 attendues en septembre : cafés offerts ou moulin à régler' },
+    { route: 'rentabilite', vers: '#ratios', ic: 'cible', niv: 'att', t: 'Ratios de septembre : ' + RATIOS_SEPT.aExpliquer.length + ' à expliquer sur ' + RATIOS_SEPT.liste.length, s: RATIOS_SEPT.aExpliquer.map((x) => x.nom).join(' et ').replace(/^./, (c) => c.toUpperCase()) + '. Les ' + RATIOS_SEPT.coherents.length + ' autres sont cohérents' },
     { route: 'caisse', ic: 'caisse', niv: 'att', t: '3 annulations après paiement', s: 'Samedi 10 octobre, entre 19 h 52 et 20 h 01, caisse 2' },
   ];
   const vocaux = VOCAUX.slice(0, 3);
@@ -432,7 +460,7 @@ function vueAccueil() {
       '<h3 class="h3">Où va la marge</h3>' + htmlOuVaLaMarge('att'), { cls: 'grandit', actions: lienPage('rentabilite', 'Résultat') }) + '</div>' +
     '<div class="s6">' + carteP('Ce que rapporte chaque rayon', 'Marge d’octobre, comparée à septembre', htmlRayons('att', 9), { cls: 'grandit' }) + '</div></div>' +
     '<div class="grille">' +
-    '<div class="s4">' + carteP('À surveiller', 'Repéré par le cockpit cette semaine', '<div class="liste alertes-l">' + surveiller.map((x) => '<div class="ligne cliquable" data-action="' + (x.facture ? 'facture' : 'surveiller') + '"' + (x.facture ? ' data-id="' + x.facture + '"' : ' data-route="' + x.route + '"' + (x.ops ? ' data-ops="1"' : '')) + ' role="button" tabindex="0"><span class="puce-ic ' + x.niv + '">' + ic(x.ic) + '</span><div class="l-txt"><b>' + x.t + '</b><span>' + x.s + '</span></div>' + ic('droite') + '</div>').join('') + '</div>', { cls: 'grandit' }) + '</div>' +
+    '<div class="s4">' + carteP('À surveiller', 'Repéré par le cockpit cette semaine', '<div class="liste alertes-l">' + surveiller.map((x) => '<div class="ligne cliquable" data-action="' + (x.facture ? 'facture' : 'surveiller') + '"' + (x.facture ? ' data-id="' + x.facture + '"' : ' data-route="' + x.route + '"' + (x.ops ? ' data-ops="1"' : '') + (x.vers ? ' data-vers="' + x.vers + '"' : '')) + ' role="button" tabindex="0"><span class="puce-ic ' + x.niv + '">' + ic(x.ic) + '</span><div class="l-txt"><b>' + x.t + '</b><span>' + x.s + '</span></div>' + ic('droite') + '</div>').join('') + '</div>', { cls: 'grandit' }) + '</div>' +
     '<div class="s4">' + carteP('Boîte vocale', 'Le téléphone a sonné en plein rush ? Le message est résumé', '<div class="vocal">' + vocaux.map((v) => '<div class="voc"><span class="voc-ic">' + ic('telephone') + '</span><div class="voc-tete"><b>' + esc(v.qui) + '</b><span>' + (v.date === AUJ ? '' : J[jour(v.date).getDay()] + ' ') + v.h + '</span></div><p>' + esc(v.resume) + '</p><span class="voc-pied">' + ic('coche') + 'Envoyé à ' + esc(v.envoye) + '</span></div>').join('') + '</div>', { cls: 'grandit' }) + '</div>' +
     '<div class="s4">' + carteP('Vos sources, ce soir', 'Toute l’information au même endroit, sans aucun mot de passe', htmlSources(4) + '<div class="p-pied"><button class="lien-bouton" type="button" data-action="sources">Toutes vos sources ' + ic('fleche') + '</button></div>', { cls: 'grandit colonne' }) + '</div></div>';
 }
@@ -660,6 +688,23 @@ function notePlan(plan) {
   return plan.niveau === 'ok' ? 'Toujours au moins une facture Logista d’avance, même au point bas.' :
     maj(SIM.quand[plan.kb]) + ', il vous resterait ' + eur(plan.bas * 100) + ' : il manquerait ' + eur(plan.manque * 100) + ' pour garder une facture Logista d’avance. Le cockpit vous prévient des semaines avant, le temps de décaler ou de financer.';
 }
+/* La TVA du mois : collectée sur les ventes de la boutique en caisse (Strator), déductible sur les factures d'achat
+   du mois, lues ligne par ligne. La CA3 est prélevée le 21 du mois suivant. */
+function tvaDuMois(mo) {
+  const m2 = '2026-' + String(mo).padStart(2, '0'), p = D.pnl[mo - 1].produits;
+  const fac = D.factures.filter((f) => f.date.slice(0, 7) === m2 && f.tva);
+  const coll = Math.round(D.boutique.reduce((s, f) => s + p[f + '_ventes'] * D.tva_vente[f], 0));
+  const ded = fac.reduce((s, f) => s + f.tva, 0);
+  return { mo, ventes: D.boutique.reduce((s, f) => s + p[f + '_ventes'], 0), coll, ded, du: coll - ded, n: fac.length };
+}
+const TVA_SEPT = Object.assign(tvaDuMois(9), { prelev: '2026-10-21' });   // mercredi 21 octobre
+function htmlTva() {
+  const t = TVA_SEPT;
+  return '<div class="tva-eq">' +
+    '<div class="tva-b"><span>TVA collectée</span><b>' + eur2(t.coll) + '</b><small>sur ' + eur(t.ventes) + ' de ventes HT de la boutique, en caisse</small></div><span class="tva-op" aria-hidden="true">−</span>' +
+    '<div class="tva-b"><span>TVA déductible</span><b>' + eur2(t.ded) + '</b><small>sur vos ' + t.n + ' factures d’achat de septembre</small></div><span class="tva-op" aria-hidden="true">=</span>' +
+    '<div class="tva-b fort"><span>À payer</span><b>' + eur2(t.du) + '</b><small>prélevés le ' + dLong(t.prelev) + '</small></div></div>';
+}
 function vueTresorerieV3() {
   const plan = calculPlan();
   const prochainFdj = D.releves.fdj.find((r) => r.prelevement >= AUJ);
@@ -687,10 +732,11 @@ function vueTresorerieV3() {
       '<p class="h-ligne">Après ' + eur(4010000) + ' de prélèvements connus d’ici lundi, dont la facture Logista de ' + eur(2933000) + '. Au plus bas des six prochains mois : <b>' + F1.format(plan.bas / SIM.seuil) + ' facture Logista d’avance</b>.</p>' +
       '<div class="h-duo"><div class="h-mini ambre"><span class="chiffre-s">' + compte(3240000, 'grosE') + '</span><span>à virer de la BNP vers la Banque Populaire <b>avant jeudi</b>, pour les recharges et Logista</span></div>' +
       '<div class="h-mini"><span class="chiffre-s">' + compte(VAV.vraiment, 'grosE') + '</span><span><b>vraiment à vous</b> lundi soir, une fois les jeux, les recharges et les timbres mis de côté</span></div></div>' +
-      (prochainFdj ? '<div class="h-pied" style="margin-top:auto"><span class="pill n">' + ic('ticket') + 'Prélèvement FDJ ' + dCourt(prochainFdj.prelevement) + ' : ' + eur(prochainFdj.solde) + '</span><button class="lien-bouton" type="button" data-action="vers-plan">Votre plan de vol ' + ic('fleche') + '</button></div>' : '') + '</section>' +
+      (prochainFdj ? '<div class="h-pied" style="margin-top:auto"><span class="pill n">' + ic('ticket') + 'Prélèvement FDJ ' + dCourt(prochainFdj.prelevement) + ' : ' + eur(prochainFdj.solde) + '</span><span class="pill n">' + ic('banque') + 'TVA ' + dCourt(TVA_SEPT.prelev) + ' : ' + eur(TVA_SEPT.du) + '</span><button class="lien-bouton" type="button" data-action="vers-plan">Votre plan de vol ' + ic('fleche') + '</button></div>' : '') + '</section>' +
     '<div class="s5">' + carteP('Vos comptes, ce soir', 'Lus à 21 h 02, en lecture seule', comptesHtml, { cls: 'grandit' }) + '</div></div>' +
     carteP('Votre semaine, soir après soir', 'Départ dimanche ' + eur(SEM[0].solde) + ', atterrissage lundi ' + eur(SEM[SEM.length - 1].solde), semaine +
       '<div class="legende"><span><i style="background:var(--bleu)"></i>Réel</span><span><i style="background:repeating-linear-gradient(45deg,var(--bleu) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px var(--bleu)"></i>Prévu</span><span><i style="background:var(--rouge)"></i>Atterrissage</span><span class="discret">Encaissements prévus : 5 090 € par jour, moyenne prudente des quatre dernières semaines</span></div>' + htmlEquationSemaine(), { actions: boutonsExport('semaine') }) +
+    carteP('La TVA de septembre', 'Vos ventes en caisse et vos factures d’achat donnent la TVA à payer. Prélevée le ' + dLong(TVA_SEPT.prelev) + ', elle est déjà dans votre plan de vol', htmlTva(), { id: 'tva', actions: boutonsExport('tva', ['xlsx', 'csv']) }) +
     secTete('Votre plan de vol, <em>à vous de jouer</em>', 'Chaque décision, à sa date et à son montant. Ajoutez ce que vous savez déjà : le cockpit recalcule les six prochains mois, quinzaine par quinzaine.', 'sec-plan') +
     '<div class="plan anime" id="plan"><div class="verre plan-cmd"><div class="p-tete"><div><h2>Vos décisions</h2><span class="p-sous">Partez d’un scénario, puis réglez chaque décision : son mois, son montant</span></div></div>' +
       '<div class="lv-reglage plan-scen" id="plan-scen">' + htmlScenarios() + '</div><div class="leviers" id="leviers">' + htmlLeviers() + '</div>' +
@@ -715,6 +761,40 @@ function detailTresorerieV3() {
 }
 
 /* ================================================================== RÉSULTAT */
+/* Les ratios du mois : avec la facture électronique, l'administration voit vos achats ; vos ventes suivront en
+   septembre 2027. Chaque mois, le cockpit passe en revue tous les ratios qui relient les deux. */
+function ratiosDuMois() {
+  const r9 = D.ratios[8], p9 = D.pnl[8].produits;
+  const sept = (du) => ajoute(du, 3).slice(0, 7) === '2026-09';
+  const fdjSept = controleFdj(30).sem.filter((x) => sept(x.r.du));
+  const pmuSept = D.releves.pmu.filter((r) => sept(r.du));
+  const vapeEcart = (D.vape_achats['9'] || 0) - p9.vape_cout;
+  const annulSept = D.annules.filter((a) => a.date.slice(0, 7) === '2026-09' && a.moment === 'Après encaissement').length;
+  const tvaAout = tvaDuMois(8), tvaPayee = D.mouvements.find((m) => m.libelle.indexOf('TVA CA3 08/2026') >= 0);
+  const L = [
+    { nom: 'le café', ic: 'tasse', lib: 'Café', val: r9.tasses_kg + ' tasses par kilo', att: 'environ 138 attendues', ok: false,
+      pourquoi: nb(r9.tasses) + ' cafés vendus pour ' + r9.cafe_kg + ' kg achetés : cafés offerts, réglage du moulin ou ventes oubliées en caisse.' },
+    { nom: 'les boissons', ic: 'euro', lib: 'Boissons', val: pct(r9.boissons_reel) + ' de marge', att: pct(r9.boissons_theo) + ' attendus', ok: false,
+      pourquoi: 'Boissons offertes, casse ou prix de rayon pas à jour. En octobre, le Coca-Cola prend 6,8 % chez Metro : sans hausse du prix de vente, l’écart se creuse.' },
+    { ic: 'billet', lib: 'Espèces', val: eur(r9.especes_ecart, false, true) + ' sur le mois', att: 'collectes face aux Z de caisse, dans la tolérance', ok: true },
+    { ic: 'ticket', lib: 'Jeux FDJ', val: eur2(fdjSept.reduce((t, x) => t + x.ecart, 0), true) + ' sur le mois', att: 'théorique face au réel, chaque semaine dans la zone', ok: fdjSept.every((x) => !x.hors) },
+    { ic: 'ticket', lib: 'PMU', val: pct(D.taux.pmu * 100, 1) + ' de commission', att: 'conforme sur chaque relevé', ok: pmuSept.every((r) => Math.abs(r.commission - Math.round(r.ventes * D.taux.pmu)) <= 1) },
+    { ic: 'feuille', lib: 'Tabac', val: pct(p9.tabac_marge / p9.tabac_ventes * 100, 1) + ' de remise', att: 'factures Logista et ventes en caisse concordent', ok: true },
+    { ic: 'vape', lib: 'Vape', val: eur(vapeEcart, false, true) + ' d’achats en plus', att: '14 nouvelles références mises en rayon', ok: true },
+    { ic: 'stock', lib: 'Stock', val: eur(STOCK_ECART) + ' d’écart, ' + pct(STOCK_ECART / D.stock_tot.theo * 100, 1), att: 'stock théorique face à Strator, ce soir', ok: true },
+    { ic: 'banque', lib: 'TVA', val: (tvaPayee ? eur2(-tvaPayee.montant) : '—') + ' payés le 21 septembre', att: 'ce que donnent vos ventes et vos factures d’août, vitrine comprise', ok: !!tvaPayee && -tvaPayee.montant === tvaAout.du },
+    { ic: 'caisse', lib: 'Annulations', val: annulSept ? annulSept + ' après paiement' : 'aucune après paiement', att: 'tickets annulés en septembre', ok: annulSept === 0 },
+  ];
+  return { liste: L, coherents: L.filter((x) => x.ok), aExpliquer: L.filter((x) => !x.ok) };
+}
+const RATIOS_SEPT = ratiosDuMois();
+function htmlRatiosRevue() {
+  const R = RATIOS_SEPT;
+  return '<div class="revue">' +
+    '<div class="rv-score"><span><b>' + R.liste.length + '</b> ratios passés en revue</span>' + pill('ok', R.coherents.length + ' cohérents', 'coche') + pill('att', R.aExpliquer.length + ' à expliquer', 'alerte') + '</div>' +
+    '<div class="liste">' + R.aExpliquer.map((x) => '<div class="ligne ratio-l"><span class="ic-pastille ambre">' + ic(x.ic) + '</span><div class="l-txt"><b>' + x.lib + ' : ' + x.val + ', ' + x.att + '</b><span>' + x.pourquoi + '</span></div>' + pastille('att', 'À expliquer') + '</div>').join('') + '</div>' +
+    '<ul class="rv-ok">' + R.coherents.map((x) => '<li>' + ic('coche') + '<span><b>' + x.lib + '</b> ' + x.val + '<small>' + maj(x.att) + '</small></span></li>').join('') + '</ul></div>';
+}
 function vueResultatV3() {
   const att = pnlDe('att'), sep = pnlDe(9);
   const rAtt = resultatDe(att), rSep = resultatDe(sep);
@@ -734,8 +814,6 @@ function vueResultatV3() {
     couleurs: resV.map(() => 'var(--vert)'), prevu: (i) => i === 9,
     etiquette: (i) => (w < 400 ? (i === 9 || i === iMax ? keur(resV[i]) : '') : keur(resV[i])), etiquetteClasse: (i) => (i === 9 ? 'fort ok' : 'fort'),
     tips: (i) => '<b>' + (i === 9 ? 'Octobre, atterrissage' : maj(ML[i])) + '</b>' + ligneTip('var(--vert)', 'Votre résultat', eur(resV[i] * 100)) + ligneTip('', 'Marge brute', eur(margeTotale(X[i].produits))) + ligneTip('', 'Charges', eur(chargesTotales(X[i].charges))) }));
-  const R = D.ratios, r9 = R[8];
-  const ratio = (icn, coul, lib, val, sous, etat) => '<div class="ligne ratio-l"><span class="ic-pastille ' + coul + '">' + ic(icn) + '</span><div class="l-txt"><b>' + lib + ' : ' + val + '</b><span>' + sous + '</span></div>' + etat + '</div>';
   return pageTete({ titre: 'Résultat', sous: 'Ce que vous gagnez chaque mois, rayon par rayon, sans attendre le bilan.' }) +
     '<div class="grille">' +
     '<section class="heros anime s5"><div class="h-eyebrow">' + ic('resultat') + 'Octobre, résultat attendu ' + pill('n ok', pctS((rAtt - rSep) / Math.abs(rSep) * 100) + ' sur septembre') + '</div>' +
@@ -749,12 +827,7 @@ function vueResultatV3() {
     '<div class="grille">' +
     '<div class="s6">' + carteP('Ce que rapporte chaque rayon', 'Octobre, comparé à septembre', htmlRayons('att', 9), { cls: 'grandit' }) + '</div>' +
     '<div class="s6">' + carteP('Mois par mois, votre résultat', 'Ce qui reste une fois toutes les charges payées, avant votre rémunération', resMois + '<p class="bloc-note">Meilleur mois : ' + ML[iMax] + ', ' + eur(resV[iMax] * 100) + '. * Octobre : atterrissage.</p>', { cls: 'grandit' }) + '</div></div>' +
-    carteP('Les ratios qui racontent le mois', 'Septembre : ce que l’administration verra avec la facture électronique, autant que l’histoire soit propre', '<div class="liste">' +
-      ratio('tasse', 'ambre', 'Café', r9.tasses_kg + ' tasses par kilo', nb(r9.tasses) + ' cafés vendus pour ' + r9.cafe_kg + ' kg achetés, environ 138 attendues', pastille('att', 'À vérifier')) +
-      ratio('euro', 'ambre', 'Boissons', pct(r9.boissons_reel) + ' de marge', pct(r9.boissons_theo) + ' attendus : boissons offertes, casse ou prix de rayon pas à jour', pastille('att', 'À vérifier')) +
-      ratio('billet', 'vert', 'Espèces', eur(r9.especes_ecart) + ' d’écart', 'Sur le mois de septembre, collectes rapprochées des Z de caisse', pastille('ok', 'Dans la tolérance')) +
-      ratio('ticket', 'vert', 'Jeux FDJ', pct(D.releves.fdj.slice(-8).reduce((s, r) => s + r.commission, 0) / D.releves.fdj.slice(-8).reduce((s, r) => s + r.ventes, 0) * 100, 2) + ' de commission', 'Conforme sur chaque relevé des huit dernières semaines', pastille('ok', 'Conforme')) +
-    '</div>') +
+    carteP('Vos ratios racontent-ils une histoire propre ?', 'Septembre. Vos achats passent déjà par la facture électronique, vos ventes suivront en septembre 2027 : chaque mois, le cockpit vérifie que les deux racontent la même histoire', htmlRatiosRevue(), { id: 'ratios' }) +
     basculeDetail('Le compte de résultat mois par mois, rayon par rayon, tous les ratios, la facture électronique.', detailRentabilite);
 }
 

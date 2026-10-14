@@ -228,7 +228,7 @@ function htmlPlanAide(plan) {
 function htmlPlanTable(plan) {
   const table = plan.det.map((x, i) => {
     const ev = (x.lignes || []).map((l) => esc(l[1]) + ' ' + eur(l[2] * 100, false, true));
-    return '<tr' + (x.solde < SIM.seuil ? ' class="alerte"' : '') + '><td><b>' + maj(SIM.quand[i + 1]) + '</b><span class="sec">' + dCourt(SIM.dates[i + 1]) + '</span></td><td class="n">' + eur(x.base * 100, false, true) + '</td><td>' + (ev.join(' · ') || '—') + '</td><td class="n">' + eur(x.total * 100, false, true) + '</td><td class="n"><b>' + eur(x.solde * 100) + '</b></td><td class="n">' + F1.format(x.solde / SIM.seuil) + '</td></tr>';
+    return '<tr' + (x.solde < SIM.seuil ? ' class="alerte"' : '') + '><td><b>' + maj(SIM.quand[i + 1]) + '</b><span class="sec">' + dCourt(SIM.dates[i + 1]) + '</span></td><td class="n">' + eur(x.base * 100, false, true) + (i === 0 ? '<span class="sec">dont TVA de septembre ' + eur(-TVA_SEPT.du) + '</span>' : '') + '</td><td>' + (ev.join(' · ') || '—') + '</td><td class="n">' + eur(x.total * 100, false, true) + '</td><td class="n"><b>' + eur(x.solde * 100) + '</b></td><td class="n">' + F1.format(x.solde / SIM.seuil) + '</td></tr>';
   }).join('');
   return '<div class="defile"><table class="tableau"><thead><tr><th>Quinzaine</th><th class="n">Activité courante</th><th>Vos décisions</th><th class="n">Mouvement net</th><th class="n">Trésorerie</th><th class="n">Factures Logista d’avance</th></tr></thead><tbody><tr><td><b>Mi-octobre</b><span class="sec">lun. 19 oct., après Logista</span></td><td class="n">—</td><td>Départ</td><td class="n">—</td><td class="n"><b>' + eur(SIM.depart * 100) + '</b></td><td class="n">' + F1.format(SIM.depart / SIM.seuil) + '</td></tr>' + table + '</tbody></table></div>';
 }
@@ -606,13 +606,10 @@ function cartesRatios() {
   const vapeD = moisV.map((m) => ((D.vape_achats[String(m)] || 0) - (m === 10 ? 0 : D.pnl[m - 1].produits.vape_cout)) / 100);
   const vape = svgColonnes({ id: 'vape', titre: 'Achats vape moins coût des ventes', w: 340, h: 150, vals: vapeD.slice(0, 3), labels: ['juil.', 'août', 'sept.'], largeur: 26, margeG: 46,
     couleurs: ['var(--s4)', 'var(--s4)', 'var(--att-plein)'], tips: (i) => '<b>' + maj(ML[moisV[i] - 1]) + '</b>' + ligneTip('', 'Achats moins coût des ventes', eur(vapeD[i] * 100)) });
-  const fdjCom = D.releves.fdj.slice(-8).reduce((s, r) => s + r.commission, 0) / D.releves.fdj.slice(-8).reduce((s, r) => s + r.ventes, 0) * 100;
   const tabacP = D.pnl.slice(0, 9).map((x) => x.produits);
   const tabac = svgColonnes({ id: 'tabac', titre: 'Remise tabac chaque mois', w: 340, h: 150, vals: tabacP.map((x) => x.tabac_marge / 100), labels: mois, pasLabels: 2, largeur: 16, margeG: 38,
     tips: (i) => '<b>' + maj(ML[i]) + '</b>' + ligneTip('', 'Ventes de tabac', eur(tabacP[i].tabac_ventes)) + ligneTip('', 'Remise', eur(tabacP[i].tabac_marge)) + ligneTip('', 'Taux', pct(tabacP[i].tabac_marge / tabacP[i].tabac_ventes * 100)) });
-  const relF = D.releves.fdj.slice(-8);
-  const fdjG = svgColonnes({ id: 'fdjc', titre: 'Commission FDJ chaque semaine', w: 340, h: 150, vals: relF.map((r) => r.commission / 100), labels: relF.map((r) => 'S' + r.semaine), pasLabels: 2, largeur: 16, margeG: 38, couleur: 'var(--s2)',
-    tips: (i) => '<b>Semaine ' + relF[i].semaine + '</b>' + ligneTip('', 'Ventes', eur(relF[i].ventes)) + ligneTip('', 'Commission', eur2(relF[i].commission)) + ligneTip('', 'Taux', pct(relF[i].commission / relF[i].ventes * 100)) });
+  const fdjG = svgEcartsFdj({ w: 340, h: 160, sem: controleFdj(8).sem, titre: 'Écart FDJ chaque semaine, le théorique face au réel' });
   const c = (titre, val, lib, graphe, verdict) => '<section class="carte ratio-c"><div class="carte-tete"><h3>' + titre + '</h3></div><div class="carte-corps ratio"><span class="rv">' + val + '</span><span class="rl">' + lib + '</span>' + (graphe ? '<div class="graphe">' + graphe + '</div>' : '') + verdict + '</div></section>';
   return '<div class="ratios">' +
     c('Café', r9.tasses_kg + ' tasses par kilo', 'en septembre : ' + nb(r9.tasses) + ' cafés vendus pour ' + r9.cafe_kg + ' kg achetés', cafe, '<div class="encart att">' + ic('alerte') + '<div>Environ 138 attendues. Cafés offerts, réglage du moulin ou ventes oubliées en caisse.</div></div>') +
@@ -620,7 +617,7 @@ function cartesRatios() {
     c('Espèces', eur(r9.especes_ecart), 'd’écart de caisse en septembre', esp, '<div class="encart ok">' + ic('coche') + '<div>Dans la tolérance. Dépôts bancaires rapprochés des espèces du Z, gains payés déduits.</div></div>') +
     c('Cigarette électronique', eur(vapeD[2] * 100, false, true), 'd’achats au-dessus du coût des ventes en septembre', vape, '<div class="encart ok">' + ic('coche') + '<div>Écart expliqué : 14 nouvelles références mises en rayon.</div></div>') +
     c('Tabac', pct(D.taux.tabac * 100), 'de remise sur les ventes, chaque mois depuis janvier', tabac, '<div class="encart ok">' + ic('coche') + '<div>Factures Logista cohérentes avec les ventes de la caisse, livraison après livraison.</div></div>') +
-    c('Jeux FDJ', pct(fdjCom, 2), 'de commission sur les ventes, huit dernières semaines', fdjG, '<div class="encart ok">' + ic('coche') + '<div>Commission conforme sur chaque relevé hebdomadaire.</div></div>') +
+    c('Jeux FDJ', eur2(ECART_SEPT_FDJ, true), 'd’écart sur septembre, le théorique de la caisse face au réel', fdjG, '<div class="encart ok">' + ic('coche') + '<div>Les semaines se compensent. La semaine 41, hors de la zone, est expliquée : un pari Parions Sport absent de la caisse.</div></div>') +
     '</div>';
 }
 function htmlBarresMarge(cle, note = true) {
@@ -648,7 +645,7 @@ function detailRentabilite() {
   const evo = ACTIVITES.map((a) => { const m = margeActivite(D.pnl[8].produits, a), m0 = margeActivite(n1s, a); return { a, m, m0, d: (Math.round(m / 100) - Math.round(m0 / 100)) * 100 }; }).sort((x, y) => Math.abs(y.d) - Math.abs(x.d));
   const choix = [[1, 'janv.'], [2, 'févr.'], [3, 'mars'], [4, 'avr.'], [5, 'mai'], [6, 'juin'], [7, 'juil.'], [8, 'août'], [9, 'sept.'], ['oct', 'oct. au 13'], ['att', 'oct. atterrissage']];
   return bandeau('Le compte de résultat arrive des mois plus tard, en un seul bloc. Il ne dit pas ce que rapporte chaque rayon, ni où partent les marges.',
-    'Chaque mois, la marge de chaque rayon, de la marge au résultat, et l’atterrissage du mois en cours. Des ratios surveillent le café, les boissons et les espèces.',
+    'Chaque mois, la marge de chaque rayon, de la marge au résultat, et l’atterrissage du mois en cours. Dix ratios passés en revue chaque mois : café, boissons, espèces, jeux, tabac, stock, TVA.',
     'Octobre : <b>' + eur(resOct) + '</b> de résultat attendu. Le CBD est passé de ' + eur(cbd4) + ' de ventes en avril à ' + eur(cbd9) + ' en octobre (<b>×' + F0.format(cbd9 / cbd4) + '</b>).') +
     '<div class="g etire"><div class="c8">' + carte('Marge brute par activité, en 2026', grapheMarges(), { meta: 'Ce qui reste après le coût des achats ou les commissions' }) + '</div>' +
     '<div class="c4">' + carte('Sur un an, ce qui a bougé', '<div class="liste">' + evo.map((x) => '<div class="ligne longue"><span class="pt-cle" style="background:' + x.a.coul + '"></span><div class="l-txt"><b>' + x.a.lib + '</b><span>' + eur(x.m) + ' en septembre, ' + eur(x.m0) + ' en 2025</span></div><span class="l-mt ' + (x.d >= 0 ? 'positif' : 'negatif') + '">' + eur(x.d, false, true) + '</span></div>').join('') + '</div>', { meta: 'Marge de septembre' }) + '</div></div>' +

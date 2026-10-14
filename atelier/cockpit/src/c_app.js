@@ -26,8 +26,8 @@ function notifications() {
     { h: '21:00', ic: 'caisse', niv: '', t: 'Z de caisse reçu : ' + eur2(ZAUJ.total), s: eur2(ESPECES_COFFRE) + ' à avoir en caisse depuis la collecte de vendredi.', route: 'caisse' },
     { h: '18:42', ic: 'telephone', niv: '', t: 'Message de Mme Lefèvre', s: 'Son journal et un carnet de timbres pour demain, 9 h.', route: 'cockpit' },
     { h: 'lun. 12', ic: 'ticket', niv: 'att', t: 'Relevé FDJ S41 : ' + eur2(590000) + ' mercredi', s: eur(554000) + ' à virer sur le compte FDJ avant mercredi.', route: 'fdj' },
+    { h: 'lun. 12', ic: 'alerte', niv: 'ko', t: 'Contrôle FDJ : un pari absent de la caisse', s: 'Parions Sport, ' + eur2(PARIONS.montant) + ' jeudi à 14 h 31 min 08 s. Ticket ajouté, la semaine 41 revient dans la zone.', route: 'fdj', ops: true },
     { h: 'ven. 9', ic: 'facture', niv: 'att', t: 'Metro : Coca-Cola +6,8 %', s: 'Prix de rayon à revoir, la marge du produit baisse de 3 points.', facture: FACT_METRO && FACT_METRO.id },
-    { h: 'jeu. 8', ic: 'alerte', niv: 'ko', t: 'Écart FDJ : ' + eur2(-4500) + ' à 14 h 31 min 08 s', s: 'Trois tickets à gratter passés au terminal, absents de la caisse.', route: 'fdj', ops: true },
   ];
 }
 const NB_NOTIFS = 5;
@@ -160,6 +160,15 @@ function aller(route, onglet) {
   if (change) ETAT.animer = true;
   rendre();
   if (change || onglet) window.scrollTo(0, 0);
+}
+// après un changement de page : amener une carte sous les yeux (le titre fixe en haut, la barre d'onglets en bas)
+function placerSur(sel) {
+  requestAnimationFrame(() => {
+    const el = $(sel);
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - (window.innerWidth < 761 ? 78 : 96);
+    window.scrollTo({ top: Math.max(0, y), behavior: mouvementReduit() ? 'auto' : 'smooth' });
+  });
 }
 function majDefile() { document.body.classList.toggle('page-defilee', window.scrollY > 70); }
 window.addEventListener('scroll', majDefile, { passive: true });
@@ -428,11 +437,12 @@ document.addEventListener('click', (e) => {
       if (n.facture) { ouvrirFacture(n.facture); break; }
       if (n.ops) { ETAT.fdj.semaine = '2026-10-05'; ETAT.fdj.ops = true; ETAT.fdj.jour = null; }
       aller(n.route);
+      if (n.ops) placerSur('#fdj-controle');
       break;
     }
     case 'deconnexion': seDeconnecter(); break;
     case 'visite': demarrerVisite(); break;
-    case 'surveiller': if (a.dataset.ops) { ETAT.fdj.semaine = '2026-10-05'; ETAT.fdj.ops = true; ETAT.fdj.jour = null; } if (a.dataset.route === 'caisse') { ETAT.caisse.jour = '2026-10-10'; ETAT.caisse.annules = 'jour'; ETAT.detail.caisse = true; } aller(a.dataset.route); break;
+    case 'surveiller': if (a.dataset.ops) { ETAT.fdj.semaine = '2026-10-05'; ETAT.fdj.ops = true; ETAT.fdj.jour = null; } if (a.dataset.route === 'caisse') { ETAT.caisse.jour = '2026-10-10'; ETAT.caisse.annules = 'jour'; ETAT.detail.caisse = true; } aller(a.dataset.route); if (a.dataset.vers) placerSur(a.dataset.vers); break;
     case 'plus-mvt': ETAT.mvt.n += 60; $('#zone-mvt').innerHTML = htmlTableMouvements(); break;
     case 'plan-scenario': {
       const sc = SCENARIOS_PLAN.find((x) => x.id === a.dataset.id);

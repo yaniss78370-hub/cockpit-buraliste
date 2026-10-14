@@ -1500,3 +1500,40 @@ body.en-visite .toast{display:none}
   .vi-onde i{animation:none;transform:scaleY(.6)}
   .vm{transition:none}
 }
+
+/* ------------------------------------------------------------------ contrôle FDJ, TVA, revue des ratios */
+.calc-l.ecart.dans{color:var(--ok)}
+.tva-eq{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);align-items:stretch;gap:10px}
+.tva-b{display:flex;flex-direction:column;gap:3px;padding:13px 15px;border-radius:14px;background:var(--papier-blanc);box-shadow:inset 0 0 0 1px var(--papier-trait);min-width:0}
+.tva-b>span{font-size:12.5px;font-weight:600;color:var(--encre-3)}
+.tva-b b{font:720 21px/1.2 var(--f-texte);letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--encre)}
+.tva-b small{font-size:12.5px;line-height:1.4;color:var(--encre-3)}
+.tva-b.fort{background:var(--encre);box-shadow:none}
+.tva-b.fort>span,.tva-b.fort small{color:var(--lune-3)}
+.tva-b.fort b{color:#fff}
+.tva-op{align-self:center;font:500 24px/1 var(--f-texte);color:var(--encre-4)}
+.revue{display:flex;flex-direction:column;gap:14px}
+.rv-score{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:14.5px;color:var(--encre-2)}
+.rv-score>span:first-child{margin-right:4px}
+.rv-score b{font:720 22px/1 var(--f-texte);letter-spacing:-.02em;color:var(--encre);margin-right:4px}
+.revue .ratio-l{align-items:flex-start}
+.revue .ratio-l>.pastille{margin-top:2px}
+.rv-ok{list-style:none;margin:0;padding:12px 0 0;border-top:1px solid var(--papier-trait);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px}
+.rv-ok li{display:flex;gap:9px;align-items:flex-start;min-width:0;font-size:14px;line-height:1.4;color:var(--encre-2)}
+.rv-ok li>.ic{flex:none;width:16px;height:16px;margin-top:2px;color:var(--ok)}
+.rv-ok li>span{min-width:0}
+.rv-ok b{font-weight:650;color:var(--encre);margin-right:3px}
+.rv-ok small{display:block;font-size:12.5px;color:var(--encre-3)}
+@media (max-width:760px){
+  .tva-eq{grid-template-columns:minmax(0,1fr);gap:6px}
+  .tva-op{justify-self:center;font-size:20px;line-height:.9}
+  .rv-ok{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:760px){
+  .tableau.ctrl-fdj td,.tableau.ctrl-fdj th{padding-left:6px;padding-right:6px}
+  .tableau.ctrl-fdj td{font-size:14px}
+  .tableau.ctrl-fdj .pastille{padding:0 7px}
+}
+@media (max-width:760px){
+  .revue .ratio-l>.pastille{display:none}
+}

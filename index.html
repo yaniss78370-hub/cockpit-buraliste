@@ -340,38 +340,39 @@
         <div class="irr-texte">
           <p class="irr-heure"><span>Jeudi</span>14:31</p>
           <h3>Contrôle FDJ</h3>
-          <p><strong>Un écart entre le prélèvement FDJ et la caisse&#8239;?</strong> Le cockpit croise les rapports Profession Jeux avec votre caisse Strator, jour par jour, pour vérifier qu’il n’y a aucune différence.</p>
-          <p>En cas de besoin, avec la collaboration de la FDJ, un export détaillé opération par opération permet de retrouver l’heure exacte de l’écart.</p>
+          <p><strong>Un écart entre le prélèvement FDJ et la caisse&#8239;?</strong> La FDJ facture le grattage par carnet, selon sa propre règle&nbsp;: d’une semaine à l’autre, ça ne tombe jamais à l’euro près. Sans rien changer à vos habitudes, le cockpit compare chaque semaine le prélèvement théorique, tiré de votre caisse Strator, au prélèvement réel. Sur six semaines, les écarts doivent se compenser.</p>
+          <p>Un écart qui sort de la zone se cherche&nbsp;: on isole d’abord Parions Sport, ticket par ticket. Si tout y est juste, l’écart vient du grattage, et on vous aide à suivre vos carnets dans Strator.</p>
           <button class="rejouer" type="button" data-rejouer="fdj"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4"/><path d="M4 4.5v4h4"/></svg>Rejouer</button>
         </div>
         <article class="carte fdj-carte" id="fdj-carte" aria-labelledby="t-fdj">
           <h4 class="carte-titre" id="t-fdj">Contrôle FDJ</h4>
-          <p class="carte-sous">Semaine du 6 octobre&nbsp;: les jeux vendus, jour par jour, face à la caisse</p>
+          <p class="carte-sous">Six semaines&nbsp;: le prélèvement théorique, tiré de la caisse, face au réel. Zone normale&nbsp;: ±40&nbsp;€ par semaine.</p>
           <div class="defile">
             <table>
-              <caption class="vh">Ventes de jeux de la semaine du 6 octobre, selon Profession Jeux et selon Strator</caption>
-              <thead><tr><th scope="col">Jour</th><th scope="col"><span class="src">Profession Jeux</span></th><th scope="col"><span class="src">Strator</span></th><th scope="col">Écart</th></tr></thead>
+              <caption class="vh">Prélèvement FDJ théorique et réel, de la semaine 36 à la semaine 41</caption>
+              <thead><tr><th scope="col">Semaine</th><th scope="col">Théorique</th><th scope="col">Réel</th><th scope="col">Écart</th></tr></thead>
               <tbody>
-                <tr><td>lun. 6</td><td>3&#8239;412,50&nbsp;€</td><td>3&#8239;412,50&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
-                <tr><td>mar. 7</td><td>4&#8239;105,00&nbsp;€</td><td>4&#8239;105,00&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
-                <tr><td>mer. 8</td><td>3&#8239;870,20&nbsp;€</td><td>3&#8239;870,20&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
-                <tr class="ko rouge"><td>jeu. 9</td><td>4&#8239;262,40&nbsp;€</td><td>4&#8239;217,40&nbsp;€</td><td><span class="etat etat-ko">−45,00&nbsp;€</span></td></tr>
-                <tr><td>ven. 10</td><td>5&#8239;018,60&nbsp;€</td><td>5&#8239;018,60&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>Juste</span></td></tr>
+                <tr><td>S36</td><td>5&#8239;194,20&nbsp;€</td><td>5&#8239;212,60&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>−18,40&nbsp;€</span></td></tr>
+                <tr><td>S37</td><td>5&#8239;462,95&nbsp;€</td><td>5&#8239;436,80&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>+26,15&nbsp;€</span></td></tr>
+                <tr><td>S38</td><td>5&#8239;661,89&nbsp;€</td><td>5&#8239;683,19&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>−21,30&nbsp;€</span></td></tr>
+                <tr><td>S39</td><td>6&#8239;554,67&nbsp;€</td><td>6&#8239;539,82&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>+14,85&nbsp;€</span></td></tr>
+                <tr><td>S40</td><td>5&#8239;644,63&nbsp;€</td><td>5&#8239;640,00&nbsp;€</td><td><span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>+4,63&nbsp;€</span></td></tr>
+                <tr class="ko rouge"><td>S41</td><td>5&#8239;851,98&nbsp;€</td><td>5&#8239;900,00&nbsp;€</td><td><span class="etat etat-ko">−48,02&nbsp;€</span></td></tr>
               </tbody>
-              <tfoot><tr><td>Semaine</td><td>20&#8239;668,70&nbsp;€</td><td>20&#8239;623,70&nbsp;€</td><td><span class="etat etat-ko">−45,00&nbsp;€</span></td></tr></tfoot>
+              <tfoot><tr><td>Six semaines</td><td>34&#8239;370,32&nbsp;€</td><td>34&#8239;412,41&nbsp;€</td><td><span class="etat etat-ko">−42,09&nbsp;€</span></td></tr></tfoot>
             </table>
           </div>
           <div class="export">
-            <p class="exp-tete">Export détaillé FDJ<b>Jeudi 9 octobre, de 14&nbsp;h&nbsp;25 à 14&nbsp;h&nbsp;40</b></p>
+            <p class="exp-tete">Parions Sport, isolé ticket par ticket<b>Jeudi, de 14&nbsp;h&nbsp;25 à 14&nbsp;h&nbsp;40</b></p>
             <div class="ops" role="list">
               <span class="scanner" aria-hidden="true"></span>
-              <div class="op" role="listitem"><span>14:27:52</span><span>Loto</span><span class="m">2,20&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
-              <div class="op" role="listitem"><span>14:29:10</span><span>Grattage</span><span class="m">5,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
-              <div class="op ko rouge" role="listitem"><span>14:31:08</span><span>Grattage ×3</span><span class="m">45,00&nbsp;€</span><span class="v" aria-label="absent de la caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
-              <div class="op" role="listitem"><span>14:33:45</span><span>Paris sportifs</span><span class="m">10,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
-              <div class="op" role="listitem"><span>14:36:20</span><span>Loto</span><span class="m">4,40&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:25:41</span><span>Combiné ×3</span><span class="m">6,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:28:17</span><span>Simple, foot</span><span class="m">10,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op ko rouge" role="listitem"><span>14:31:08</span><span>Combiné ×4</span><span class="m">45,00&nbsp;€</span><span class="v" aria-label="absent de la caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:34:52</span><span>Simple, tennis</span><span class="m">5,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
+              <div class="op" role="listitem"><span>14:38:20</span><span>Combiné ×2</span><span class="m">8,00&nbsp;€</span><span class="v" aria-label="en caisse"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span></div>
             </div>
-            <p class="trouve"><b>Jeudi, 14&nbsp;h&nbsp;31&nbsp;min&nbsp;08&nbsp;s</b>3 tickets à gratter passés au terminal, absents de la caisse.</p>
+            <p class="trouve"><b>Jeudi, 14&nbsp;h&nbsp;31&nbsp;min&nbsp;08&nbsp;s</b>Un pari de 45&nbsp;€ sorti du terminal, absent de la caisse. Le ticket ajouté, les six semaines se compensent&nbsp;: +1,06&nbsp;€.</p>
           </div>
         </article>
       </div>
@@ -428,7 +429,7 @@
     <div class="cadre">
       <div class="intro">
         <h2 id="t-quotidien">Le quotidien, rangé tout seul.</h2>
-        <p>Factures, stock, références et ventes sont suivis en continu. Vous ne regardez que ce qui demande une décision.</p>
+        <p>Factures, stock, références, ventes, TVA et ratios sont suivis en continu. Vous ne regardez que ce qui demande une décision.</p>
       </div>
       <div class="bento">
         <article class="tuile tuile-mails">
@@ -486,6 +487,40 @@
               <svg class="cb" viewBox="0 0 460 38" preserveAspectRatio="none" aria-hidden="true"><g fill="#0e1726"><rect x="0" y="0" width="2" height="38"/><rect x="4" y="0" width="1" height="38"/><rect x="9" y="0" width="4" height="38"/><rect x="17" y="0" width="2" height="38"/><rect x="20" y="0" width="4" height="38"/><rect x="28" y="0" width="1" height="38"/><rect x="33" y="0" width="4" height="38"/><rect x="40" y="0" width="4" height="38"/><rect x="46" y="0" width="3" height="38"/><rect x="52" y="0" width="2" height="38"/><rect x="56" y="0" width="4" height="38"/><rect x="63" y="0" width="4" height="38"/><rect x="69" y="0" width="1" height="38"/><rect x="72" y="0" width="3" height="38"/><rect x="79" y="0" width="3" height="38"/><rect x="83" y="0" width="2" height="38"/><rect x="88" y="0" width="3" height="38"/><rect x="93" y="0" width="1" height="38"/><rect x="96" y="0" width="3" height="38"/><rect x="101" y="0" width="4" height="38"/><rect x="107" y="0" width="3" height="38"/><rect x="111" y="0" width="1" height="38"/><rect x="113" y="0" width="4" height="38"/><rect x="119" y="0" width="3" height="38"/><rect x="124" y="0" width="4" height="38"/><rect x="132" y="0" width="1" height="38"/><rect x="137" y="0" width="2" height="38"/><rect x="143" y="0" width="2" height="38"/><rect x="147" y="0" width="1" height="38"/><rect x="150" y="0" width="1" height="38"/><rect x="153" y="0" width="3" height="38"/><rect x="157" y="0" width="1" height="38"/><rect x="162" y="0" width="3" height="38"/><rect x="168" y="0" width="1" height="38"/><rect x="173" y="0" width="2" height="38"/><rect x="176" y="0" width="2" height="38"/><rect x="181" y="0" width="3" height="38"/><rect x="185" y="0" width="4" height="38"/><rect x="191" y="0" width="4" height="38"/><rect x="197" y="0" width="1" height="38"/><rect x="199" y="0" width="2" height="38"/><rect x="204" y="0" width="2" height="38"/><rect x="210" y="0" width="4" height="38"/><rect x="218" y="0" width="3" height="38"/><rect x="225" y="0" width="3" height="38"/><rect x="229" y="0" width="2" height="38"/><rect x="232" y="0" width="1" height="38"/><rect x="237" y="0" width="3" height="38"/><rect x="241" y="0" width="4" height="38"/><rect x="247" y="0" width="1" height="38"/><rect x="251" y="0" width="1" height="38"/><rect x="256" y="0" width="4" height="38"/><rect x="261" y="0" width="3" height="38"/><rect x="265" y="0" width="4" height="38"/><rect x="271" y="0" width="3" height="38"/><rect x="277" y="0" width="4" height="38"/><rect x="283" y="0" width="1" height="38"/><rect x="286" y="0" width="1" height="38"/><rect x="288" y="0" width="3" height="38"/><rect x="294" y="0" width="2" height="38"/><rect x="299" y="0" width="2" height="38"/><rect x="303" y="0" width="2" height="38"/><rect x="307" y="0" width="2" height="38"/><rect x="311" y="0" width="4" height="38"/><rect x="319" y="0" width="4" height="38"/><rect x="325" y="0" width="4" height="38"/><rect x="333" y="0" width="1" height="38"/><rect x="338" y="0" width="1" height="38"/><rect x="342" y="0" width="2" height="38"/><rect x="347" y="0" width="4" height="38"/><rect x="355" y="0" width="4" height="38"/><rect x="361" y="0" width="1" height="38"/><rect x="363" y="0" width="4" height="38"/><rect x="369" y="0" width="1" height="38"/><rect x="371" y="0" width="2" height="38"/><rect x="375" y="0" width="3" height="38"/><rect x="379" y="0" width="2" height="38"/><rect x="385" y="0" width="2" height="38"/><rect x="388" y="0" width="2" height="38"/><rect x="391" y="0" width="1" height="38"/><rect x="395" y="0" width="2" height="38"/><rect x="401" y="0" width="2" height="38"/><rect x="404" y="0" width="2" height="38"/><rect x="408" y="0" width="1" height="38"/><rect x="412" y="0" width="3" height="38"/><rect x="419" y="0" width="4" height="38"/><rect x="426" y="0" width="4" height="38"/><rect x="431" y="0" width="4" height="38"/><rect x="439" y="0" width="2" height="38"/><rect x="443" y="0" width="1" height="38"/><rect x="445" y="0" width="2" height="38"/><rect x="449" y="0" width="1" height="38"/><rect x="454" y="0" width="4" height="38"/><rect x="459" y="0" width="3" height="38"/></g></svg>
             </div>
           </div>
+        </article>
+
+        <article class="tuile tuile-tva">
+          <h3>Votre TVA, calculée chaque mois</h3>
+          <p class="carte-sous">Vos ventes en caisse Strator et vos factures d’achat donnent la TVA à payer, au centime. Son prélèvement prend sa place dans votre trésorerie.</p>
+          <div class="tva">
+            <div><span class="k">Collectée</span><b data-vers="328068">3&#8239;280,68&nbsp;€</b><span class="s">sur vos ventes de septembre</span></div>
+            <span class="op-tva" aria-hidden="true">−</span>
+            <div><span class="k">Déductible</span><b data-vers="248789">2&#8239;487,89&nbsp;€</b><span class="s">sur 16 factures d’achat</span></div>
+            <span class="op-tva" aria-hidden="true">=</span>
+            <div class="fort"><span class="k">À payer</span><b data-vers="79279">792,79&nbsp;€</b><span class="s">prélevés le 21&nbsp;octobre</span></div>
+          </div>
+          <ul class="tva-cal" aria-label="Les prochains prélèvements, déjà placés">
+            <li><time datetime="2026-10-14">mer. 14&nbsp;oct.</time><span>Prélèvement FDJ</span><b>5&#8239;900&nbsp;€</b></li>
+            <li><time datetime="2026-10-19">lun. 19&nbsp;oct.</time><span>Facture Logista</span><b>29&#8239;330&nbsp;€</b></li>
+            <li class="on"><time datetime="2026-10-21">mer. 21&nbsp;oct.</time><span>TVA de septembre</span><b>793&nbsp;€</b></li>
+          </ul>
+          <p class="tva-note">Chaque prélèvement connu est déjà placé dans votre plan de vol.</p>
+        </article>
+
+        <article class="tuile tuile-ratios">
+          <h3>Vos ratios, passés en revue</h3>
+          <p class="carte-sous">Vos achats passent déjà par la facture électronique, vos ventes suivront en 2027. Chaque mois, le cockpit vérifie que les deux racontent la même histoire.</p>
+          <p class="rv-tete"><b>10</b>ratios en septembre<span class="etat etat-ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>8 cohérents</span><span class="etat etat-att">2 à expliquer</span></p>
+          <ul class="rv">
+            <li class="att"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l9 15.5H3z"/><path d="M12 10v4.5M12 17.4v.1"/></svg><span><b>Café</b>120 tasses par kilo, environ 138 attendues</span></li>
+            <li class="att"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l9 15.5H3z"/><path d="M12 10v4.5M12 17.4v.1"/></svg><span><b>Boissons</b>37,9&nbsp;% de marge, 40&nbsp;% attendus</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><span><b>Espèces</b>collectes face aux Z de caisse</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><span><b>Jeux FDJ</b>théorique face au réel</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><span><b>Tabac</b>remise de 8,4&nbsp;%</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><span><b>Stock</b>0,4&nbsp;% d’écart avec Strator</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><span><b>TVA</b>ventes et factures concordent</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg><span><b>Et aussi</b>PMU, vape, annulations</span></li>
+          </ul>
         </article>
       </div>
       <p class="note">Chiffres d’exemple, ceux du film.</p>
@@ -1345,7 +1380,8 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
   const QUESTIONS = [
     { q: 'Combien on a fait aujourd’hui ?', r: 'Aujourd’hui : <b>6 840 €</b> de ventes, dont <b>1 210 €</b> de CBD. Marge du jour : <b>1 930 €</b>.' },
     { q: 'Où j’atterris lundi ?', r: 'Lundi à 21 h, après la facture tabac : <b>47 380 €</b>, dont <b>37 520 €</b> vraiment à vous. Ciel dégagé.' },
-    { q: 'Le FDJ est juste cette semaine ?', r: 'Un seul écart : <b>−45,00 €</b> jeudi à 14 h 31 min 08 s, trois tickets à gratter absents de la caisse. Le reste est juste.' },
+    { q: 'Le contrôle FDJ est bon ?', r: 'Sur six semaines, les écarts se compensent. Une seule semaine hors de la zone : un pari Parions Sport de <b>45 €</b>, jeudi à 14 h 31 min 08 s, absent de la caisse.' },
+    { q: 'Combien de TVA ce mois-ci ?', r: 'TVA de septembre : <b>792,79 €</b>, prélevée le 21 octobre. Calculée sur vos ventes en caisse et vos factures d’achat, elle est déjà dans votre plan de vol.' },
     { q: 'Qui a appelé ce soir ?', r: 'Mme Lefèvre, à 18 h 42 : son journal et un carnet de timbres à garder pour demain, 9 h. Julien est prévenu.' },
     { q: 'Il reste combien de Fraise glacée ?', r: '<b>14 flacons.</b> Je l’ajoute à la commande de jeudi ?', suite: { q: 'Oui, ajoute-la.', r: 'C’est noté : Fraise glacée ajoutée à la commande de jeudi.' } },
   ];
@@ -1463,7 +1499,26 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
       .to(mb, { scaleY: 1, duration: 0.45, stagger: 0.08, ease: 'power2.out' }, 0)
       .to(on, { v: 6, duration: 1, ease: 'power2.out', snap: { v: 1 }, onUpdate: () => { n.textContent = String(on.v); } }, 0.45);
     ST.create({ trigger: '.tuile-ventes', start: 'top 75%', once: true, onEnter: () => tV.play() });
-    return () => { vals.forEach((b) => { b.textContent = eur(+b.dataset.vers); }); n.textContent = '6'; };
+    const nf2 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const eurC = (c) => nf2.format(c / 100) + '\u00a0€';
+    const tvaB = $$('.tva b[data-vers]'), tvaFort = $('.tva .fort'), oT = tvaB.map(() => ({ v: 0 }));
+    tvaB.forEach((b) => { b.textContent = eurC(0); });
+    G.set(tvaFort, { scale: 0.92, autoAlpha: 0.4 });
+    const tT = G.timeline({ paused: true });
+    tvaB.forEach((b, i) => tT.to(oT[i], { v: +b.dataset.vers, duration: 1.1, ease: 'power2.out', onUpdate: () => { b.textContent = eurC(oT[i].v); } }, i * 0.3));
+    tT.to(tvaFort, { scale: 1, autoAlpha: 1, duration: 0.45, ease: 'back.out(1.8)' }, 0.75)
+      .add(() => Son.jouer('pop', 0.4), 1.3);
+    ST.create({ trigger: '.tuile-tva', start: 'top 75%', once: true, onEnter: () => tT.play() });
+
+    const rvL = $$('.rv li'), rvT = $$('.rv-tete .etat');
+    G.set(rvL, { autoAlpha: 0, x: -10 });
+    G.set(rvT, { autoAlpha: 0, scale: 0.7 });
+    const tRv = G.timeline({ paused: true })
+      .to(rvL, { autoAlpha: 1, x: 0, duration: 0.3, stagger: 0.1, ease: 'power2.out' }, 0)
+      .to(rvT, { autoAlpha: 1, scale: 1, duration: 0.3, stagger: 0.15, ease: 'back.out(2.2)' }, 0.9)
+      .add(() => Son.jouer('pop', 0.35), 0.9);
+    ST.create({ trigger: '.tuile-ratios', start: 'top 75%', once: true, onEnter: () => tRv.play() });
+    return () => { vals.forEach((b) => { b.textContent = eur(+b.dataset.vers); }); n.textContent = '6'; tvaB.forEach((b) => { b.textContent = eurC(+b.dataset.vers); }); };
   });
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     $$('.tuile').forEach((t) => t.addEventListener('pointermove', (e) => {
@@ -1498,7 +1553,7 @@ Je souhaite une démonstration de Cockpit Buraliste.</span><time>maintenant</tim
     const LEGENDES = {
       cockpit: 'Chaque soir, où vous atterrissez lundi, et ce qui est vraiment à vous.',
       caisse: 'Ce que la caisse doit contenir depuis la dernière collecte, et le comptage au centime.',
-      fdj: 'Le prélèvement FDJ de mercredi, et celui de la semaine en cours, calculé chaque soir.',
+      fdj: 'Le prélèvement FDJ de mercredi, la semaine en cours, et le contrôle sur six semaines.',
       tresorerie: 'Votre plan de vol à six mois : chaque décision, à sa date et à son montant.',
     };
     const onglets = $$('.vit-onglet', vitrine), sceneV = $('#vit-scene'), legende = $('#vit-legende');

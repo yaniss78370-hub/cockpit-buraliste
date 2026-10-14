@@ -130,8 +130,8 @@ FDJ_PJ = {'2026-10-05': c(3412.50), '2026-10-06': c(4105.00), '2026-10-07': c(38
           '2026-10-08': c(4262.40), '2026-10-09': c(5018.60), '2026-10-10': c(5486.30), '2026-10-11': c(2794.10)}
 for k, val in FDJ_PJ.items():
     VENTES[k]['fdj'] = val
-# Strator : identique, sauf jeudi 8 octobre (−45 €, trois tickets à gratter absents de la caisse)
-# et un ancien écart expliqué le 15 septembre (+12 €, ticket Loto saisi deux fois).
+# Strator : identique, sauf jeudi 8 octobre (−45 €, un pari Parions Sport sorti du terminal FDJ, jamais scanné en caisse)
+# et le 15 septembre (+12 €, ticket Loto scanné deux fois).
 STRATOR_FDJ = {k: v['fdj'] for k, v in VENTES.items()}
 STRATOR_FDJ['2026-10-08'] -= c(45)
 STRATOR_FDJ['2026-09-15'] += c(12)
@@ -148,7 +148,7 @@ for d in days(START, TODAY):
     JI_PJ[k] = round(t * (PART_JI[d.weekday()] + R2.uniform(-0.02, 0.02)))
     LOTO_PJ[k] = t - JI_PJ[k]
 JI_ST, LOTO_ST = dict(JI_PJ), dict(LOTO_PJ)
-JI_ST['2026-10-08'] -= c(45)      # trois tickets à gratter passés au terminal FDJ, absents de la caisse
+LOTO_ST['2026-10-08'] -= c(45)    # jeudi 14:31:08 : un pari Parions Sport de 45 € sorti du terminal FDJ, absent de la caisse
 LOTO_ST['2026-09-15'] += c(12)    # ticket Loto saisi deux fois en caisse
 def com_fdj(ji, lo):
     return ji * TAUX_FDJ['ji'] + lo * TAUX_FDJ['loto']
@@ -185,20 +185,35 @@ FORCE_PMU = {D(2026, 10, 5): c(1240)}                                # S41 → p
 FORCE_RECH = {D(2026, 10, 5): c(3470)}                               # S41 → prélevé jeu. 15
 FORCE_TIMB = {D(2026, 10, 5): c(2360)}                               # S41 → prélevé lun. 12
 
+# Le prélèvement FDJ ne suit pas les tickets vendus : la FDJ facture le grattage par carnet, selon sa propre règle.
+# Chaque semaine, le grattage facturé s'écarte donc un peu des tickets vendus (l'effet carnets), dans un sens ou dans
+# l'autre, et ça se compense sur le mois. EFFET : l'effet sur le prélèvement, tiré au hasard, puis retouché de S36 à S39
+# pour que ces semaines alternent. S41 : −4,87 € d'effet carnets ; le reste de l'écart, c'est le pari Parions Sport.
+AJUST_FDJ = {36: -c(42.37), 37: -c(3.37), 38: -c(46.24), 39: -c(5.94)}
+EFFET_S41 = -c(4.87)
+def carnets(ji_w, lo_w, effet):
+    """Grattage facturé en plus des tickets vendus (centimes), pour que le prélèvement monte de −effet."""
+    cible = round(com_fdj(ji_w, lo_w)) + effet          # commission facturée − grattage facturé en plus
+    v0 = round(-effet / (1 - TAUX_FDJ['ji']))
+    for dv in sorted(range(-6, 7), key=abs):
+        if round(com_fdj(ji_w + v0 + dv, lo_w)) - (v0 + dv) == cible:
+            return v0 + dv
+    raise AssertionError('effet carnets introuvable')
+
 RELEVES = {'fdj': [], 'pmu': [], 'recharges': [], 'timbres': []}
 for s in semaines():
     fin = s + dt.timedelta(days=6)
     if fin > TODAY:
         continue
     # FDJ
-    ventes = somme(VENTES, s, fin, 'fdj')
     ji_w, lo_w = somme(JI_PJ, s, fin), somme(LOTO_PJ, s, fin)
-    ji_st, lo_st = somme(JI_ST, s, fin), somme(LOTO_ST, s, fin)
-    eps = c(R2.uniform(-35, 35))
+    assert somme(VENTES, s, fin, 'fdj') == ji_w + lo_w
+    effet = c(R2.uniform(-35, 35)) + AJUST_FDJ.get(iso_semaine(s), 0)
     if s == D(2026, 10, 5):
-        # S41 : l'estimation Strator doit finir 46,80 € sous le relevé (les 45 € de tickets absents, et l'arrondi de commission)
-        eps = round(-c(46.80) - ((ji_st + lo_st) - (ji_w + lo_w)) + (com_fdj(ji_st, lo_st) - com_fdj(ji_w, lo_w)))
-    com = round(com_fdj(ji_w, lo_w)) + eps
+        effet = EFFET_S41
+    ji_f = ji_w + carnets(ji_w, lo_w, effet)      # grattage facturé par la FDJ
+    ventes = ji_f + lo_w
+    com = round(com_fdj(ji_f, lo_w))
     gains = somme(GAINS_FDJ, s, fin)
     if s in FORCE_FDJ:
         cible = FORCE_FDJ[s]
@@ -208,7 +223,7 @@ for s in semaines():
     solde = ventes - gains - com
     RELEVES['fdj'].append({'semaine': iso_semaine(s), 'du': iso(s), 'au': iso(fin), 'ventes': ventes, 'gains': gains,
                            'commission': com, 'solde': solde, 'prelevement': iso(s + dt.timedelta(days=9)),
-                           'ji': ji_w, 'loto': lo_w})
+                           'ji': ji_f, 'loto': lo_w})
     # PMU
     enj = somme(VENTES, s, fin, 'pmu')
     comp = c(enj / 100 * TAUX['pmu'])
@@ -561,8 +576,9 @@ for m in range(7, 11):
             fin -= ONE
         for nom, contrat, net in SALAIRES:
             mv(fin, 'bnp', 'VIR SEPA SALAIRE ' + D(2026, m, 1).strftime('%m/%Y') + ' ' + nom.upper(), -c(net), 'Salaires', nom + ' (' + contrat + ')')
-    # TVA (CA3 du mois précédent, le 21)
-    if m - 1 >= 6:
+    # TVA (CA3 du mois précédent, le 21) : juin, avant les factures lues par le cockpit, estimée sur les achats.
+    # Juillet → septembre : plus bas, une fois toutes les factures du mois connues.
+    if m - 1 == 6:
         p = PNL[m - 2]['produits']
         coll = sum(p[f + '_ventes'] * TVA_VENTE[f] for f in BOUTIQUE)
         ded = sum(p[f + '_cout'] * (0.2 if f in ('vape', 'cbd', 'accessoires', 'divers') else 0.09) for f in BOUTIQUE)
@@ -891,7 +907,7 @@ while db <= TODAY:
         facture_boutique(db, 'Boissons Express', 'Boissons', c(R.uniform(420, 640)), 15, 'Prélèvement')
     db += dt.timedelta(days=14)
 # Brûlerie : café en grains, le 1er jour ouvré du mois, prélèvement à 20 jours
-KG_CAFE = {7: 6, 8: 5, 9: 7, 10: 7}
+KG_CAFE = {7: 8, 8: 7, 9: 10, 10: 7}      # les kilos des ratios (juillet → septembre)
 for m in (7, 8, 9, 10):
     dfc = jour_ouvre_suivant(D(2026, m, 1))
     kg = KG_CAFE[m]
@@ -988,6 +1004,18 @@ fid = facture(date='2026-09-01', fournisseur='SCI des Tilleuls (bailleur)', obje
               lignes=[{'d': 'Charges réelles 2025 (copropriété, eau, ordures ménagères)', 'q': 1, 'pu': c(4420), 'ht': c(4420), 'tva': 0, 'fam': 'Loyer et charges'},
                       {'d': 'Provisions déjà versées en 2025', 'q': 1, 'pu': -c(2780), 'ht': -c(2780), 'tva': 0, 'fam': 'Loyer et charges'}])
 mv(D(2026, 9, 8), 'bnp', 'PRLV SEPA SCI DES TILLEULS REGUL CHARGES 2025', -c(1640), 'Loyer et charges', 'SCI des Tilleuls (bailleur)', facture=fid)
+
+# ---------------------------------------------------------------- TVA : la CA3 du mois, prélevée le 21 du mois suivant
+# Collectée : les ventes de la boutique en caisse (Strator). Déductible : la TVA des factures d'achat du mois, ligne par ligne.
+def tva_du_mois(mo):
+    p = PNL[mo - 1]['produits']
+    coll = round(sum(p[f + '_ventes'] * TVA_VENTE[f] for f in BOUTIQUE))
+    ded = sum(f['tva'] for f in FACTURES if f['date'][:7] == '2026-%02d' % mo)
+    return coll, ded, coll - ded
+for mo in (7, 8, 9):
+    dj = jour_ouvre_suivant(D(2026, mo + 1, 21))
+    if BANK_START <= dj <= TODAY:
+        mv(dj, 'bnp', 'PRLV SEPA DGFIP TVA CA3 %02d/2026' % mo, -tva_du_mois(mo)[2], 'TVA', 'État (DGFiP)')
 
 # ---------------------------------------------------------------- virements internes (BNP → FDJ, BNP → BP)
 MOUV.sort(key=lambda x: (x['date'], 0 if x['montant'] > 0 else 1))
@@ -1200,17 +1228,7 @@ for m in range(1, 10):
 for f in FACTURES:
     if f['fournisseur'] == 'Brûlerie du Canal':
         mo = int(f['date'][5:7])
-        kg = KG.get(mo, 7)
-        for l in f['lignes']:
-            if l['d'].startswith('Café en grains'):
-                l['q'] = kg
-                l['ht'] = l['pu'] * kg
-        f['ht'] = sum(l['ht'] for l in f['lignes'])
-        f['ttc'] = ttc_de(f['lignes'])
-        f['tva'] = f['ttc'] - f['ht']
-        for x in MOUV:
-            if x['facture'] == f['id']:
-                x['montant'] = -f['ttc']
+        assert all(l['q'] == KG.get(mo, 7) for l in f['lignes'] if l['d'].startswith('Café en grains')), (f['id'], KG.get(mo))
 
 # atterrissage d'octobre : réel au 13 + reste du mois au rythme des 28 derniers jours (même jour de semaine)
 att = {'produits': {}, 'charges': {}}

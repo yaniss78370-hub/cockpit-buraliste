@@ -272,12 +272,13 @@ function fdjSemaine(lundi) {
   return lignes;
 }
 const ECART_FDJ = { iso: '2026-10-08', montant: -4500, heure: '14:31:08' };
+// Parions Sport, jeudi 8 octobre de 14 h 25 à 14 h 40 : chaque pari sort du terminal FDJ avec son heure, face aux tickets scannés en caisse
 const EXPORT_FDJ = [
-  { h: '14:27:52', jeu: 'Loto', mt: 220, ok: true },
-  { h: '14:29:10', jeu: 'Grattage', mt: 500, ok: true },
-  { h: '14:31:08', jeu: 'Grattage ×3', mt: 4500, ok: false },
-  { h: '14:33:45', jeu: 'Paris sportifs', mt: 1000, ok: true },
-  { h: '14:36:20', jeu: 'Loto', mt: 440, ok: true },
+  { h: '14:25:41', jeu: 'Combiné ×3', mt: 600, ok: true },
+  { h: '14:28:17', jeu: 'Simple, foot', mt: 1000, ok: true },
+  { h: '14:31:08', jeu: 'Combiné ×4', mt: 4500, ok: false },
+  { h: '14:34:52', jeu: 'Simple, tennis', mt: 500, ok: true },
+  { h: '14:38:20', jeu: 'Combiné ×2', mt: 800, ok: true },
 ];
 
 /* ------------------------------------------------------------------ alertes */
@@ -287,8 +288,10 @@ function construireAlertes() {
   const ach9 = D.vape_achats['9'] || 0, cout9 = D.pnl[8].produits.vape_cout;
   const att = (s) => s;
   const A = [
-    { id: 'fdj-ecart', niv: 'att', module: 'fdj', date: '2026-10-08', titre: 'Écart FDJ de ' + eur2(-4500) + ', jeudi 8 octobre à 14 h 31 min 08 s',
-      texte: 'Trois tickets à gratter passés au terminal FDJ, absents de la caisse Strator. Le reste de la semaine est juste.', action: 'Voir le contrôle' },
+    { id: 'fdj-ecart', niv: 'att', module: 'fdj', date: '2026-10-08', titre: 'Contrôle FDJ, semaine 41 : ' + eur2(CTRL_FDJ.pari ? CTRL_FDJ.pari.ecart : 0, true) + ', hors de la zone normale',
+      texte: 'Parions Sport isolé, ticket par ticket : un pari de ' + eur2(PARIONS.montant) + ' sorti du terminal jeudi 8 octobre à 14 h 31 min 08 s, absent de la caisse. Le ticket ajouté, la semaine revient à ' + eur2(CTRL_FDJ.apres || 0, true) + ', dans la zone.', action: 'Voir le contrôle' },
+    { id: 'tva', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'TVA de septembre : ' + eur2(TVA_SEPT.du) + ', prélevée le mercredi 21 octobre',
+      texte: eur2(TVA_SEPT.coll) + ' collectés sur les ventes de la boutique, moins ' + eur2(TVA_SEPT.ded) + ' de TVA sur les ' + TVA_SEPT.n + ' factures d’achat de septembre. Déjà dans le plan de vol.', action: 'Voir la trésorerie' },
     { id: 'vir-bp', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'Virer ' + eur(3240000) + ' de la BNP vers la Banque Populaire, avant jeudi',
       texte: 'Recharges de jeudi (3 470 €) et facture Logista de lundi (29 330 €), moins les 400 € déjà sur le compte.', action: 'Voir la semaine', tache: 'vir-bp', onglet: 'semaine' },
     { id: 'fdj-alim', niv: 'info', module: 'tresorerie', date: AUJ, titre: 'Alimenter le compte FDJ : ' + eur(554000) + ' avant mercredi',

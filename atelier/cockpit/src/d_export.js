@@ -100,8 +100,8 @@ const SPECS = {
     rows: D.annules.map((a) => [a.date, a.heure, a.caisse, a.vendeur, a.montant, a.motif, a.moment]),
   }),
   fdj: () => ({
-    nom: 'Relevés FDJ', desc: 'Relevés hebdomadaires FDJ : ventes, gains payés, commission, solde prélevé',
-    cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Ventes', t: 'eur' }, { lib: 'Gains payés', t: 'eur' }, { lib: 'Commission', t: 'eur' }, { lib: 'Solde prélevé', t: 'eur' }, { lib: 'Prélevé le', t: 'date' }],
+    nom: 'Relevés FDJ', desc: 'Relevés hebdomadaires FDJ : ventes facturées (le grattage par carnet), gains payés, commission, solde prélevé',
+    cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Ventes facturées', t: 'eur', l: 16 }, { lib: 'Gains payés', t: 'eur' }, { lib: 'Commission', t: 'eur' }, { lib: 'Solde prélevé', t: 'eur' }, { lib: 'Prélevé le', t: 'date' }],
     rows: D.releves.fdj.map((r) => [r.semaine, r.du, r.au, r.ventes, r.gains, r.commission, r.solde, r.prelevement]),
   }),
   pmu: () => ({
@@ -120,9 +120,9 @@ const SPECS = {
     rows: joursDepuisCollecte().map((x) => [x.iso, x.esp, -x.gains, x.net]),
   }),
   fdjSemaines: () => ({
-    nom: 'FDJ semaine par semaine', desc: 'Prélèvement FDJ : estimation à partir des rubriques Strator (commission ' + pct2(FDJ_TX.ji * 100) + ' des jeux instantanés, ' + pct2(FDJ_TX.loto * 100) + ' du Loto) et relevé',
-    cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Prélevé le', t: 'date' }, { lib: 'Jeux instantanés', t: 'eur', l: 16 }, { lib: 'Loto', t: 'eur' },
-      { lib: 'Gains payés', t: 'eur' }, { lib: 'Commission estimée', t: 'eur', l: 18 }, { lib: 'Estimation (caisse)', t: 'eur', l: 18 }, { lib: 'Relevé FDJ', t: 'eur' }, { lib: 'Écart', t: 'eur' }],
+    nom: 'FDJ semaine par semaine', desc: 'Prélèvement FDJ : le théorique, à partir des rubriques Strator (commission ' + pct2(FDJ_TX.ji * 100) + ' des jeux instantanés, ' + pct2(FDJ_TX.loto * 100) + ' du Loto et des paris), face au prélèvement réel',
+    cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Prélevé le', t: 'date' }, { lib: 'Jeux instantanés', t: 'eur', l: 16 }, { lib: 'Loto et paris', t: 'eur', l: 14 },
+      { lib: 'Gains payés', t: 'eur' }, { lib: 'Commission estimée', t: 'eur', l: 18 }, { lib: 'Théorique (caisse)', t: 'eur', l: 18 }, { lib: 'Réel (FDJ)', t: 'eur' }, { lib: 'Écart', t: 'eur' }],
     rows: D.releves.fdj.filter((r) => r.du >= FDJ_PREMIERE).map((r) => { const x = fdjSemaineV2(r.du), t = x.tReel; return [r.semaine, r.du, r.au, r.prelevement, t.ji, t.loto, -t.gains, -Math.round(t.com), Math.round(t.total), r.solde, Math.round(t.total - r.solde)]; })
       .concat([(() => { const x = fdjSemaineV2(lundiDe(AUJ)); return [D.releves.fdj[D.releves.fdj.length - 1].semaine + 1, x.lundi, ajoute(x.lundi, 6), x.prelev, x.tReel.ji, x.tReel.loto, -x.tReel.gains, -Math.round(x.tReel.com), Math.round(x.atterrissage), null, null]; })()]),
   }),
@@ -131,12 +131,31 @@ const SPECS = {
     cols: [{ lib: 'Jour', t: 'date' }, { lib: 'Jeux instantanés', t: 'eur', l: 16 }, { lib: 'Loto', t: 'eur' }, { lib: 'Remboursement jeux', t: 'eur', l: 18 }, { lib: 'Remboursement loto', t: 'eur', l: 18 }, { lib: 'Commission estimée', t: 'eur', l: 18 }, { lib: 'À reverser', t: 'eur' }],
     rows: Object.keys(FDJ_JR).filter((k) => k >= FDJ_PREMIERE).sort().map((k) => { const t = fdjCalcul([fdjRubriques(k)]); return [k, t.ji, t.loto, -t.rj, -t.rl, -Math.round(t.com), Math.round(t.total)]; }),
   }),
-  controleFdj: () => ({
-    nom: 'Contrôle FDJ', desc: 'Ventes de jeux par jour : Profession Jeux face à Strator, depuis le 1er septembre',
-    cols: [{ lib: 'Date', t: 'date' }, { lib: 'Profession Jeux', t: 'eur', l: 16 }, { lib: 'Strator', t: 'eur' }, { lib: 'Écart', t: 'eur' }, { lib: 'Commentaire', t: 'txt', l: 50 }],
-    rows: Z.filter((z) => z.date >= '2026-09-01').map((z) => [z.date, z.ventes.fdj, z.fdj_strator, z.fdj_strator - z.ventes.fdj,
-      z.date === '2026-10-08' ? '3 tickets à gratter à 14:31:08, absents de la caisse' : z.date === '2026-09-15' ? 'Expliqué : ticket Loto saisi deux fois en caisse' : '']),
+  controleFdj: () => {
+    const C = controleFdj(30);
+    let cumul = 0;
+    return {
+      nom: 'Contrôle FDJ', desc: 'Contrôle à la semaine : le prélèvement théorique (caisse Strator) face au prélèvement réel. Zone normale : ' + eur(-ZONE_FDJ, false, true) + ' à ' + eur(ZONE_FDJ, false, true) + ' par semaine ; les écarts doivent se compenser',
+      cols: [{ lib: 'Semaine', t: 'int', l: 9 }, { lib: 'Du', t: 'date' }, { lib: 'Au', t: 'date' }, { lib: 'Théorique (caisse)', t: 'eur', l: 18 }, { lib: 'Réel (FDJ)', t: 'eur' }, { lib: 'Écart', t: 'eur' }, { lib: 'Cumul', t: 'eur' }, { lib: 'Contrôle', t: 'txt', l: 70 }],
+      rows: C.sem.map((x) => { cumul += x.ecart; return [x.r.semaine, x.r.du, x.r.au, x.theo, x.reel, x.ecart, cumul,
+        x.hors ? (x === C.pari ? 'Hors de la zone : Parions Sport isolé, un pari de 45 € du jeudi 8 octobre à 14:31:08 absent de la caisse. Ticket ajouté : ' + eur2(C.apres, true) : 'Hors de la zone : à rechercher') : 'Dans la zone']; }),
+    };
+  },
+  parionsSport: () => ({
+    nom: 'Parions Sport, jeudi 8 octobre', desc: 'Les paris sortis du terminal FDJ de 14 h 25 à 14 h 40, rapprochés un à un des tickets scannés en caisse',
+    cols: [{ lib: 'Heure', t: 'txt', l: 10 }, { lib: 'Pari', t: 'txt', l: 24 }, { lib: 'Montant', t: 'eur' }, { lib: 'En caisse', t: 'txt', l: 12 }],
+    rows: EXPORT_FDJ.map((o) => [o.h, o.jeu, o.mt, o.ok ? 'Oui' : 'Absent']),
   }),
+  tva: () => {
+    const t = TVA_SEPT;
+    return {
+      nom: 'TVA de septembre', desc: 'Collectée sur les ventes de la boutique en caisse, déductible sur les factures d’achat de septembre. Prélevée le mercredi 21 octobre',
+      cols: [{ lib: 'Ligne', t: 'txt', l: 18 }, { lib: 'Détail', t: 'txt', l: 64 }, { lib: 'TVA', t: 'eur' }],
+      rows: [['TVA collectée', 'Ventes HT de la boutique en caisse : ' + eur2(t.ventes), t.coll]]
+        .concat(D.factures.filter((f) => f.date.slice(0, 7) === '2026-09' && f.tva).sort((a, b) => (a.date < b.date ? -1 : 1)).map((f) => ['TVA déductible', f.date.split('-').reverse().join('/') + ' · ' + f.fournisseur + ' · ' + f.objet + ' (' + f.id + ')', -f.tva]))
+        .concat([['TVA à payer', 'Prélevée le mercredi 21 octobre', t.du]]),
+    };
+  },
   factures: () => ({
     nom: 'Factures', desc: 'Factures reçues depuis juillet, rangées et rapprochées',
     cols: [{ lib: 'Pièce', t: 'txt', l: 8 }, { lib: 'Date', t: 'date' }, { lib: 'Fournisseur', t: 'txt', l: 26 }, { lib: 'Objet', t: 'txt', l: 40 }, { lib: 'Catégorie', t: 'txt', l: 22 }, { lib: 'HT', t: 'eur' }, { lib: 'TVA', t: 'eur' }, { lib: 'TTC', t: 'eur' }, { lib: 'Échéance', t: 'date' }, { lib: 'Règlement', t: 'txt', l: 12 }, { lib: 'État', t: 'txt', l: 9 }, { lib: 'Remarque', t: 'txt', l: 50 }],
@@ -198,6 +217,11 @@ const SPECS = {
     cols: [{ lib: 'Mois', t: 'txt', l: 12 }, { lib: 'Café acheté (kg)', t: 'int', l: 16 }, { lib: 'Cafés vendus', t: 'int', l: 13 }, { lib: 'Tasses par kilo', t: 'int', l: 15 }, { lib: 'Marge boissons attendue', t: 'pct', l: 22 }, { lib: 'Marge boissons réelle', t: 'pct', l: 20 }, { lib: 'Écart de caisse espèces', t: 'eur', l: 22 }, { lib: 'Marge tabac', t: 'pct', l: 12 }],
     rows: D.ratios.map((r) => [maj(ML[r.mois - 1]), r.cafe_kg, r.tasses, r.tasses_kg, r.boissons_theo / 100, r.boissons_reel / 100, r.especes_ecart, r.tabac_marge / 100]),
   }),
+  revueRatios: () => ({
+    nom: 'Revue des ratios', desc: 'Septembre : chaque ratio qui relie vos achats et vos ventes, passé en revue',
+    cols: [{ lib: 'Ratio', t: 'txt', l: 14 }, { lib: 'Septembre', t: 'txt', l: 30 }, { lib: 'Repère', t: 'txt', l: 52 }, { lib: 'Statut', t: 'txt', l: 12 }, { lib: 'Explication', t: 'txt', l: 80 }],
+    rows: RATIOS_SEPT.liste.map((x) => [x.lib, x.val, maj(x.att), x.ok ? 'Cohérent' : 'À expliquer', x.pourquoi || '']),
+  }),
 };
 const EXPORTS = {
   semaine: { nom: 'tresorerie-semaine', specs: ['semaine'], titre: 'Trésorerie de la semaine' },
@@ -205,9 +229,10 @@ const EXPORTS = {
   mouvements: { nom: 'mouvements-bancaires', specs: ['mouvements'], titre: 'Mouvements bancaires' },
   fixes: { nom: 'charges-fixes', specs: ['fixes'], titre: 'Charges fixes sur douze mois' },
   z: { nom: 'caisse', specs: ['z', 'annules'], titre: 'Caisse : Z quotidiens et tickets annulés' },
-  fdj: { nom: 'jeux-fdj-pmu', specs: ['fdj', 'pmu', 'controleFdj'], titre: 'Jeux : relevés FDJ et PMU, contrôle quotidien' },
+  fdj: { nom: 'jeux-fdj-pmu', specs: ['fdj', 'pmu', 'controleFdj'], titre: 'Jeux : relevés FDJ et PMU, contrôle à la semaine' },
   pmu: { nom: 'releves-pmu', specs: ['pmu'], titre: 'Relevés PMU' },
-  controleFdj: { nom: 'controle-fdj', specs: ['controleFdj'], titre: 'Contrôle FDJ : Profession Jeux face à Strator' },
+  controleFdj: { nom: 'controle-fdj', specs: ['controleFdj', 'parionsSport', 'fdjSemaines'], titre: 'Contrôle FDJ : le théorique face au réel, semaine par semaine' },
+  tva: { nom: 'tva-septembre', specs: ['tva'], titre: 'TVA de septembre' },
   collectes: { nom: 'caisse-collectes', specs: ['collectes', 'caisseDepuis'], titre: 'Caisse : collectes et espèces depuis la dernière collecte' },
   fdjSemaines: { nom: 'fdj-estimations', specs: ['fdjSemaines', 'fdjJours'], titre: 'FDJ : estimations et relevés' },
   factures: { nom: 'factures', specs: ['factures', 'lignes'], titre: 'Factures, ligne par ligne' },
@@ -215,8 +240,8 @@ const EXPORTS = {
   cbd: { nom: 'cbd-lots', specs: ['cbd'], titre: 'CBD : lots et traçabilité' },
   commande: { nom: 'commande-jeudi', specs: ['commande'], titre: 'Commande de jeudi' },
   stock: { nom: 'stock', specs: ['stockFam', 'vape', 'cbd'], titre: 'Stock et références' },
-  resultat: { nom: 'compte-de-resultat', specs: ['resultat', 'ventes', 'ratios'], titre: 'Compte de résultat et ratios' },
-  classeur: { nom: 'le-balto-complet', specs: ['resultat', 'ventes', 'semaine', 'plan', 'mouvements', 'fixes', 'caisseDepuis', 'collectes', 'z', 'annules', 'fdjSemaines', 'fdjJours', 'controleFdj', 'fdj', 'pmu', 'factures', 'lignes', 'stockFam', 'vape', 'cbd', 'ratios'], titre: 'Tout le cockpit' },
+  resultat: { nom: 'compte-de-resultat', specs: ['resultat', 'ventes', 'revueRatios', 'ratios'], titre: 'Compte de résultat et ratios' },
+  classeur: { nom: 'le-balto-complet', specs: ['resultat', 'ventes', 'semaine', 'plan', 'mouvements', 'fixes', 'caisseDepuis', 'collectes', 'z', 'annules', 'fdjSemaines', 'fdjJours', 'controleFdj', 'parionsSport', 'fdj', 'pmu', 'tva', 'factures', 'lignes', 'stockFam', 'vape', 'cbd', 'revueRatios', 'ratios'], titre: 'Tout le cockpit' },
 };
 
 function valeurCsv(v, t) {
@@ -343,7 +368,9 @@ async function construirePack() {
     ['Trésorerie totale au 30 septembre, 21 h', eur(finSep.total)],
     ['Point bas du mois', eur(basSep.total) + ' (' + dCourt(basSep.date) + ')'],
     ['Factures reçues, lues et rangées', factSep.length + ' factures, ' + factSep.reduce((s, f) => s + f.lignes.length, 0) + ' lignes'],
-    ['Contrôle FDJ', 'Un écart de +12,00 € le 15 septembre, expliqué (ticket Loto saisi deux fois)'],
+    ['Contrôle FDJ', 'Les semaines se compensent : ' + eur2(ECART_SEPT_FDJ, true) + ' sur le mois, chaque semaine dans la zone normale'],
+    ['TVA de septembre', eur2(TVA_SEPT.du) + ', prélevée le 21 octobre (collectée ' + eur2(TVA_SEPT.coll) + ', déductible ' + eur2(TVA_SEPT.ded) + ')'],
+    ['Ratios', RATIOS_SEPT.liste.length + ' passés en revue : ' + RATIOS_SEPT.coherents.length + ' cohérents, ' + RATIOS_SEPT.aExpliquer.length + ' à expliquer (' + RATIOS_SEPT.aExpliquer.map((x) => x.nom).join(', ') + ')'],
     ['Café', D.ratios[8].tasses_kg + ' tasses par kilo, environ 138 attendues : à vérifier'],
   ], { columnStyles: { 1: { halign: 'right', cellWidth: 74 } } });
   titre('Ce que rapporte chaque rayon', 'Septembre 2026, comparé à septembre 2025');

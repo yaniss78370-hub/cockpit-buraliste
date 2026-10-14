@@ -3,7 +3,7 @@
    Démonstration : les réponses viennent des données d'exemple du Balto.
    ================================================================== */
 const AS = { fil: [] };
-const IDEES = ['Combien on a fait aujourd’hui ?', 'Où j’atterris lundi ?', 'Le FDJ est juste cette semaine ?', 'Il reste combien de Fraise glacée ?', 'Qui a appelé ce soir ?', 'Combien je vire à la FDJ ?', 'Combien d’espèces en caisse ?', 'Mon résultat d’octobre ?'];
+const IDEES = ['Combien on a fait aujourd’hui ?', 'Où j’atterris lundi ?', 'Le contrôle FDJ est bon ?', 'Combien de TVA ce mois-ci ?', 'Il reste combien de Fraise glacée ?', 'Qui a appelé ce soir ?', 'Combien je vire à la FDJ ?', 'Combien d’espèces en caisse ?', 'Mon résultat d’octobre ?'];
 const sansAccent = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const lienAs = (route, lib, extra = '') => '<br><button class="lien-bouton" type="button" data-action="aller" data-route="' + route + '"' + extra + '>' + lib + ' ' + ic('fleche') + '</button>';
 function chercherRef(q) {
@@ -47,12 +47,20 @@ function repondre(q) {
     return 'Je n’ai pas trouvé ce produit. Essayez avec son nom, par exemple « Fraise glacée » ou « Lemon Haze ».';
   }
   if (a(/vire|virer|virement|alimenter|compte fdj/)) return 'Mercredi 14, la FDJ prélève <b>' + eur2(prochain.solde) + '</b> (relevé de la semaine ' + prochain.semaine + '). Le compte FDJ a ' + eur(D.comptes.fdj) + ' : <b>virez ' + eur(prochain.solde - D.comptes.fdj) + ' de la BNP avant mercredi</b>. Et ' + eur(3240000) + ' vers la Banque Populaire avant jeudi, pour les recharges et Logista.' + lienAs('tresorerie', 'Voir la semaine');
-  if (a(/fdj|profession jeux|ecart|jeux|loto|grattage|prelev/)) {
+  if (a(/\btva\b|ca3|dgfip|impot/)) {
+    const t = TVA_SEPT;
+    return 'La TVA de septembre : <b>' + eur2(t.du) + '</b>, prélevée le mercredi 21 octobre. ' + eur2(t.coll) + ' collectés sur vos ventes de la boutique en caisse, moins ' + eur2(t.ded) + ' de TVA sur vos ' + t.n + ' factures d’achat. Elle est déjà dans votre plan de vol.' + lienAs('tresorerie', 'Voir la trésorerie');
+  }
+  if (a(/ratio|histoire|propre|administration|controle fiscal|facture electronique/)) {
+    const R = RATIOS_SEPT;
+    return '<b>' + R.liste.length + ' ratios passés en revue</b> en septembre : ' + R.coherents.length + ' cohérents, ' + R.aExpliquer.length + ' à expliquer. ' + R.aExpliquer.map((x) => maj(x.nom) + ' : ' + x.val + ', ' + x.att).join('. ') + '.' + lienAs('rentabilite', 'Voir les ratios');
+  }
+  if (a(/fdj|profession jeux|ecart|jeux|loto|grattage|prelev|parions|carnet/)) {
     const s = fdjSemaineV2(lundiDe(AUJ));
-    const sem = fdjSemaine(lundiDe(AUJ));
-    const juste = sem.every((x) => !x.ecart);
-    return 'Cette semaine (lundi et mardi) : Profession Jeux et Strator sont <b>' + (juste ? 'justes au centime' : 'en écart') + '</b>. ' +
-      'Atterrissage du prélèvement du mercredi 21 : <b>≈ ' + eur(s.atterrissage) + '</b>.<br>La semaine dernière, un écart de <b>' + eur2(-4500) + '</b> : jeudi 8 octobre à 14 h 31 min 08 s, trois tickets à gratter passés au terminal, absents de la caisse.' + lienAs('fdj', 'Voir la page FDJ');
+    const C = CTRL_FDJ;
+    return 'Le contrôle à la semaine : la FDJ facture le grattage par carnet, donc chaque semaine a son petit écart. Sur septembre, ils se compensent : <b>' + eur2(ECART_SEPT_FDJ, true) + '</b>.' +
+      (C.pari ? '<br>La semaine 41 est sortie de la zone (' + eur2(C.pari.ecart, true) + ') : en isolant Parions Sport, un pari de <b>' + eur2(PARIONS.montant) + '</b> du jeudi 8 octobre à 14 h 31 min 08 s, absent de la caisse.' : '') +
+      '<br>Atterrissage du prélèvement du mercredi 21 : <b>≈ ' + eur(s.atterrissage) + '</b>.' + lienAs('fdj', 'Voir le contrôle FDJ');
   }
   if (a(/espece|liquide|collecte|tiroir|coffre|caisse contient|en caisse/)) return '<b>' + eur2(especes) + '</b> à avoir en caisse depuis la collecte du vendredi 9 octobre, 20 h 30, gains de jeux payés déduits. Collecte de vendredi 16 : <b>≈ ' + eur(COLLECTE_ENV) + '</b>.' + lienAs('caisse', 'Compter la caisse');
   if (a(/atterri|lundi|tresorerie|logista|passe|banque|compte/)) return 'Lundi soir, après la facture Logista (' + eur(2933000) + ') : <b>' + eur(ATT.total) + '</b>, dont <b>' + eur(VAV.vraiment) + ' vraiment à vous</b>. ' + phrasePlanAs() + lienAs('tresorerie', 'Voir la trésorerie');
